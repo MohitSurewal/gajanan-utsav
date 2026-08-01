@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}
+
+Schedule Manager
+
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+<div class="container">
+
+<h1>📅 Schedule Manager</h1>
+
+<form method="POST">
+
+<input
+type="hidden"
+name="csrf_token"
+value="{{ csrf_token() }}"
+>
+
+<h2>Aarti Time</h2>
+
+<label>Morning</label>
+
+<input
+type="text"
+name="morning"
+value="{{ schedule.aarti.morning }}"
+>
+
+<label>Evening</label>
+
+<input
+type="text"
+name="evening"
+value="{{ schedule.aarti.evening }}"
+>
+
+<hr>
+
+<h2>Programs</h2>
+
+{% for item in schedule.program %}
+
+<div class="admin-card">
+
+<input
+type="text"
+name="program_date{{ loop.index }}"
+value="{{ item.date }}"
+>
+
+<input
+type="text"
+name="program_title{{ loop.index }}"
+value="{{ item.title }}"
+>
+
+</div>
+
+{% endfor %}
+
+<hr>
+
+<h2>Games</h2>
+
+{% for item in schedule.games %}
+
+<div class="admin-card">
+
+<input
+type="text"
+name="game_date{{ loop.index }}"
+value="{{ item.date }}"
+>
+
+<input
+type="text"
+name="game_name{{ loop.index }}"
+value="{{ item.game }}"
+>
+
+</div>
+
+{% endfor %}
+
+<button
+class="admin-btn"
+type="submit"
+>
+
+💾 Save Schedule
+
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Hall of Fame | Gajanan Utsav Samiti{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+
+    <div class="container">
+
+        <h1>🏆 Hall of Fame</h1>
+
+        <p>
+            Honouring participants who have consistently excelled across
+            different competitions over the years.
+        </p>
+
+    </div>
+
+</section>
+
+<section class="hall-search-section">
+
+    <div class="container">
+
+        <div class="hall-search-box">
+
+            <input
+                type="text"
+                id="hallSearch"
+                placeholder="Search participant..."
+            >
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="top-champions">
+
+    <div class="container">
+
+        <h2>🏆 Top Champions</h2>
+
+        <div class="champion-grid">
+
+            {% for person in top_three %}
+
+            <div class="champion-card rank-{{ loop.index }}">
+
+                <div class="champion-rank">
+
+                    {% if loop.index == 1 %}
+                        🥇
+                    {% elif loop.index == 2 %}
+                        🥈
+                    {% else %}
+                        🥉
+                    {% endif %}
+
+                </div>
+
+                <h3>{{ person.name }}</h3>
+
+                <p>{{ person.total }} Awards</p>
+
+                <div class="champion-medals">
+
+                    🥇 {{ person.gold }}
+
+                    🥈 {{ person.silver }}
+
+                    🥉 {{ person.bronze }}
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="hall-of-fame">
+
+    <div class="container">
+
+        <div class="hall-grid">
+
+            {% for person in hall_of_fame %}
+
+            <div
+                class="hall-card"
+                data-search="{{ person.name|lower }}"
+            >
+
+                <div class="hall-card-header">
+
+                    <div class="hall-avatar">
+
+                        🏆
+
+                    </div>
+
+                    <div class="hall-info">
+
+                        <h3>{{ person.name }}</h3>
+
+                        <span>{{ person.total }} Total Award{{ 's' if person.total != 1 else '' }}</span>
+
+                    </div>
+
+                </div>
+
+                <div class="hall-medals">
+
+                    <div class="medal gold">
+
+                        <span>🥇</span>
+
+                        <strong>{{ person.gold }}</strong>
+
+                        <small>Gold</small>
+
+                    </div>
+
+                    <div class="medal silver">
+
+                        <span>🥈</span>
+
+                        <strong>{{ person.silver }}</strong>
+
+                        <small>Silver</small>
+
+                    </div>
+
+                    <div class="medal bronze">
+
+                        <span>🥉</span>
+
+                        <strong>{{ person.bronze }}</strong>
+
+                        <small>Bronze</small>
+
+                    </div>
+
+                </div>
+
+                <div class="hall-history">
+
+                    <h4>Award History</h4>
+
+                    <ul>
+
+                        {% for award in person.awards %}
+
+                        <li>
+
+                            {% if award.position == 1 %}
+                                🥇
+                            {% elif award.position == 2 %}
+                                🥈
+                            {% elif award.position == 3 %}
+                                🥉
+                            {% endif %}
+
+                            {{ award.game }}
+
+                            <span>({{ award.year }})</span>
+
+                        </li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <div class="hall-no-results" id="hallNoResults">
+
+            <i>🏆</i>
+
+            <h3>No Participant Found</h3>
+
+            <p>
+                Try searching with another participant name.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+{% block scripts %}
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const search = document.getElementById("hallSearch");
+
+    const cards = document.querySelectorAll(".hall-card");
+
+    const empty = document.getElementById("hallNoResults");
+
+    search.addEventListener("input", function () {
+
+        const value = this.value.toLowerCase().trim();
+
+        let visible = 0;
+
+        cards.forEach(card => {
+
+            const text = card.dataset.search;
+
+            if (text.includes(value)) {
+
+                card.style.display = "";
+
+                visible++;
+
+            } else {
+
+                card.style.display = "none";
+
+            }
+
+        });
+
+        empty.style.display = visible === 0 ? "block" : "none";
+
+    });
+
+});
+
+</script>
+
+
+{% endblock %}

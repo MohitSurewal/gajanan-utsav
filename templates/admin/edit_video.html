@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Video
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+<div class="container">
+
+<h1>✏ Edit Video</h1>
+
+<form method="POST">
+
+<input
+type="hidden"
+name="csrf_token"
+value="{{ csrf_token() }}"
+>
+
+<label>Year</label>
+
+<input
+type="text"
+name="year"
+value="{{ video.year }}"
+required>
+
+<label>Title</label>
+
+<input
+type="text"
+name="title"
+value="{{ video.title }}"
+required>
+
+<label>YouTube Embed Link</label>
+
+<input
+type="text"
+name="youtube"
+value="{{ video.youtube }}"
+required>
+
+<button
+class="admin-btn"
+type="submit">
+
+Update Video
+
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+{% endblock %}

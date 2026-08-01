@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}
+Videos Manager
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <h1>🎥 Videos Manager</h1>
+
+        <div style="margin-bottom:20px;">
+
+            <a
+                href="{{ url_for('admin_add_video') }}"
+                class="admin-btn">
+
+                ➕ Add Video
+
+            </a>
+
+        </div>
+
+        <table class="admin-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Year</th>
+
+                    <th>Title</th>
+
+                    <th>YouTube Link</th>
+
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for video in videos %}
+
+                <tr>
+
+                    <td>{{ video.year }}</td>
+
+                    <td>{{ video.title }}</td>
+
+                    <td>{{ video.youtube }}</td>
+
+                    <td>
+
+                        <a
+                            href="{{ url_for('admin_edit_video', index=loop.index0) }}"
+                            class="admin-btn">
+
+                            ✏ Edit
+
+                        </a>
+
+                        <a
+                            href="{{ url_for('admin_delete_video', index=loop.index0) }}"
+                            class="admin-btn delete-btn"
+                            onclick="return confirm('Delete this video?');">
+
+                            🗑 Delete
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+{% endblock %}

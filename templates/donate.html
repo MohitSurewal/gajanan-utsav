@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}
+Gupt Daan | Gajanan Utsav Samiti 2026
+{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+
+    <div class="container">
+
+        <h1>Gupt Daan</h1>
+
+        <p>
+            आपका छोटा सा सहयोग गणेश उत्सव को सफल बनाने में महत्वपूर्ण योगदान देता है।
+        </p>
+
+    </div>
+
+</section>
+
+<section class="donate-page">
+
+    <div class="container donate-grid">
+
+        <!-- Left -->
+
+        <div class="donate-info fade-up">
+
+            <h2>🙏 Donate via UPI</h2>
+
+            <p>
+
+                PhonePe / Google Pay / Paytm
+
+            </p>
+            
+            <p>
+
+                Mohit Surewal
+
+            </p>
+
+            <h3>
+
+                UPI ID
+
+            </h3>
+
+            <div class="upi-box">
+
+                surewal.mohit@ybl
+
+            </div>
+
+            <a href="#" class="btn">
+
+                Copy UPI ID
+
+            </a>
+
+        </div>
+
+        <!-- Right -->
+
+        <div class="qr-box fade-up">
+
+            <img src="{{ url_for('static', filename='images/qr.png') }}">
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="contact-box">
+
+<div class="container">
+
+<h2>Contact</h2>
+
+<div class="contact-grid">
+
+<div>
+
+<i class="fa-solid fa-location-dot"></i>
+
+<p>I TYPE Colony</p>
+
+</div>
+
+<div>
+
+<i class="fa-solid fa-phone"></i>
+
+<p>+91 xxxxxxxxxx</p>
+
+</div>
+
+<div>
+
+<i class="fa-brands fa-whatsapp"></i>
+
+<p>WhatsApp Available</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+{% endblock %}

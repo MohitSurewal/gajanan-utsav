@@ -1,0 +1,584 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home | Gajanan Utsav Samiti 2026
+{% endblock %}
+
+{% block content %}
+
+<!-- Announcement -->
+
+<section class="announcement">
+
+    <marquee scrollamount="5">
+
+        🙏 गणपति बप्पा मोरया 🙏 |
+        गजानन उत्सव समिति, I TYPE COLONY में आपका हार्दिक स्वागत है |
+        गणेश आगमन : 14 सितम्बर 2026 |
+        हवन : 23 सितम्बर |
+        भंडारा : 24 सितम्बर |
+        विसर्जन : 25 सितम्बर
+
+    </marquee>
+
+</section>
+
+<!-- HERO SECTION -->
+
+<section class="hero reveal">
+
+    <div class="container hero-container">
+
+        <div class="hero-left fade-up">
+
+            <span class="badge">
+                ✨ Welcome to Official Website
+            </span>
+
+            <h1>
+                गजानन उत्सव समिति
+            </h1>
+
+            <h2>
+                I TYPE COLONY
+            </h2>
+
+            <p>
+
+                गणेश उत्सव केवल एक पर्व नहीं,
+                बल्कि हमारी एकता, सेवा, संस्कृति
+                और भक्ति का प्रतीक है।
+
+            </p>
+
+            <div class="hero-buttons">
+
+                <a href="/schedule" class="btn">
+
+                    View Schedule
+
+                </a>
+
+                <a href="/gallery" class="btn btn-outline">
+
+                    Gallery
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="hero-right fade-up">
+
+            <img
+                src="{{ url_for('static', filename='images/ganesh.png') }}"
+                alt="Lord Ganesha">
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- COUNTDOWN -->
+
+<section class="countdown reveal">
+
+    <div class="container">
+
+        <h2>
+
+            गणपति आगमन
+
+        </h2>
+
+        <div class="timer">
+
+            <div>
+
+                <span id="days">00</span>
+
+                <p>Days</p>
+
+            </div>
+
+            <div>
+
+                <span id="hours">00</span>
+
+                <p>Hours</p>
+
+            </div>
+
+            <div>
+
+                <span id="minutes">00</span>
+
+                <p>Minutes</p>
+
+            </div>
+
+            <div>
+
+                <span id="seconds">00</span>
+
+                <p>Seconds</p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="today-notice">
+
+<div class="container">
+
+<div class="notice-card">
+
+<h2>{{ notice.title }}</h2>
+
+<h4>{{ notice.date }}</h4>
+
+<p>
+
+{{ notice.message }}
+
+</p>
+
+<div class="important-box">
+
+<strong>Important :</strong>
+
+{{ notice.important }}
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+<!-- =========================
+ FESTIVAL HIGHLIGHTS
+========================== -->
+
+<section class="highlights reveal-left">
+
+    <div class="container">
+
+        <div class="section-title fade-up">
+
+            <h2>Festival Highlights</h2>
+
+            <p>11 Days of Devotion, Culture & Celebration</p>
+
+        </div>
+
+        <div class="highlight-grid">
+
+            <div class="highlight-card fade-up">
+
+                <i class="fa-solid fa-temple"></i>
+
+                <h3>Daily Aarti</h3>
+
+                <p>
+                    Every evening devotees gather for Maha Aarti.
+                </p>
+
+            </div>
+
+            <div class="highlight-card fade-up">
+
+                <i class="fa-solid fa-trophy"></i>
+
+                <h3>Games</h3>
+
+                <p>
+                    Fun competitions for children and families.
+                </p>
+
+            </div>
+
+            <div class="highlight-card fade-up">
+
+                <i class="fa-solid fa-utensils"></i>
+
+                <h3>Bhandara</h3>
+
+                <p>
+
+                    Prasad distribution for everyone.
+
+                </p>
+
+            </div>
+
+            <div class="highlight-card fade-up">
+
+                <i class="fa-solid fa-drum"></i>
+
+                <h3>Visarjan</h3>
+
+                <p>
+
+                    Grand farewell with devotion.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="latest-winners reveal">
+
+    <div class="container">
+
+        <div class="section-title">
+            <h2>🏆 Latest Winners</h2>
+            <p>Congratulations to our Champions</p>
+        </div>
+
+        <div class="winner-grid">
+
+            {% for item in latest_winners %}
+
+            <div class="winner-card">
+
+                <div class="winner-header">
+
+                    <h3>{{ item.game }}</h3>
+
+                    <span>{{ item.year }}</span>
+
+                </div>
+
+                {% if item.type=="ranking" %}
+
+                    {% for winner in item.data %}
+
+                    <div class="winner-row">
+                        <img
+                        src="{{ url_for('static', filename=winner.photo) }}"
+                        alt="{{ winner.name }}"
+                        class="winner-thumb">
+
+                        <span>
+
+                            {% if winner.position==1 %}
+                            🥇
+                            {% elif winner.position==2 %}
+                            🥈
+                            {% else %}
+                            🥉
+                            {% endif %}
+
+                            {{ winner.name }}
+
+                        </span>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    {% for group in item.data %}
+
+                    <div class="winner-row">
+                        <img
+                            src="{{ url_for('static', filename=group.winner.photo) }}"
+                            alt="{{ group.winner.name }}"
+                            class="winner-thumb">
+
+                        <strong>{{ group.age_group }}</strong>
+
+                        <br>
+
+                        🥇 {{ group.winner.name }}
+
+                    </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <div class="center-btn">
+
+            <a href="/winners" class="btn-primary">
+
+                View All Winners
+
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- =========================
+QUICK TIMELINE
+========================== -->
+
+<section class="timeline reveal-right">
+
+    <div class="container">
+
+        <div class="section-title">
+
+            <h2>Main Events</h2>
+
+        </div>
+
+        <div class="timeline-box">
+
+        {% for item in schedule.program %}
+
+        <div>
+
+            <span>{{ item.date }}</span>
+
+            <h3>{{ item.title }}</h3>
+
+        </div>
+
+        {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- =========================
+MEMORIES
+========================== -->
+
+<section class="gallery-preview reveal-scale">
+
+    <div class="container preview-grid">
+
+        <div>
+
+            <h2>Previous Years Memories</h2>
+
+            <p>
+
+                Explore beautiful moments captured during previous Ganesh Utsav celebrations.
+
+            </p>
+
+            <a href="/gallery" class="btn">
+
+                View Gallery
+
+            </a>
+
+        </div>
+
+        <div class="preview-image">
+
+            <img src="{{ url_for('static', filename='images/gallery-preview.jpg') }}" alt="Gallery Preview">
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- =========================
+DONATION
+========================== -->
+
+<section class="donation reveal">
+
+    <div class="container donation-box">
+
+        <div>
+
+            <h2>Gupt Daan</h2>
+
+            <p>
+
+                Support the festival with your contribution.
+
+            </p>
+
+            <a href="/donate" class="btn">
+
+                Donate Now
+
+            </a>
+
+        </div>
+
+        <img src="{{ url_for('static', filename='images/qr.png') }}" alt="QR">
+
+    </div>
+
+</section>
+
+<!-- =========================
+LOCATION
+========================== -->
+
+<section class="location">
+
+    <div class="container">
+
+        <div class="section-title">
+
+            <h2>Visit Us</h2>
+
+            <p>I TYPE Colony</p>
+
+        </div>
+
+        <div class="map-box">
+
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1296.5917934341635!2d77.43529421883095!3d23.1951737291578!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x397c4300765648c7%3A0xc250fa875f0fe6d9!2sMohit%20Surewal!5e0!3m2!1sen!2sin!4v1785326591758!5m2!1sen!2sin"
+                style="border:0;"
+                loading="lazy"
+                allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin">
+            </iframe>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="stats reveal-scale">
+
+<div class="container">
+
+<div class="section-title">
+
+<h2>Festival in Numbers</h2>
+
+</div>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+
+<h2 class="counter" data-target="11">0</h2>
+
+<p>Festival Days</p>
+
+</div>
+
+<div class="stat-card">
+
+<h2 class="counter" data-target="500">0</h2>
+
+<p>Devotees</p>
+
+</div>
+
+<div class="stat-card">
+
+<h2 class="counter" data-target="7">0</h2>
+
+<p>Competitions</p>
+
+</div>
+
+<div class="stat-card">
+
+<h2 class="counter" data-target="1">0</h2>
+
+<p>Grand Bhandara</p>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="video-preview">
+
+<div class="container">
+
+<div class="section-title">
+
+<h2>Festival Glimpse 2025</h2>
+
+</div>
+
+<div class="video-card">
+
+<iframe width="100%" height="500"
+
+src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
+
+title="Festival Video"
+
+allowfullscreen>
+
+</iframe>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="committee-preview reveal">
+<div class="container">
+
+<div class="section-title">
+
+<h2>Our Committee</h2>
+
+</div>
+
+<div class="committee-grid">
+
+{% for member in committee[:3] %}
+
+<div class="member">
+
+    <img
+        src="{{ url_for('static', filename=member.image) }}"
+        alt="{{ member.name }}">
+
+    <h3>{{ member.name }}</h3>
+
+    <p>{{ member.post }}</p>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+<div class="scroll-indicator">
+    <span></span>
+</div>
+
+</section>
+
+
+{% endblock %}

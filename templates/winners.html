@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}
+Games Winners
+{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="container">
+        <h1>🏆 Games Winners</h1>
+        <p>Ganesh Utsav Winners Archive</p>
+    </div>
+</section>
+
+<!-- Search & Filter -->
+
+<section class="winner-filter-section">
+
+    <div class="container">
+
+        <div class="winner-filters">
+
+            <input
+                type="text"
+                id="winnerSearch"
+                placeholder="🔍 Search Winner or Game">
+
+            <select id="yearFilter">
+
+                <option value="all">All Years</option>
+
+                {% for year in winners.keys() %}
+                <option value="{{ year }}">
+                    {{ year }}
+                </option>
+                {% endfor %}
+
+            </select>
+
+            <select id="gameFilter">
+
+                <option value="all">All Games</option>
+
+                {% for game in games %}
+
+                    <option value="{{ game.slug }}">
+                        {{ game.game }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% for year, games in winners.items() %}
+
+<section class="winner-year reveal" data-year="{{ year }}">
+
+    <div class="container">
+
+        <h2>{{ year }}</h2>
+
+        <div class="winner-grid">
+
+            {% for game in games %}
+
+            <div
+                class="winner-card"
+                id="{{ game.slug }}"
+                data-year="{{ year }}"
+                data-game="{{ game.slug }}"
+                data-search="
+                {{ game.game|lower }}
+
+                {% if game.type == 'ranking' %}
+
+                {% for person in game.winners %}
+                {{ person.name|lower }}
+                {% endfor %}
+
+                {% elif game.type == 'age_group' %}
+
+                {% for group in game.groups %}
+                {{ group.winner.name|lower }}
+                {% endfor %}
+
+                {% elif game.type == 'team' %}
+
+                {% for team in game.teams %}
+                {{ team.team|lower }}
+                {% endfor %}
+
+                {% endif %}
+                ">
+
+                <!-- Header -->
+
+                <div class="winner-header">
+
+                    <div class="game-title">
+                        <span class="game-icon">
+                            {{ game.icon }}
+                        </span>
+
+                        <h3>{{ game.game }}</h3>
+
+                    </div>
+
+                    <span class="winner-year-tag">
+                        {{ year }}
+                    </span>
+
+                </div>
+
+                <!-- Ranking Games -->
+
+                {% if game.type == "ranking" %}
+
+                    {% for person in game.winners %}
+
+                    <div class="winner-row">
+
+                        <img
+                            src="{{ url_for('static', filename=person.photo if person.photo else 'images/default-user.png') }}"
+                            class="winner-photo"
+                            alt="{{ person.name }}">
+
+                        <div class="winner-details">
+
+                            <div class="winner-name">
+
+                                <span class="medal-badge">
+
+                                    {% if person.position == 1 %}
+                                        🥇 Gold
+                                    {% elif person.position == 2 %}
+                                        🥈 Silver
+                                    {% else %}
+                                        🥉 Bronze
+                                    {% endif %}
+
+                                </span>
+
+                                <span class="winner-text">
+                                    {{ person.name }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                <!-- Age Group Games -->
+
+                {% elif game.type == "age_group" %}
+
+                    {% for group in game.groups %}
+
+                    <div class="age-group-card">
+
+                        <h4 class="age-heading">
+
+                            {{ group.age_group }}
+
+                        </h4>
+
+                        <div class="winner-row">
+
+                            <img
+                                src="{{ url_for('static', filename=group.winner.photo if group.winner.photo else 'images/default-user.png') }}"
+                                class="winner-photo"
+                                alt="{{ group.winner.name }}">
+
+                            <div class="winner-details">
+
+                                <div class="winner-name">
+
+                                    <span class="medal-badge">
+                                        🏅 Winner
+                                    </span>
+
+                                    <span class="winner-text">
+                                        {{ group.winner.name }}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                <!-- Team Games -->
+
+                {% elif game.type == "team" %}
+
+                    {% for team in game.teams %}
+
+                    <div class="team-card">
+
+                        <!-- Future Team Layout -->
+
+                    </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+                <!-- Gallery Button -->
+
+                <div class="winner-footer">
+
+                    {% if game.status=="completed" %}
+
+                    <a
+                    href="{{ url_for('gallery',year=year,event=game.gallery) }}"
+                    class="gallery-btn">
+
+                    📷 View Event Photos
+
+                    </a>
+
+                    {% elif game.status=="live" %}
+
+                    <span class="gallery-btn disabled">
+
+                    🔴 Competition Running
+
+                    </span>
+
+                    {% else %}
+
+                    <span class="gallery-btn disabled">
+
+                    ⏳ Photos Available After Event
+
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endfor %}
+
+{% endblock %}

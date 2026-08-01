@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <h1>🕉️ Gajanan Utsav Samiti Admin</h1>
+
+        <p>
+            Welcome, {{ session.get('admin_username', 'Administrator') }}
+        </p>
+
+        <div class="admin-grid">
+
+            <a href="{{ url_for('admin_notice') }}" class="admin-card">
+                <h3>📢 Notice Manager</h3>
+                <p>Manage website notices.</p>
+            </a>
+
+            <a href="{{ url_for('admin_schedule') }}" class="admin-card">
+                <h3>📅 Schedule Manager</h3>
+                <p>Manage event schedule.</p>
+            </a>
+
+            <a href="{{ url_for('admin_committee') }}" class="admin-card">
+                <h3>👥 Committee Manager</h3>
+                <p>Manage committee members.</p>
+            </a>
+
+            <a href="{{ url_for('admin_winners') }}" class="admin-card">
+                <h3>🏆 Winners Manager</h3>
+                <p>Add, edit and delete winners.</p>
+            </a>
+
+            <a href="{{ url_for('admin_gallery') }}" class="admin-card">
+                <h3>🖼 Gallery Manager</h3>
+                <p>Upload gallery images.</p>
+            </a>
+
+            <a href="{{ url_for('admin_videos') }}" class="admin-card">
+                <h3>🎥 Videos Manager</h3>
+                <p>Manage videos.</p>
+            </a>
+
+            <a href="{{ url_for('admin_logout') }}" class="admin-card logout-card">
+                <h3>🚪 Logout</h3>
+                <p>Sign out from admin panel.</p>
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

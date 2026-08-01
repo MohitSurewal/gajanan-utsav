@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Gajanan Utsav Samiti 2026{% endblock %}</title>
+
+    <meta name="description"
+        content="Official website of Gajanan Utsav Samiti 2026 | I Type Colony">
+
+    <meta name="theme-color" content="#111111">
+
+    <!-- Google Fonts -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <!-- CSS -->
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/responsive.css') }}">
+
+    {% block extra_css %}{% endblock %}
+
+</head>
+
+
+
+<body> 
+    <!-- ================= PRELOADER ================= -->
+
+    <div id="preloader">
+
+        <div class="loader-content">
+
+            <div class="loader-logo">
+                🕉️
+            </div>
+
+            <h2>गजानन उत्सव समिति</h2>
+
+            <p>Ganpati Bappa Morya</p>
+
+            <div class="loader-bar">
+                <span></span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <header class="navbar">
+
+        <div class="container">
+
+            <a href="/" class="logo">
+
+                <i class="fa-solid fa-om"></i>
+
+                <span>GAJANAN UTSAV SAMITI</span>
+
+            </a>
+
+            <nav id="navMenu" aria-label="Main Navigation">
+
+                <a href="/" class="{{ 'active' if active_page=='home' else '' }}">Home</a>
+
+                <a href="/schedule" class="{{ 'active' if active_page=='schedule' else '' }}">Schedule</a>
+
+                <a href="/gallery" class="{{ 'active' if active_page=='gallery' else '' }}">Gallery</a>
+
+                <a href="/videos" class="{{ 'active' if active_page=='videos' else '' }}">Videos</a>
+
+                <a href="/committee" class="{{ 'active' if active_page=='committee' else '' }}">Committee</a>
+
+                <a href="/winners" class="{{ 'active' if active_page=='winners' else '' }}">Winners</a>
+
+                <a href="/hall-of-fame" class="{{ 'active' if active_page=='hall_of_fame' else '' }}">
+                Hall&nbsp;of&nbsp;Fame
+                </a>
+
+                <a href="/contact" class="{{ 'active' if active_page=='contact' else '' }}">Contact</a>
+
+                <a href="/donate" class="donate-btn" class="{{ 'active' if active_page=='donate' else '' }}">
+                    Gupt Daan🤗
+                </a>
+
+            </nav>
+
+            <button id="menuBtn">
+
+                <i class="fa-solid fa-bars"></i>
+
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- ================= PAGE ================= -->
+
+    <main>
+
+        {% block content %}
+
+        {% endblock %}
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+
+        <div class="container footer-content">
+
+            <h2>गजानन उत्सव समिति 2026</h2>
+
+            <p>I TYPE COLONY</p>
+
+            <p>
+
+                Ganpati Bappa Morya 🙏
+
+            </p>
+            <hr class="footer-divider">
+            <div class="social">
+
+                <a href="#"><i class="fab fa-facebook"></i></a>
+
+                <a href="#"><i class="fab fa-instagram"></i></a>
+
+                <a href="#"><i class="fab fa-youtube"></i></a>
+
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+
+            </div>
+
+            <p class="copyright">
+
+                © 2026 Gajanan Utsav Samiti
+
+            </p>
+
+            <p class="developer">
+
+                Surewal.tech | All Rights Reserved
+               
+            </p>
+        </div>
+
+    </footer>
+
+    <!-- Back To Top -->
+
+    <button id="topBtn">
+
+        <i class="fa-solid fa-arrow-up"></i>
+
+    </button>
+
+    <!-- JS -->
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    {% block extra_js %}{% endblock %}
+
+
+</body>
+
+</html>

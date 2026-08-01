@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Server Error{% endblock %}
+
+{% block content %}
+
+<section class="error-page">
+
+    <div class="error-card">
+
+        <h1>500</h1>
+
+        <h2>Internal Server Error</h2>
+
+        <p>
+
+            Something went wrong.
+
+            Please try again later.
+
+        </p>
+
+        <a href="{{ url_for('home') }}" class="admin-btn">
+
+            Go Home
+
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

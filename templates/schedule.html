@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}
+Festival Schedule | Gajanan Utsav Samiti 2026
+{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+
+    <div class="container">
+
+        <h1>Festival Schedule</h1>
+
+        <p>Ganesh Utsav 2026 • I TYPE Colony</p>
+
+    </div>
+
+</section>
+
+<section class="schedule-section">
+
+    <div class="container">
+
+        <!-- Program -->
+
+        <h2>Main Program</h2>
+
+        <div class="event-list">
+
+        {% for event in schedule.program %}
+
+        <div class="event">
+
+        <span>
+
+        {{ event.date }}
+
+        </span>
+
+        <h3>
+
+        {{ event.title }}
+
+        </h3>
+        {% if event.winner_link %}
+
+        <a class="winner-btn"
+        href="/winners#{{ event.winner_link }}">
+
+        🏆 View Winners
+
+        </a>
+
+        {% endif %}
+
+        </div>
+
+{% endfor %}
+
+</div>
+
+        <!-- Games -->
+
+        <div class="schedule-card fade-up">
+
+            <h2>Games</h2>
+
+            <div class="games-grid">
+
+            {% for game in schedule.games %}
+
+            <div class="game">
+
+            <strong>
+
+            {{ game.date }}
+
+            </strong>
+
+            <p>
+
+            {{ game.game }}
+
+            </p>
+
+            </div>
+
+{% endfor %}
+
+</div>
+
+        <!-- Aarti -->
+
+        <div class="schedule-card fade-up">
+
+            <h2>Daily Aarti</h2>
+
+            <div class="aarti-box">
+
+            <h3>
+
+            Morning Aarti
+
+            </h3>
+
+            <p>
+
+            {{ schedule.aarti.morning }}
+
+            </p>
+
+            <h3>
+
+            Evening Aarti
+
+            </h3>
+
+            <p>
+
+            {{ schedule.aarti.evening }}
+
+            </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

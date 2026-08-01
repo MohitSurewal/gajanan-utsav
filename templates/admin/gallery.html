@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}
+
+Gallery Manager
+
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+<div class="container">
+
+<h1>🖼 Gallery Manager</h1>
+
+<p>Upload Event Photos</p>
+
+<form
+method="POST"
+enctype="multipart/form-data"
+>
+
+<input
+type="hidden"
+name="csrf_token"
+value="{{ csrf_token() }}"
+>
+
+<label>Year</label>
+
+<input
+type="text"
+name="year"
+placeholder="2026"
+required>
+
+<label>Event Folder</label>
+
+<input
+type="text"
+name="event"
+placeholder="dance-competition"
+required>
+
+<label>Select Images</label>
+
+<input
+type="file"
+name="photos"
+multiple
+accept=".jpg,.jpeg,.png,.webp"
+required>
+
+<button
+class="admin-btn"
+type="submit">
+
+Upload
+
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+{% endblock %}
+

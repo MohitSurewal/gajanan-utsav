@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}
+
+Gallery Files
+
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+<div class="container">
+
+<h1>
+
+Gallery Files
+
+</h1>
+
+{% for year, events in gallery.items() %}
+
+<h2>
+
+{{ year }}
+
+</h2>
+
+{% for event, photos in events.items() %}
+
+<h3>
+
+{{ event }}
+
+</h3>
+
+<div class="gallery-grid">
+
+{% for photo in photos %}
+
+<div class="admin-card">
+
+<img
+src="{{ photo.url }}"
+style="width:100%;border-radius:10px;">
+
+<br><br>
+
+<a
+href="{{ url_for(
+'admin_delete_photo',
+year=year,
+event=event,
+public_id=photo.public_id
+) }}"
+class="admin-btn delete-btn"
+onclick="return confirm('Delete image?');">
+
+Delete
+
+</a>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% endfor %}
+
+{% endfor %}
+
+</div>
+
+</section>
+
+{% endblock %}

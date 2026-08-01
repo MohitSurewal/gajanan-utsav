@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Winners Manager{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <h1>🏆 Winners Manager</h1>
+
+        <p>Manage All Winners</p>
+
+        <div class="table-responsive">
+
+            <table class="admin-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Year</th>
+
+                        <th>Game</th>
+
+                        <th>Type</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for year, games in winners.items() %}
+
+                        {% for game in games %}
+
+                        <tr>
+
+                            <td>{{ year }}</td>
+
+                            <td>{{ game.game }}</td>
+
+                            <td>{{ game.type|replace("_"," ")|title }}</td>
+
+                            <td>
+
+                                <a
+                                    href="{{ url_for('admin_edit_winner', year=year, slug=game.slug) }}"
+                                    class="admin-btn">
+
+                                    Edit
+
+                                </a>
+
+                                    <a
+                                        href="{{ url_for('admin_delete_winner', year=year, slug=game.slug) }}"
+                                        class="admin-btn delete-btn"
+
+                                        onclick="return confirm('Delete this winner permanently?');">
+
+                                        🗑 Delete
+
+                                    </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}
+
+Add Video
+
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+<div class="container">
+
+<h1>
+
+➕ Add Video
+
+</h1>
+
+<form method="POST">
+
+<input
+type="hidden"
+name="csrf_token"
+value="{{ csrf_token() }}"
+>
+
+<label>Year</label>
+
+<input
+type="text"
+name="year"
+required>
+
+<label>Title</label>
+
+<input
+type="text"
+name="title"
+required>
+
+<label>YouTube Embed Link</label>
+
+<input
+type="text"
+name="youtube"
+required>
+
+<button
+class="admin-btn"
+type="submit">
+
+Save
+
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+{% endblock %}

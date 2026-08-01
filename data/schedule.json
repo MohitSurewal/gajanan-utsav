@@ -1,0 +1,70 @@
+{
+    "aarti": {
+        "morning": "08:00 AM",
+        "evening": "07:30 PM"
+    },
+
+    "program": [
+
+        {
+            "date":"14 September 2026",
+            "title":"Ganesh Agaman"
+        },
+
+                {
+            "date":"22 September 2026",
+            "title":"Ganesh Maha Aarti"
+        },
+
+
+        {
+            "date":"23 September 2026",
+            "title":"Havan"
+        },
+
+        {
+            "date":"24 September 2026",
+            "title":"Bhandara"
+        },
+
+        {
+            "date":"25 September 2026",
+            "title":"Visarjan"
+        }
+
+    ],
+
+    "games":[
+
+        {
+            "date":"16 September",
+            "game":"Lemon Spoon Race"
+        },
+
+        {
+            "date":"17 September",
+            "game":"Musical Chair"
+        },
+
+        {
+            "date":"18 September",
+            "game":"Balancing Ball"
+        },
+
+        {
+            "date":"19 September",
+            "game":"Matki Phod"
+        },
+
+        {
+            "date":"20 September",
+            "game":"Cup & Balloons"
+        },
+
+        {
+            "date":"22 September",
+            "game":"Dance Competition"
+        }
+
+    ]
+}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}
+Videos | Gajanan Utsav Samiti 2026
+{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+
+    <div class="container">
+
+        <h1>Festival Videos</h1>
+
+        <p>Relive the beautiful moments of Ganesh Utsav</p>
+
+    </div>
+
+</section>
+
+<section class="video-gallery">
+
+<div class="container">
+
+<div class="video-filter">
+
+<button class="video-btn active" data-year="all">All</button>
+
+<button class="video-btn" data-year="2026">2026</button>
+
+<button class="video-btn" data-year="2025">2025</button>
+
+<button class="video-btn" data-year="2024">2024</button>
+
+</div>
+
+<div class="video-grid">
+
+{% for video in videos %}
+
+<div
+class="video-item"
+data-year="{{ video.year }}">
+
+<iframe
+src="{{ video.youtube }}"
+allowfullscreen>
+</iframe>
+
+<h3>
+
+{{ video.title }}
+
+</h3>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</section>
+
+{% endblock %}

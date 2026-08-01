@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Winner{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <h1>{{ game.game }}</h1>
+
+        <p>{{ year }}</p>
+
+        <form method="POST">
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            {% if game.type == "ranking" %}
+
+                {% for person in game.winners %}
+
+                <div class="admin-card">
+
+                    <h3>
+
+                        Position {{ person.position }}
+
+                    </h3>
+
+                    <label>Name</label>
+
+                    <input
+                        type="text"
+                        name="name{{ loop.index }}"
+                        value="{{ person.name }}"
+                    >
+
+                    <label>Photo</label>
+
+                    <input
+                        type="text"
+                        name="photo{{ loop.index }}"
+                        value="{{ person.photo }}"
+                    >
+
+                </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+            {% elif game.type == "age_group" %}
+
+                {% for group in game.groups %}
+
+                <div class="admin-card">
+
+                    <h3>{{ group.age_group }}</h3>
+
+                    <label>Winner Name</label>
+
+                    <input
+                        type="text"
+                        name="winner{{ loop.index }}"
+                        value="{{ group.winner.name }}"
+                    >
+
+                    <label>Photo</label>
+
+                    <input
+                        type="text"
+                        name="photo{{ loop.index }}"
+                        value="{{ group.winner.photo }}"
+                    >
+
+                </div>
+
+                {% endfor %}
+
+            <button
+                type="submit"
+                class="admin-btn"
+            >
+
+                Save Changes
+
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}

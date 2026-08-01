@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}
+Gallery | Gajanan Utsav Samiti 2026
+{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+
+    <div class="container">
+
+        <h1>📷 Photo Gallery</h1>
+
+        {% if selected_event %}
+            <p>{{ selected_event.replace('-', ' ').title() }}</p>
+        {% else %}
+            <p>Ganesh Utsav Memories</p>
+        {% endif %}
+
+    </div>
+
+</section>
+
+{% for year, events in gallery.items() %}
+
+<section class="gallery-year reveal">
+
+    <div class="container">
+
+        <h2>{{ year }}</h2>
+
+        {% for event_name, images in events.items() %}
+
+        <div class="gallery-event">
+
+            <h3>
+
+                {{ event_name.replace('-', ' ').title() }}
+
+            </h3>
+
+            <div class="gallery-grid">
+
+                {% for image in images %}
+
+                <div class="gallery-item reveal-scale">
+
+                    <img
+                        src="{{ image.url }}"
+                        class="gallery-image"
+                        loading="lazy"
+                        alt="{{ event_name }}">
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endfor %}
+
+<div id="lightbox">
+
+    <span id="closeBtn">&times;</span>
+
+    <button id="prevBtn">&#10094;</button>
+
+    <img id="lightboxImg" alt="Preview">
+
+    <button id="nextBtn">&#10095;</button>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Page Not Found{% endblock %}
+
+{% block content %}
+
+<section class="error-page">
+
+    <div class="error-card">
+
+        <h1>404</h1>
+
+        <h2>Page Not Found</h2>
+
+        <p>
+
+            The page you are looking for doesn't exist.
+
+        </p>
+
+        <a href="{{ url_for('home') }}" class="admin-btn">
+
+            Back to Home
+
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}
