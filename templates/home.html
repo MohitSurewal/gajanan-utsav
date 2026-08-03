@@ -391,9 +391,20 @@ MEMORIES
 
         </div>
 
-        <div class="preview-image">
+        <div class="gallery-grid">
 
-            <img src="{{ url_for('static', filename='images/gallery-preview.jpg') }}" alt="Gallery Preview">
+            {% for photo in latest_gallery %}
+
+            <div class="gallery-item">
+
+                <img
+                    src="{{ photo.url }}"
+                    alt="Gallery Preview"
+                    loading="lazy">
+
+            </div>
+
+            {% endfor %}
 
         </div>
 

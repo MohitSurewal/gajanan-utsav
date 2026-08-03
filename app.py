@@ -1,4 +1,9 @@
 from unittest import result
+import firebase_admin
+
+from firebase_admin import credentials
+
+from firebase_admin import firestore
 
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect
@@ -16,6 +21,12 @@ from config import *
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
+
+cred = credentials.Certificate(FIREBASE_KEY)
+
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
 
 MAX_LOGIN_ATTEMPTS = 5
 LOCK_TIME = 15 * 60   # 15 minutes
@@ -349,7 +360,14 @@ def load_hall_of_fame():
     return hall
 
 
+@app.route("/firebase-test")
+def firebase_test():
 
+    db.collection("test").document("connection").set({
+        "status": "Connected"
+    })
+
+    return "Firebase Connected Successfully!"
 
 
 
@@ -602,6 +620,8 @@ def admin_edit_winner(year, slug):
         game = json.load(f)
         
     if request.method == "POST":
+        
+        game["game"] = request.form.get("game", "").strip()
 
         if game["type"] == "ranking":
 
@@ -609,7 +629,23 @@ def admin_edit_winner(year, slug):
 
                 person["name"] = request.form.get(f"name{i}")
 
-                person["photo"] = request.form.get(f"photo{i}")
+                photo = request.files.get(f"photo{i}")
+
+                if photo and photo.filename:
+
+                    result = cloudinary.uploader.upload(
+
+                        photo,
+
+                        folder=f"Gajanan-Utsav/Winners/{year}"
+
+                    )
+
+                    person["photo"] = result["secure_url"]
+
+                else:
+
+                    person["photo"] = request.form.get(f"old_photo{i}")
                 
         elif game["type"] == "age_group":
 
@@ -797,67 +833,10 @@ def delete_gallery_image():
     return redirect(url_for("admin_gallery"))
 
 
-@app.route("/admin/gallery/files")
-def admin_gallery_files():
-
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
-
-    gallery = load_gallery()
-
-    return render_template(
-        "admin/gallery_files.html",
-        gallery=gallery
-    )
 
 
-@app.route("/admin/gallery/delete")
-def admin_delete_photo():
 
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
 
-    year = request.args.get("year")
-    event = request.args.get("event")
-    public_id = request.args.get("public_id")
-
-    gallery = load_gallery()
-
-    try:
-
-        cloudinary.uploader.destroy(public_id)
-
-        if year in gallery and event in gallery[year]:
-
-            gallery[year][event] = [
-
-                photo for photo in gallery[year][event]
-
-                if photo["public_id"] != public_id
-
-            ]
-
-            if not gallery[year][event]:
-                del gallery[year][event]
-
-            if not gallery[year]:
-                del gallery[year]
-
-        save_gallery(gallery)
-
-        flash(
-            "Photo deleted successfully.",
-            "success"
-        )
-
-    except Exception as e:
-
-        flash(
-            f"Delete failed: {e}",
-            "danger"
-        )
-
-    return redirect(url_for("admin_gallery_files"))
 
 
 
@@ -988,6 +967,19 @@ def home():
     schedule = load_schedule()
     committee = load_committee()
     winners = load_winners()
+    gallery = load_gallery()
+
+    latest_gallery = []
+
+    for year in sorted(gallery.keys(), reverse=True):
+
+        for event in gallery[year]:
+
+            for photo in gallery[year][event]:
+
+                latest_gallery.append(photo)
+
+    latest_gallery = latest_gallery[:6]
 
     latest_winners = []
 
@@ -1020,6 +1012,7 @@ def home():
         notice=notice,
         schedule=schedule,
         committee=committee,
+        latest_gallery=latest_gallery,
         latest_winners=latest_winners,
         active_page="home"
     )
