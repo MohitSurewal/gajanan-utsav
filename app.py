@@ -1,3 +1,5 @@
+from unittest import result
+
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect
 import json
@@ -10,7 +12,6 @@ from pathlib import Path
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-
 from config import *
 
 app = Flask(__name__)
@@ -697,7 +698,18 @@ def admin_gallery():
 
         year = request.form.get("year").strip()
 
-        event = request.form.get("event").strip()
+        year = request.form.get("year", "").strip()
+
+        event = (
+            request.form.get("event", "")
+            .strip()
+            .lower()
+            .replace(" ", "-")
+        )
+
+        if not year or not event:
+            flash("Year and Event are required.", "danger")
+            return redirect(url_for("admin_gallery"))
 
         files = request.files.getlist("photos")
 
@@ -717,8 +729,13 @@ def admin_gallery():
                     file,
 
                     folder=f"Gajanan-Utsav/{year}/{event}"
+                    
+                    
 
                 )
+                
+                print("URL:", result["secure_url"])
+                print("Public ID:", result["public_id"])
 
                 gallery[year][event].append({
 
@@ -729,7 +746,9 @@ def admin_gallery():
                 })
 
                 uploaded += 1
-
+                
+                
+        print("Gallery Data:", gallery)
         save_gallery(gallery)
 
         flash(
