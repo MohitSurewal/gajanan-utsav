@@ -759,9 +759,42 @@ def admin_gallery():
         return redirect(url_for("admin_gallery"))
 
     return render_template(
-        "admin/gallery.html"
+        "admin/gallery.html",
+        gallery=load_gallery()
     )
 
+
+
+@app.route("/admin/gallery/delete", methods=["POST"])
+def delete_gallery_image():
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    year = request.form["year"]
+    event = request.form["event"]
+    public_id = request.form["public_id"]
+
+    cloudinary.uploader.destroy(public_id)
+
+    gallery = load_gallery()
+
+    gallery[year][event] = [
+        img for img in gallery[year][event]
+        if img["public_id"] != public_id
+    ]
+
+    if not gallery[year][event]:
+        del gallery[year][event]
+
+    if not gallery[year]:
+        del gallery[year]
+
+    save_gallery(gallery)
+
+    flash("Image deleted successfully.", "success")
+
+    return redirect(url_for("admin_gallery"))
 
 
 @app.route("/admin/gallery/files")
