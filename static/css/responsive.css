@@ -1,16 +1,39 @@
 @media(max-width:992px){
 
-nav{
 
-display:none;
 
-}
 
 #menuBtn{
+    display:block;
+}
 
-display:block;
+nav{
+    display:none;
+}
+
+nav.active{
+    display:flex;
+    flex-direction:column;
+    position:absolute;
+    top:82px;
+    left:0;
+    width:100%;
+    background:#111;
+    padding:20px 0;
+    gap:0;
+    z-index:999;
+}
+
+nav.active a{
+    color:#fff;
+    padding:15px 25px;
+    display:block;
+    border-bottom:1px solid rgba(255,255,255,.1);
+}
 
 }
+
+
 
 h1{
 
@@ -24,7 +47,7 @@ font-size:28px;
 
 }
 
-}
+
 
 @media(max-width:768px){
 
