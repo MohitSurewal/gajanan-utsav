@@ -25,15 +25,11 @@ csrf = CSRFProtect(app)
 
 cred = credentials.Certificate(FIREBASE_KEY)
 
-
-firebase_admin.initialize_app(cred)
-
-db = firestore.client()
-
-cred = credentials.Certificate("gajanan-utsav-firebase-adminsdk-fbsvc-b90b8d66e5.json")
-firebase_admin.initialize_app(cred)
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+
 
 MAX_LOGIN_ATTEMPTS = 5
 LOCK_TIME = 15 * 60   # 15 minutes
