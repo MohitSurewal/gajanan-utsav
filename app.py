@@ -30,7 +30,7 @@ firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
-cred = credentials.Certificate("gajanan-utsav-firebase-adminsdk-fbsvc-b90b8d66e5.json.")
+cred = credentials.Certificate("gajanan-utsav-firebase-adminsdk-fbsvc-b90b8d66e5.json")
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
