@@ -883,30 +883,32 @@ def admin_gallery():
 
         files = request.files.getlist("photos")
 
-
-
-        uploaded = 0
+        print("Upload Started")
+        print("Total Files:", len(files))
 
         for file in files:
 
+            print("File Name:", file.filename)
+
             if file and allowed_file(file.filename):
 
+                print("Uploading To Cloudinary...")
+
                 result = cloudinary.uploader.upload(
-
                     file,
-
                     folder=f"Gajanan-Utsav/{year}/{event}"
-                    
-                    
-
                 )
-                
+
+                print("Cloudinary Success")
+
                 add_gallery_firestore(
                     year,
                     event,
                     result["secure_url"],
                     result["public_id"]
                 )
+
+                print("Firestore Success")
 
                 uploaded += 1
                 
