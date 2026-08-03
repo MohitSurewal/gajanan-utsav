@@ -1,6 +1,7 @@
 from unittest import result
 import firebase_admin
-
+import firebase_admin
+from firebase_admin import credentials, firestore
 from firebase_admin import credentials
 
 from firebase_admin import firestore
@@ -24,6 +25,12 @@ csrf = CSRFProtect(app)
 
 cred = credentials.Certificate(FIREBASE_KEY)
 
+
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+cred = credentials.Certificate("firebase-key.json")
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
@@ -124,6 +131,16 @@ def save_gallery(data):
             ensure_ascii=False
         )
 
+def add_gallery_firestore(year, event, url, public_id):
+
+    db.collection("gallery").add({
+
+        "year": year,
+        "event": event,
+        "url": url,
+        "public_id": public_id
+
+    })
 
 
 
@@ -368,6 +385,33 @@ def firebase_test():
     })
 
     return "Firebase Connected Successfully!"
+
+
+@app.route("/migrate-gallery")
+def migrate_gallery():
+
+    gallery = load_gallery()
+
+    total = 0
+
+    for year, events in gallery.items():
+
+        for event, images in events.items():
+
+            for image in images:
+
+                db.collection("gallery").add({
+
+                    "year": year,
+                    "event": event,
+                    "url": image["url"],
+                    "public_id": image["public_id"]
+
+                })
+
+                total += 1
+
+    return f"{total} images migrated successfully."
 
 
 
@@ -869,6 +913,13 @@ def admin_gallery():
                     "public_id": result["public_id"]
 
                 })
+                
+                add_gallery_firestore(
+                    year,
+                    event,
+                    result["secure_url"],
+                    result["public_id"]
+                )
 
                 uploaded += 1
                 
