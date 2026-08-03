@@ -134,6 +134,15 @@ p{
 
 }
 
+#menuBtn{
+    display:none;
+    background:none;
+    border:none;
+    font-size:28px;
+    cursor:pointer;
+    color:var(--black);
+}
+
 .navbar .container{
 
     display:flex;
