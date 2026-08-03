@@ -140,9 +140,6 @@ def add_gallery_firestore(year, event, url, public_id):
         raise
     
     
-def add_gallery_firestore(year, event, url, public_id):
-    print("Firestore function called")
-    return
 
 
 def load_notice():
@@ -866,7 +863,7 @@ def admin_gallery():
 
     if request.method == "POST":
 
-        year = request.form.get("year").strip()
+       
 
         year = request.form.get("year", "").strip()
 
@@ -882,6 +879,7 @@ def admin_gallery():
             return redirect(url_for("admin_gallery"))
 
         files = request.files.getlist("photos")
+        uploaded = 0
 
         print("Upload Started")
         print("Total Files:", len(files))
