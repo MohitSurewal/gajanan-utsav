@@ -689,6 +689,95 @@ def admin_edit_winner(year, slug):
     )
     
     
+
+@app.route("/admin/winners/add", methods=["GET", "POST"])
+def admin_add_winner():
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    if request.method == "POST":
+
+        year = request.form.get("year").strip()
+
+        slug = request.form.get("slug").strip().lower().replace(" ", "-")
+
+        data = {
+
+            "id": slug,
+
+            "slug": slug,
+
+            "game": request.form.get("game"),
+
+            "icon": request.form.get("icon"),
+
+            "date": request.form.get("date"),
+
+            "status": "Completed",
+
+            "type": "ranking",
+
+            "gallery": [],
+
+            "winners": [
+
+                {
+                    "position": 1,
+                    "name": request.form.get("first"),
+                    "photo": request.form.get("first_photo")
+                },
+                {
+                    "position": 2,
+                    "name": request.form.get("second"),
+                    "photo": request.form.get("second_photo")
+                },
+                {
+                    "position": 3,
+                    "name": request.form.get("third"),
+                    "photo": request.form.get("third_photo")
+                }
+
+            ]
+
+        }
+
+        year_folder = os.path.join(
+            BASE_DIR,
+            "data",
+            "winners",
+            year
+        )
+
+        os.makedirs(year_folder, exist_ok=True)
+
+        with open(
+
+            os.path.join(year_folder, f"{slug}.json"),
+
+            "w",
+
+            encoding="utf-8"
+
+        ) as f:
+
+            json.dump(
+                data,
+                f,
+                indent=4,
+                ensure_ascii=False
+            )
+
+        flash("Winner Added Successfully.", "success")
+
+        return redirect(url_for("admin_winners"))
+
+    return render_template("admin/add_winner.html")
+
+
+
+
+    
 @app.route("/admin/winners/delete/<year>/<slug>")
 def admin_delete_winner(year, slug):
 
