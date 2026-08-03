@@ -62,6 +62,72 @@ Upload
 
 </form>
 
+<hr style="margin:40px 0;">
+
+<h2>Uploaded Photos</h2>
+
+{% for year, events in gallery.items() %}
+
+<h3>{{ year }}</h3>
+
+{% for event, images in events.items() %}
+
+<h4>{{ event.replace('-', ' ').title() }}</h4>
+
+<div class="gallery-grid">
+
+    {% for image in images %}
+
+    <div class="gallery-item">
+
+        <img
+            src="{{ image.url }}"
+            alt="Gallery Image">
+
+        <form
+            method="POST"
+            action="{{ url_for('delete_gallery_image') }}">
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}">
+
+            <input
+                type="hidden"
+                name="year"
+                value="{{ year }}">
+
+            <input
+                type="hidden"
+                name="event"
+                value="{{ event }}">
+
+            <input
+                type="hidden"
+                name="public_id"
+                value="{{ image.public_id }}">
+
+            <button
+                class="admin-btn"
+                style="margin-top:10px;background:#c62828;color:#fff;">
+
+                🗑 Delete
+
+            </button>
+
+        </form>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% endfor %}
+
+{% endfor %}
+
 </div>
 
 </section>
