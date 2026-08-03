@@ -175,6 +175,14 @@ p{
 
 }
 
+.desktop-logo{
+    display:inline;
+}
+
+.mobile-logo{
+    display:none;
+}
+
 .logo i{
 
     color:var(--gold);
