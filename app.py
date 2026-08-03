@@ -128,16 +128,21 @@ def save_gallery(data):
         )
 
 def add_gallery_firestore(year, event, url, public_id):
-
-    db.collection("gallery").add({
-
-        "year": year,
-        "event": event,
-        "url": url,
-        "public_id": public_id
-
-    })
-
+    try:
+        db.collection("gallery").add({
+            "year": year,
+            "event": event,
+            "url": url,
+            "public_id": public_id
+        })
+    except Exception as e:
+        print("Firestore Error:", e)
+        raise
+    
+    
+def add_gallery_firestore(year, event, url, public_id):
+    print("Firestore function called")
+    return
 
 
 def load_notice():
@@ -878,10 +883,7 @@ def admin_gallery():
 
         files = request.files.getlist("photos")
 
-        gallery = load_gallery()
 
-        gallery.setdefault(year, {})
-        gallery[year].setdefault(event, [])
 
         uploaded = 0
 
@@ -899,17 +901,6 @@ def admin_gallery():
 
                 )
                 
-                print("URL:", result["secure_url"])
-                print("Public ID:", result["public_id"])
-
-                gallery[year][event].append({
-
-                    "url": result["secure_url"],
-
-                    "public_id": result["public_id"]
-
-                })
-                
                 add_gallery_firestore(
                     year,
                     event,
@@ -920,8 +911,8 @@ def admin_gallery():
                 uploaded += 1
                 
                 
-        print("Gallery Data:", gallery)
-        save_gallery(gallery)
+        
+        
 
         flash(
             f"{uploaded} image(s) uploaded successfully.",
