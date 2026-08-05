@@ -343,19 +343,15 @@ def firebase_test():
 
     try:
 
-        db.collection("test").document("connection").set({
-            "status": "Connected"
-        })
-
-        doc = db.collection("test").document("connection").get()
+        test_ref = db.collection("test").document("connection")
 
         return {
-            "write": True,
-            "exists": doc.exists,
-            "data": doc.to_dict()
+            "doc_path": test_ref.path,
+            "project": db.project
         }
 
     except Exception:
+
         return f"<pre>{traceback.format_exc()}</pre>"
 
 @app.route("/migrate-gallery")
