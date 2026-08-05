@@ -339,11 +339,19 @@ def load_hall_of_fame():
 @app.route("/firebase-test")
 def firebase_test():
 
-    db.collection("test").document("connection").set({
-        "status": "Connected"
-    })
+    try:
 
-    return "Firebase Connected Successfully!"
+        db.collection("test").document("connection").set({
+            "status": "Connected"
+        })
+
+        return "Firebase Connected Successfully!"
+
+    except Exception:
+
+        import traceback
+
+        return f"<pre>{traceback.format_exc()}</pre>"
 
 
 @app.route("/migrate-gallery")
