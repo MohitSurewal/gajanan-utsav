@@ -885,15 +885,15 @@ def admin_gallery():
 
             return redirect(url_for("admin_gallery"))
 
-        except Exception as e:
+        except Exception:
 
             import traceback
 
-            print(traceback.format_exc())
+            error = traceback.format_exc()
 
-            flash(str(e), "danger")
+            print(error)
 
-            return redirect(url_for("admin_gallery"))
+            return f"<pre>{error}</pre>"
 
     return render_template(
 
