@@ -861,17 +861,20 @@ def admin_gallery():
 
                 )
 
-                db.collection("gallery").add({
+                # db.collection("gallery").add({
 
-                    "year": year,
+                #     "year": year,
 
-                    "event": event,
+                #     "event": event,
 
-                    "url": result["secure_url"],
+                #     "url": result["secure_url"],
 
-                    "public_id": result["public_id"]
+                #     "public_id": result["public_id"]
 
-                })
+                # })
+                
+                print("Cloudinary Upload Success")
+                print(result["secure_url"])
 
                 uploaded += 1
 
