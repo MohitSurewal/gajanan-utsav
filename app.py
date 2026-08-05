@@ -339,15 +339,20 @@ def load_hall_of_fame():
 @app.route("/firebase-test")
 def firebase_test():
 
-    import os
     import traceback
 
     try:
+
+        db.collection("test").document("connection").set({
+            "status": "Connected"
+        })
+
+        doc = db.collection("test").document("connection").get()
+
         return {
-            "firebase_key_exists": os.path.exists(FIREBASE_KEY),
-            "firebase_key_path": FIREBASE_KEY,
-            "apps_initialized": len(firebase_admin._apps),
-            "project_id": db.project,
+            "write": True,
+            "exists": doc.exists,
+            "data": doc.to_dict()
         }
 
     except Exception:
