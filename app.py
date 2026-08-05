@@ -3,8 +3,6 @@ import firebase_admin
 import firebase_admin
 from firebase_admin import credentials, firestore
 from firebase_admin import credentials
-from services.gallery_service import upload_gallery_image
-from utils.cloudinary_helper import upload_image
 from firebase_admin import firestore
 
 from flask import Flask, render_template, request, flash, redirect, url_for, session
@@ -71,79 +69,38 @@ def allowed_file(filename):
 
 
 
+from collections import defaultdict
+
 def load_gallery(event=None, year=None):
 
-    file_path = os.path.join(
-        BASE_DIR,
-        "data",
-        "gallery.json"
-    )
+    gallery = defaultdict(lambda: defaultdict(list))
 
-    if not os.path.exists(file_path):
-        return {}
+    docs = db.collection("gallery").stream()
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    for doc in docs:
 
-        gallery = json.load(f)
+        data = doc.to_dict()
 
-    if year:
+        y = data.get("year")
+        e = data.get("event")
 
-        gallery = {
-            y: events
-            for y, events in gallery.items()
-            if y == year
-        }
+        if year and y != year:
+            continue
 
-    if event:
+        if event and e != event:
+            continue
 
-        filtered = {}
+        gallery[y][e].append({
 
-        for y, events in gallery.items():
+            "url": data.get("url"),
 
-            if event in events:
+            "public_id": data.get("public_id"),
 
-                filtered[y] = {
-                    event: events[event]
-                }
+            "doc_id": doc.id
 
-        gallery = filtered
-
-    return gallery
-
-
-def save_gallery(data):
-
-    file_path = os.path.join(
-        BASE_DIR,
-        "data",
-        "gallery.json"
-    )
-
-    with open(file_path, "w", encoding="utf-8") as f:
-
-        json.dump(
-            data,
-            f,
-            indent=4,
-            ensure_ascii=False
-        )
-
-def add_gallery_firestore(year, event, url, public_id):
-    try:
-        db.collection("gallery").add({
-            "year": year,
-            "event": event,
-            "url": url,
-            "public_id": public_id
         })
-        return True
 
-    except Exception as e:
-        print("========== FIRESTORE ERROR ==========")
-        print(type(e).__name__)
-        print(str(e))
-        print("=====================================")
-        return False
+    return dict(gallery)
 
 
 def load_notice():
@@ -867,77 +824,84 @@ def admin_gallery():
 
     if request.method == "POST":
 
-       
+        try:
 
-        year = request.form.get("year", "").strip()
+            year = request.form.get("year", "").strip()
 
-        event = (
-            request.form.get("event", "")
-            .strip()
-            .lower()
-            .replace(" ", "-")
-        )
+            event = (
+                request.form.get("event", "")
+                .strip()
+                .lower()
+                .replace(" ", "-")
+            )
 
-        if not year or not event:
-            flash("Year and Event are required.", "danger")
+            if not year or not event:
+
+                flash("Year and Event are required.", "danger")
+
+                return redirect(url_for("admin_gallery"))
+
+            files = request.files.getlist("photos")
+
+            uploaded = 0
+
+            for file in files:
+
+                if not file or file.filename == "":
+                    continue
+
+                if not allowed_file(file.filename):
+                    continue
+
+                result = cloudinary.uploader.upload(
+
+                    file,
+
+                    folder=f"Gajanan-Utsav/{year}/{event}"
+
+                )
+
+                db.collection("gallery").add({
+
+                    "year": year,
+
+                    "event": event,
+
+                    "url": result["secure_url"],
+
+                    "public_id": result["public_id"]
+
+                })
+
+                uploaded += 1
+
+            flash(
+
+                f"{uploaded} image(s) uploaded successfully.",
+
+                "success"
+
+            )
+
             return redirect(url_for("admin_gallery"))
 
-        files = request.files.getlist("photos")
-        uploaded = 0
+        except Exception as e:
 
-        print("Upload Started")
-        print("Total Files:", len(files))
+            import traceback
 
-        for file in files:
+            print(traceback.format_exc())
 
-            print("File Name:", file.filename)
+            flash(str(e), "danger")
 
-            if file and allowed_file(file.filename):
-
-                print("Uploading To Cloudinary...")
-
-                print("Before Cloudinary Upload")
-                
-                result = cloudinary.uploader.upload(
-                    file,
-                    folder=f"Gajanan-Utsav/{year}/{event}"
-                )
-                
-                print("After Cloudinary Upload")
-                print("Before Firestore")
-
-                print("Cloudinary Success")
-
-                saved = add_gallery_firestore(
-                    year,
-                    event,
-                    result["secure_url"],
-                    result["public_id"]
-                )
-                
-                print("After Firestore")
-
-                if saved:
-                    uploaded += 1
-                else:
-                    flash("Firestore save failed.", "danger")
-                
-                
-        
-        
-
-        flash(
-            f"{uploaded} image(s) uploaded successfully.",
-            "success"
-        )
-
-        return redirect(url_for("admin_gallery"))
+            return redirect(url_for("admin_gallery"))
 
     return render_template(
-        "admin/gallery.html",
-        gallery=load_gallery()
-    )
 
+        "admin/gallery.html",
+
+        gallery=load_gallery()
+
+    )
 
 
 @app.route("/admin/gallery/delete", methods=["POST"])
@@ -950,22 +914,16 @@ def delete_gallery_image():
     event = request.form["event"]
     public_id = request.form["public_id"]
 
+    # Delete from Cloudinary
     cloudinary.uploader.destroy(public_id)
 
-    gallery = load_gallery()
+    # Delete from Firestore
+    docs = db.collection("gallery") \
+        .where("public_id", "==", public_id) \
+        .stream()
 
-    gallery[year][event] = [
-        img for img in gallery[year][event]
-        if img["public_id"] != public_id
-    ]
-
-    if not gallery[year][event]:
-        del gallery[year][event]
-
-    if not gallery[year]:
-        del gallery[year]
-
-    save_gallery(gallery)
+    for doc in docs:
+        doc.reference.delete()
 
     flash("Image deleted successfully.", "success")
 
