@@ -899,7 +899,7 @@ def admin_gallery():
 
         "admin/gallery.html",
 
-        gallery=load_gallery()
+        gallery={}
 
     )
 
@@ -1064,7 +1064,7 @@ def home():
     schedule = load_schedule()
     committee = load_committee()
     winners = load_winners()
-    gallery = load_gallery()
+    gallery = {}
 
     latest_gallery = []
 
