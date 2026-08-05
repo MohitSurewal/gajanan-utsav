@@ -9,10 +9,18 @@
     <div class="container">
 
         <h1>{{ game.game }}</h1>
+        <label>Game Name</label>
+
+        <input
+            type="text"
+            name="game"
+            value="{{ game.game }}">
 
         <p>{{ year }}</p>
 
-        <form method="POST">
+        <form
+            method="POST"
+            enctype="multipart/form-data">
 
             <input
                 type="hidden"
@@ -40,13 +48,25 @@
                         value="{{ person.name }}"
                     >
 
-                    <label>Photo</label>
+                    <label>Current Photo</label>
+
+                    {% if person.photo %}
+                    <img
+                        src="{{ person.photo }}"
+                        style="width:120px;height:120px;object-fit:cover;border-radius:10px;margin-bottom:10px;">
+                    {% endif %}
 
                     <input
-                        type="text"
+                        type="hidden"
+                        name="old_photo{{ loop.index }}"
+                        value="{{ person.photo }}">
+
+                    <label>Upload New Photo</label>
+
+                    <input
+                        type="file"
                         name="photo{{ loop.index }}"
-                        value="{{ person.photo }}"
-                    >
+                        accept=".jpg,.jpeg,.png,.webp">
 
                 </div>
 
@@ -70,13 +90,25 @@
                         value="{{ group.winner.name }}"
                     >
 
-                    <label>Photo</label>
+                    <label>Current Photo</label>
+
+                    {% if group.winner.photo %}
+                    <img
+                        src="{{ group.winner.photo }}"
+                        style="width:120px;height:120px;object-fit:cover;border-radius:10px;margin-bottom:10px;">
+                    {% endif %}
 
                     <input
-                        type="text"
+                        type="hidden"
+                        name="old_photo{{ loop.index }}"
+                        value="{{ group.winner.photo }}">
+
+                    <label>Upload New Photo</label>
+
+                    <input
+                        type="file"
                         name="photo{{ loop.index }}"
-                        value="{{ group.winner.photo }}"
-                    >
+                        accept=".jpg,.jpeg,.png,.webp">
 
                 </div>
 

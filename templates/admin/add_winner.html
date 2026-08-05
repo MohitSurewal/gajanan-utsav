@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Add Winner{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+<div class="container">
+
+<h1>➕ Add Winner</h1>
+
+<form method="POST">
+
+<input type="hidden"
+name="csrf_token"
+value="{{ csrf_token() }}">
+
+<label>Year</label>
+<input type="text" name="year" required>
+
+<label>Game Name</label>
+<input type="text" name="game" required>
+
+<label>Slug</label>
+<input type="text" name="slug" required>
+
+<label>Icon</label>
+<input type="text" name="icon" value="🏆">
+
+<label>Date</label>
+<input type="text" name="date">
+
+<hr>
+
+<h3>🥇 First Position</h3>
+
+<input
+type="text"
+name="first"
+placeholder="Winner Name">
+
+<input
+type="text"
+name="first_photo"
+placeholder="Photo URL">
+
+<hr>
+
+<h3>🥈 Second Position</h3>
+
+<input
+type="text"
+name="second"
+placeholder="Winner Name">
+
+<input
+type="text"
+name="second_photo"
+placeholder="Photo URL">
+
+<hr>
+
+<h3>🥉 Third Position</h3>
+
+<input
+type="text"
+name="third"
+placeholder="Winner Name">
+
+<input
+type="text"
+name="third_photo"
+placeholder="Photo URL">
+
+<br><br>
+
+<button
+class="admin-btn">
+
+Save Winner
+
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+{% endblock %}
