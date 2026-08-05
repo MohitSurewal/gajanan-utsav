@@ -896,10 +896,15 @@ def admin_gallery():
 
                 print("Uploading To Cloudinary...")
 
+                print("Before Cloudinary Upload")
+                
                 result = cloudinary.uploader.upload(
                     file,
                     folder=f"Gajanan-Utsav/{year}/{event}"
                 )
+                
+                print("After Cloudinary Upload")
+                print("Before Firestore")
 
                 print("Cloudinary Success")
 
@@ -909,6 +914,8 @@ def admin_gallery():
                     result["secure_url"],
                     result["public_id"]
                 )
+                
+                print("After Firestore")
 
                 if saved:
                     uploaded += 1
