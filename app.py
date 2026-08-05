@@ -1,4 +1,11 @@
 from unittest import result
+import firebase_admin
+import firebase_admin
+from firebase_admin import credentials, firestore
+from firebase_admin import credentials
+from services.gallery_service import upload_gallery_image
+from utils.cloudinary_helper import upload_image
+from firebase_admin import firestore
 
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect
@@ -16,6 +23,14 @@ from config import *
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
+
+cred = credentials.Certificate(FIREBASE_KEY)
+
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
 
 MAX_LOGIN_ATTEMPTS = 5
 LOCK_TIME = 15 * 60   # 15 minutes
@@ -113,7 +128,22 @@ def save_gallery(data):
             ensure_ascii=False
         )
 
+def add_gallery_firestore(year, event, url, public_id):
+    try:
+        db.collection("gallery").add({
+            "year": year,
+            "event": event,
+            "url": url,
+            "public_id": public_id
+        })
+        return True
 
+    except Exception as e:
+        print("========== FIRESTORE ERROR ==========")
+        print(type(e).__name__)
+        print(str(e))
+        print("=====================================")
+        return False
 
 
 def load_notice():
@@ -349,7 +379,41 @@ def load_hall_of_fame():
     return hall
 
 
+@app.route("/firebase-test")
+def firebase_test():
 
+    db.collection("test").document("connection").set({
+        "status": "Connected"
+    })
+
+    return "Firebase Connected Successfully!"
+
+
+@app.route("/migrate-gallery")
+def migrate_gallery():
+
+    gallery = load_gallery()
+
+    total = 0
+
+    for year, events in gallery.items():
+
+        for event, images in events.items():
+
+            for image in images:
+
+                db.collection("gallery").add({
+
+                    "year": year,
+                    "event": event,
+                    "url": image["url"],
+                    "public_id": image["public_id"]
+
+                })
+
+                total += 1
+
+    return f"{total} images migrated successfully."
 
 
 
@@ -602,6 +666,8 @@ def admin_edit_winner(year, slug):
         game = json.load(f)
         
     if request.method == "POST":
+        
+        game["game"] = request.form.get("game", "").strip()
 
         if game["type"] == "ranking":
 
@@ -609,7 +675,23 @@ def admin_edit_winner(year, slug):
 
                 person["name"] = request.form.get(f"name{i}")
 
-                person["photo"] = request.form.get(f"photo{i}")
+                photo = request.files.get(f"photo{i}")
+
+                if photo and photo.filename:
+
+                    result = cloudinary.uploader.upload(
+
+                        photo,
+
+                        folder=f"Gajanan-Utsav/Winners/{year}"
+
+                    )
+
+                    person["photo"] = result["secure_url"]
+
+                else:
+
+                    person["photo"] = request.form.get(f"old_photo{i}")
                 
         elif game["type"] == "age_group":
 
@@ -652,6 +734,95 @@ def admin_edit_winner(year, slug):
 
     )
     
+    
+
+@app.route("/admin/winners/add", methods=["GET", "POST"])
+def admin_add_winner():
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    if request.method == "POST":
+
+        year = request.form.get("year").strip()
+
+        slug = request.form.get("slug").strip().lower().replace(" ", "-")
+
+        data = {
+
+            "id": slug,
+
+            "slug": slug,
+
+            "game": request.form.get("game"),
+
+            "icon": request.form.get("icon"),
+
+            "date": request.form.get("date"),
+
+            "status": "Completed",
+
+            "type": "ranking",
+
+            "gallery": [],
+
+            "winners": [
+
+                {
+                    "position": 1,
+                    "name": request.form.get("first"),
+                    "photo": request.form.get("first_photo")
+                },
+                {
+                    "position": 2,
+                    "name": request.form.get("second"),
+                    "photo": request.form.get("second_photo")
+                },
+                {
+                    "position": 3,
+                    "name": request.form.get("third"),
+                    "photo": request.form.get("third_photo")
+                }
+
+            ]
+
+        }
+
+        year_folder = os.path.join(
+            BASE_DIR,
+            "data",
+            "winners",
+            year
+        )
+
+        os.makedirs(year_folder, exist_ok=True)
+
+        with open(
+
+            os.path.join(year_folder, f"{slug}.json"),
+
+            "w",
+
+            encoding="utf-8"
+
+        ) as f:
+
+            json.dump(
+                data,
+                f,
+                indent=4,
+                ensure_ascii=False
+            )
+
+        flash("Winner Added Successfully.", "success")
+
+        return redirect(url_for("admin_winners"))
+
+    return render_template("admin/add_winner.html")
+
+
+
+
     
 @app.route("/admin/winners/delete/<year>/<slug>")
 def admin_delete_winner(year, slug):
@@ -696,7 +867,7 @@ def admin_gallery():
 
     if request.method == "POST":
 
-        year = request.form.get("year").strip()
+       
 
         year = request.form.get("year", "").strip()
 
@@ -712,44 +883,41 @@ def admin_gallery():
             return redirect(url_for("admin_gallery"))
 
         files = request.files.getlist("photos")
-
-        gallery = load_gallery()
-
-        gallery.setdefault(year, {})
-        gallery[year].setdefault(event, [])
-
         uploaded = 0
+
+        print("Upload Started")
+        print("Total Files:", len(files))
 
         for file in files:
 
+            print("File Name:", file.filename)
+
             if file and allowed_file(file.filename):
 
+                print("Uploading To Cloudinary...")
+
                 result = cloudinary.uploader.upload(
-
                     file,
-
                     folder=f"Gajanan-Utsav/{year}/{event}"
-                    
-                    
-
                 )
+
+                print("Cloudinary Success")
+
+                saved = add_gallery_firestore(
+                    year,
+                    event,
+                    result["secure_url"],
+                    result["public_id"]
+                )
+
+                if saved:
+                    uploaded += 1
+                else:
+                    flash("Firestore save failed.", "danger")
                 
-                print("URL:", result["secure_url"])
-                print("Public ID:", result["public_id"])
-
-                gallery[year][event].append({
-
-                    "url": result["secure_url"],
-
-                    "public_id": result["public_id"]
-
-                })
-
-                uploaded += 1
                 
-                
-        print("Gallery Data:", gallery)
-        save_gallery(gallery)
+        
+        
 
         flash(
             f"{uploaded} image(s) uploaded successfully.",
@@ -797,67 +965,10 @@ def delete_gallery_image():
     return redirect(url_for("admin_gallery"))
 
 
-@app.route("/admin/gallery/files")
-def admin_gallery_files():
-
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
-
-    gallery = load_gallery()
-
-    return render_template(
-        "admin/gallery_files.html",
-        gallery=gallery
-    )
 
 
-@app.route("/admin/gallery/delete")
-def admin_delete_photo():
 
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
 
-    year = request.args.get("year")
-    event = request.args.get("event")
-    public_id = request.args.get("public_id")
-
-    gallery = load_gallery()
-
-    try:
-
-        cloudinary.uploader.destroy(public_id)
-
-        if year in gallery and event in gallery[year]:
-
-            gallery[year][event] = [
-
-                photo for photo in gallery[year][event]
-
-                if photo["public_id"] != public_id
-
-            ]
-
-            if not gallery[year][event]:
-                del gallery[year][event]
-
-            if not gallery[year]:
-                del gallery[year]
-
-        save_gallery(gallery)
-
-        flash(
-            "Photo deleted successfully.",
-            "success"
-        )
-
-    except Exception as e:
-
-        flash(
-            f"Delete failed: {e}",
-            "danger"
-        )
-
-    return redirect(url_for("admin_gallery_files"))
 
 
 
@@ -988,6 +1099,19 @@ def home():
     schedule = load_schedule()
     committee = load_committee()
     winners = load_winners()
+    gallery = load_gallery()
+
+    latest_gallery = []
+
+    for year in sorted(gallery.keys(), reverse=True):
+
+        for event in gallery[year]:
+
+            for photo in gallery[year][event]:
+
+                latest_gallery.append(photo)
+
+    latest_gallery = latest_gallery[:6]
 
     latest_winners = []
 
@@ -1020,6 +1144,7 @@ def home():
         notice=notice,
         schedule=schedule,
         committee=committee,
+        latest_gallery=latest_gallery,
         latest_winners=latest_winners,
         active_page="home"
     )

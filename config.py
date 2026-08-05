@@ -34,3 +34,8 @@ ALLOWED_EXTENSIONS = {
     "png",
     "webp"
 }
+
+FIREBASE_KEY = os.path.join(
+    BASE_DIR,
+    "gajanan-utsav-firebase-adminsdk-fbsvc-b90b8d66e5.json"
+)
