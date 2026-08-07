@@ -386,6 +386,31 @@ def iam_test():
     }
 
 
+@app.route("/firebase-auth-test")
+def firebase_auth_test():
+    import json
+    from google.oauth2 import service_account
+    from google.auth.transport.requests import Request
+
+    try:
+        creds = service_account.Credentials.from_service_account_file(
+            FIREBASE_KEY,
+            scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
+
+        creds.refresh(Request())
+
+        return {
+            "status": "success",
+            "token_start": creds.token[:40]
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }, 500
+
 
 
 @app.route("/firebase-info")
