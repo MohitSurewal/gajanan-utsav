@@ -18,15 +18,16 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from config import *
-from config import FIREBASE_KEY
+from config import FIREBASE_CREDENTIALS
 from google.auth.transport.requests import Request
 import hashlib
+
 
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
 
-cred = credentials.Certificate(FIREBASE_KEY)
+cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
