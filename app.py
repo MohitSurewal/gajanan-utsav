@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from firebase_admin import credentials
 from firebase_admin import firestore
-
+from google.cloud.firestore_v1.client import Client
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect
 import json
@@ -869,18 +869,22 @@ def admin_gallery():
 
                 )
 
-                # db.collection("gallery").add({
+                print("Saving to Firestore...")
 
-                #     "year": year,
+                db.collection("gallery").document().set({
 
-                #     "event": event,
+                    "year": year,
 
-                #     "url": result["secure_url"],
+                    "event": event,
 
-                #     "public_id": result["public_id"]
+                    "url": result["secure_url"],
 
-                # })
-                
+                    "public_id": result["public_id"]
+
+                })
+
+                print("Firestore Saved")
+                                
                 print("Cloudinary Upload Success")
                 print(result["secure_url"])
 
