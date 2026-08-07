@@ -399,23 +399,19 @@ def firebase_info():
         "private_key_id": data.get("private_key_id")
     }
 
-@app.route("/firebase-test")
-def firebase_test():
-
-    import traceback
-
+@app.route("/firestore-test")
+def firestore_test():
     try:
-
-        test_ref = db.collection("test").document("connection")
-
+        collections = [c.id for c in db.collections()]
         return {
-            "doc_path": test_ref.path,
-            "project": db.project
+            "status": "ok",
+            "collections": collections
         }
-
-    except Exception:
-
-        return f"<pre>{traceback.format_exc()}</pre>"
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }, 500
 
 @app.route("/migrate-gallery")
 def migrate_gallery():
