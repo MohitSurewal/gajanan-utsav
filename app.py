@@ -933,12 +933,11 @@ def admin_gallery():
 
             return f"<pre>{error}</pre>"
 
+    gallery = load_gallery()
+
     return render_template(
-
         "admin/gallery.html",
-
-        gallery={}
-
+        gallery=gallery
     )
 
 
