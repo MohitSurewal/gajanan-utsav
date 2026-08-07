@@ -37,5 +37,5 @@ ALLOWED_EXTENSIONS = {
 
 FIREBASE_KEY = os.path.join(
     BASE_DIR,
-    "gajanan-utsav-firebase-adminsdk-fbsvc-2c74b0955d.json"
+    "gajanan-utsav-firebase-adminsdk-fbsvc-ba2418387e.json"
 )
