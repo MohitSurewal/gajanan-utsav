@@ -343,6 +343,18 @@ def load_hall_of_fame():
 
     return hall
 
+@app.route("/key-id")
+def key_id():
+    with open(FIREBASE_KEY) as f:
+        data = json.load(f)
+
+    return {
+        "private_key_id": data["private_key_id"],
+        "client_email": data["client_email"]
+    }
+
+
+
 @app.route("/json-check")
 def json_check():
     import json
