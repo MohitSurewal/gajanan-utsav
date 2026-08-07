@@ -4,8 +4,4 @@ Flask-WTF==1.2.2
 WTForms==3.2.1
 cloudinary==1.45.0
 gunicorn==23.0.0
-
-firebase-admin==6.5.0
-google-auth==2.35.0
-grpcio==1.68.1
-protobuf==5.29.0
+firebase-admin==7.1.0
