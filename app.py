@@ -35,8 +35,7 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
-with open(FIREBASE_KEY, "rb") as f:
-    print("SHA256:", hashlib.sha256(f.read()).hexdigest())
+
 
 
 MAX_LOGIN_ATTEMPTS = 5
