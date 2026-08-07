@@ -80,32 +80,33 @@ def allowed_file(filename):
 
 
 def load_gallery(event=None, year=None):
+
     gallery = defaultdict(lambda: defaultdict(list))
 
     docs = db.collection("gallery").stream()
 
     for doc in docs:
-        try:
-            data = doc.to_dict()
-            print(data)
 
-            y = data.get("year", "Unknown")
-            e = data.get("event", "Unknown")
+        data = doc.to_dict()
 
-            if year and y != year:
-                continue
+        y = data.get("year")
+        e = data.get("event")
 
-            if event and e != event:
-                continue
+        # Skip invalid docs
+        if not y or not e or not data.get("url"):
+            continue
 
-            gallery[y][e].append({
-                "url": data.get("url"),
-                "public_id": data.get("public_id"),
-                "doc_id": doc.id
-            })
+        if year and y != year:
+            continue
 
-        except Exception as ex:
-            print("ERROR:", ex)
+        if event and e != event:
+            continue
+
+        gallery[y][e].append({
+            "url": data["url"],
+            "public_id": data["public_id"],
+            "doc_id": doc.id
+        })
 
     return dict(gallery)
 
@@ -947,22 +948,14 @@ def delete_gallery_image():
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
 
-    year = request.form["year"]
-    event = request.form["event"]
     public_id = request.form["public_id"]
+    doc_id = request.form["doc_id"]
 
-    # Delete from Cloudinary
     cloudinary.uploader.destroy(public_id)
 
-    # Delete from Firestore
-    docs = db.collection("gallery") \
-        .where("public_id", "==", public_id) \
-        .stream()
+    db.collection("gallery").document(doc_id).delete()
 
-    for doc in docs:
-        doc.reference.delete()
-
-    flash("Image deleted successfully.", "success")
+    flash("Image deleted.", "success")
 
     return redirect(url_for("admin_gallery"))
 
