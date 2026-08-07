@@ -20,6 +20,8 @@ import cloudinary.api
 from config import *
 from config import FIREBASE_KEY
 from google.auth.transport.requests import Request
+import hashlib
+
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -30,6 +32,10 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+
+
+with open(FIREBASE_KEY, "rb") as f:
+    print("SHA256:", hashlib.sha256(f.read()).hexdigest())
 
 
 MAX_LOGIN_ATTEMPTS = 5
@@ -336,6 +342,19 @@ def load_hall_of_fame():
     )
 
     return hall
+
+@app.route("/json-check")
+def json_check():
+    import json
+
+    with open(FIREBASE_KEY, "r") as f:
+        data = json.load(f)
+
+    return {
+        "project_id": data["project_id"],
+        "client_email": data["client_email"],
+        "private_key_start": data["private_key"][:35]
+    }
 
 @app.route("/token-test")
 def token_test():
