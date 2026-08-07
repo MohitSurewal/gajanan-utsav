@@ -380,6 +380,15 @@ def migrate_gallery():
 
     return f"{total} images migrated successfully."
 
+import sys
+
+@app.route("/python-version")
+def python_version():
+    return {
+        "python": sys.version,
+        "executable": sys.executable
+    }
+
 
 
 @app.route("/schedule")
