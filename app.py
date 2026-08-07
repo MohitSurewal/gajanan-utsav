@@ -353,6 +353,19 @@ def token_test():
         import traceback
         return f"<pre>{traceback.format_exc()}</pre>"
 
+@app.route("/iam-test")
+def iam_test():
+    import requests
+
+    with open(FIREBASE_KEY) as f:
+        data = json.load(f)
+
+    return {
+        "client_email": data["client_email"],
+        "private_key_id": data["private_key_id"],
+        "project_id": data["project_id"]
+    }
+
 
 
 
