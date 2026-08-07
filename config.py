@@ -1,4 +1,6 @@
+import json
 import os
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -35,7 +37,6 @@ ALLOWED_EXTENSIONS = {
     "webp"
 }
 
-FIREBASE_KEY = os.path.join(
-    BASE_DIR,
-    "gajanan-utsav-firebase-adminsdk-fbsvc-ba2418387e.json"
+FIREBASE_CREDENTIALS = json.loads(
+    os.environ["FIREBASE_CREDENTIALS"]
 )
