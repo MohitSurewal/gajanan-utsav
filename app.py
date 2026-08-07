@@ -18,6 +18,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from config import *
+from config import FIREBASE_KEY
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -335,6 +336,17 @@ def load_hall_of_fame():
 
     return hall
 
+
+@app.route("/firebase-info")
+def firebase_info():
+    with open(FIREBASE_KEY, "r") as f:
+        data = json.load(f)
+
+    return {
+        "project_id": data.get("project_id"),
+        "client_email": data.get("client_email"),
+        "private_key_id": data.get("private_key_id")
+    }
 
 @app.route("/firebase-test")
 def firebase_test():
