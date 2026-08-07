@@ -19,6 +19,7 @@ import cloudinary.uploader
 import cloudinary.api
 from config import *
 from config import FIREBASE_KEY
+from google.auth.transport.requests import Request
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -335,6 +336,24 @@ def load_hall_of_fame():
     )
 
     return hall
+
+@app.route("/token-test")
+def token_test():
+    try:
+        cred.refresh(Request())
+
+        return {
+            "valid": cred.valid,
+            "expired": cred.expired,
+            "service_account": cred.service_account_email,
+            "token_start": cred.token[:30]
+        }
+
+    except Exception as e:
+        import traceback
+        return f"<pre>{traceback.format_exc()}</pre>"
+
+
 
 
 @app.route("/firebase-info")
