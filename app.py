@@ -77,39 +77,37 @@ def allowed_file(filename):
 
 
 
-from collections import defaultdict
+
 
 def load_gallery(event=None, year=None):
-
     gallery = defaultdict(lambda: defaultdict(list))
 
     docs = db.collection("gallery").stream()
 
     for doc in docs:
+        try:
+            data = doc.to_dict()
+            print(data)
 
-        data = doc.to_dict()
+            y = data.get("year", "Unknown")
+            e = data.get("event", "Unknown")
 
-        y = data.get("year")
-        e = data.get("event")
+            if year and y != year:
+                continue
 
-        if year and y != year:
-            continue
+            if event and e != event:
+                continue
 
-        if event and e != event:
-            continue
+            gallery[y][e].append({
+                "url": data.get("url"),
+                "public_id": data.get("public_id"),
+                "doc_id": doc.id
+            })
 
-        gallery[y][e].append({
-
-            "url": data.get("url"),
-
-            "public_id": data.get("public_id"),
-
-            "doc_id": doc.id
-
-        })
+        except Exception as ex:
+            print("ERROR:", ex)
 
     return dict(gallery)
-
 
 def load_notice():
     file_path = os.path.join(BASE_DIR, "data", "notice.json")
@@ -343,98 +341,18 @@ def load_hall_of_fame():
 
     return hall
 
-@app.route("/key-id")
-def key_id():
-    with open(FIREBASE_KEY) as f:
-        data = json.load(f)
-
-    return {
-        "private_key_id": data["private_key_id"],
-        "client_email": data["client_email"]
-    }
 
 
 
-@app.route("/json-check")
-def json_check():
-    import json
-
-    with open(FIREBASE_KEY, "r") as f:
-        data = json.load(f)
-
-    return {
-        "project_id": data["project_id"],
-        "client_email": data["client_email"],
-        "private_key_start": data["private_key"][:35]
-    }
-
-@app.route("/token-test")
-def token_test():
-    try:
-        cred.refresh(Request())
-
-        return {
-            "valid": cred.valid,
-            "expired": cred.expired,
-            "service_account": cred.service_account_email,
-            "token_start": cred.token[:30]
-        }
-
-    except Exception as e:
-        import traceback
-        return f"<pre>{traceback.format_exc()}</pre>"
-
-@app.route("/iam-test")
-def iam_test():
-    import requests
-
-    with open(FIREBASE_KEY) as f:
-        data = json.load(f)
-
-    return {
-        "client_email": data["client_email"],
-        "private_key_id": data["private_key_id"],
-        "project_id": data["project_id"]
-    }
-
-
-@app.route("/firebase-auth-test")
-def firebase_auth_test():
-    import json
-    from google.oauth2 import service_account
-    from google.auth.transport.requests import Request
-
-    try:
-        creds = service_account.Credentials.from_service_account_file(
-            FIREBASE_KEY,
-            scopes=["https://www.googleapis.com/auth/cloud-platform"],
-        )
-
-        creds.refresh(Request())
-
-        return {
-            "status": "success",
-            "token_start": creds.token[:40]
-        }
-
-    except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e)
-        }, 500
 
 
 
-@app.route("/firebase-info")
-def firebase_info():
-    with open(FIREBASE_KEY, "r") as f:
-        data = json.load(f)
 
-    return {
-        "project_id": data.get("project_id"),
-        "client_email": data.get("client_email"),
-        "private_key_id": data.get("private_key_id")
-    }
+
+
+
+
+
 
 @app.route("/firestore-test")
 def firestore_test():
