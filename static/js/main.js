@@ -445,3 +445,105 @@ document.addEventListener("DOMContentLoaded", () => {
     gameFilter.addEventListener("change", filterWinners);
 
 });
+
+/* =========================
+   HOME GALLERY SLIDER
+========================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const slider = document.querySelector(".gallery-slider");
+
+    if (!slider) {
+        return;
+    }
+
+    const slides = slider.querySelectorAll(".gallery-slide");
+    const dots = slider.querySelectorAll(".gallery-dot");
+
+    const prevBtn = slider.querySelector(".gallery-prev");
+    const nextBtn = slider.querySelector(".gallery-next");
+
+    if (slides.length <= 1) {
+        return;
+    }
+
+    let currentSlide = 0;
+    let autoSlide;
+
+    function showSlide(index) {
+
+        if (index >= slides.length) {
+            index = 0;
+        }
+
+        if (index < 0) {
+            index = slides.length - 1;
+        }
+
+        slides.forEach(function (slide) {
+            slide.classList.remove("active");
+        });
+
+        dots.forEach(function (dot) {
+            dot.classList.remove("active");
+        });
+
+        slides[index].classList.add("active");
+
+        if (dots[index]) {
+            dots[index].classList.add("active");
+        }
+
+        currentSlide = index;
+    }
+
+    function nextSlide() {
+        showSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+        showSlide(currentSlide - 1);
+    }
+
+    function startAutoSlide() {
+
+        clearInterval(autoSlide);
+
+        autoSlide = setInterval(function () {
+            nextSlide();
+        }, 4000);
+
+    }
+
+    if (nextBtn) {
+
+        nextBtn.addEventListener("click", function () {
+            nextSlide();
+            startAutoSlide();
+        });
+
+    }
+
+    if (prevBtn) {
+
+        prevBtn.addEventListener("click", function () {
+            prevSlide();
+            startAutoSlide();
+        });
+
+    }
+
+    dots.forEach(function (dot, index) {
+
+        dot.addEventListener("click", function () {
+            showSlide(index);
+            startAutoSlide();
+        });
+
+    });
+
+    showSlide(0);
+    startAutoSlide();
+
+});
