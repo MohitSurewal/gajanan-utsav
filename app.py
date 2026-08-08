@@ -1799,9 +1799,10 @@ def home():
     latest_winners = latest_winners[:6]
 
 
+ 
+
     # ==========================================
     # FESTIVAL GLIMPSE 2025
-    # GET LATEST 2025 VIDEO FROM FIRESTORE
     # ==========================================
 
     home_video_2025 = None
@@ -1810,22 +1811,35 @@ def home():
 
         video_docs = (
             db.collection("videos")
-            .where("year", "==", "2025")
-            .order_by(
-                "created_at",
-                direction=firestore.Query.DESCENDING
-            )
-            .limit(1)
             .stream()
         )
 
+        all_2025_videos = []
+
         for doc in video_docs:
 
-            home_video_2025 = doc.to_dict()
+            data = doc.to_dict()
 
-            home_video_2025["doc_id"] = doc.id
+            # Year चाहे string हो या number,
+            # दोनों में काम करेगा
 
-            break
+            if str(data.get("year", "")).strip() == "2025":
+
+                data["doc_id"] = doc.id
+
+                all_2025_videos.append(data)
+
+
+        # Latest uploaded 2025 video
+        if all_2025_videos:
+
+            all_2025_videos.sort(
+                key=lambda x: x.get("created_at"),
+                reverse=True
+            )
+
+            home_video_2025 = all_2025_videos[0]
+
 
     except Exception as e:
 
