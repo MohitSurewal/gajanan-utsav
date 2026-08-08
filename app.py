@@ -878,6 +878,7 @@ def admin_gallery():
             files = request.files.getlist("photos")
 
             uploaded = 0
+            skipped = 0
 
             for file in files:
 
@@ -887,38 +888,96 @@ def admin_gallery():
                 if not allowed_file(file.filename):
                     continue
 
-                result = cloudinary.uploader.upload(
+                try:
 
-                    file,
+                    # ==============================
+                    # CREATE SHA-256 FILE HASH
+                    # ==============================
 
-                    folder=f"Gajanan-Utsav/{year}/{event}"
+                    file_bytes = file.read()
 
-                )
+                    file_hash = hashlib.sha256(file_bytes).hexdigest()
 
-                print("Saving to Firestore...")
+                    # Reset file position so Cloudinary can read it
+                    file.seek(0)
 
-                db.collection("gallery").document().set({
 
-                    "year": year,
+                    # ==============================
+                    # CHECK DUPLICATE IN FIRESTORE
+                    # ==============================
 
-                    "event": event,
+                    duplicate_docs = (
+                        db.collection("gallery")
+                        .where("file_hash", "==", file_hash)
+                        .limit(1)
+                        .stream()
+                    )
 
-                    "url": result["secure_url"],
+                    duplicate_found = False
 
-                    "public_id": result["public_id"]
+                    for duplicate_doc in duplicate_docs:
+                        duplicate_found = True
+                        break
 
-                })
 
-                print("Firestore Saved")
-                                
-                print("Cloudinary Upload Success")
-                print(result["secure_url"])
+                    # ==============================
+                    # SKIP DUPLICATE
+                    # ==============================
 
-                uploaded += 1
+                    if duplicate_found:
+
+                        print(
+                            f"Duplicate image skipped: {file.filename}"
+                        )
+                        skipped += 1
+                        continue
+
+
+                    # ==============================
+                    # UPLOAD TO CLOUDINARY
+                    # ==============================
+
+                    result = cloudinary.uploader.upload(
+                        file,
+                        folder=f"Gajanan-Utsav/{year}/{event}"
+                    )
+
+
+                    # ==============================
+                    # SAVE TO FIRESTORE
+                    # ==============================
+
+                    db.collection("gallery").document().set({
+
+                        "year": year,
+
+                        "event": event,
+
+                        "url": result["secure_url"],
+
+                        "public_id": result["public_id"],
+
+                        "file_hash": file_hash
+
+                    })
+
+
+                    uploaded += 1
+
+                    print(
+                        f"Uploaded successfully: {file.filename}"
+                    )
+
+
+                except Exception as e:
+
+                    print(
+                        f"Error uploading {file.filename}: {e}"
+                    )
 
             flash(
 
-                f"{uploaded} image(s) uploaded successfully.",
+                f"{uploaded} image(s) uploaded, {skipped} skipped.",
 
                 "success"
 
