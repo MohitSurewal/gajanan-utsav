@@ -656,5 +656,73 @@ LOCATION
 
 </section>
 
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const thumbnail =
+        document.querySelector(".youtube-home-thumbnail");
+
+    if (!thumbnail) {
+        return;
+    }
+
+
+    thumbnail.addEventListener("click", function () {
+
+        const videoId =
+            this.getAttribute("data-video-id");
+
+        if (!videoId) {
+            return;
+        }
+
+
+        /*
+         * Create YouTube iframe
+         */
+
+        const iframe =
+            document.createElement("iframe");
+
+
+        iframe.src =
+            "https://www.youtube.com/embed/"
+            + videoId
+            + "?autoplay=1&rel=0";
+
+
+        iframe.title =
+            "Festival Glimpse 2025";
+
+
+        iframe.width = "100%";
+        iframe.height = "500";
+
+
+        iframe.frameBorder = "0";
+
+
+        iframe.allow =
+            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+
+
+        iframe.allowFullscreen = true;
+
+
+        /*
+         * Replace thumbnail with YouTube player
+         */
+
+        this.replaceWith(iframe);
+
+    });
+
+});
+
+</script>
+
+
+
 
 {% endblock %}
