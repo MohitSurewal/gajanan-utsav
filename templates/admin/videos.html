@@ -1,90 +1,350 @@
 {% extends "base.html" %}
 
 {% block title %}
-Videos Manager
+Video Manager
 {% endblock %}
 
 {% block content %}
 
-<section class="admin-dashboard">
+<div class="container">
 
-    <div class="container">
+    <h1>🎬 Video Manager</h1>
 
-        <h1>🎥 Videos Manager</h1>
+    <p>
+        Upload and manage Gajanan Utsav videos.
+    </p>
 
-        <div style="margin-bottom:20px;">
 
-            <a
-                href="{{ url_for('admin_add_video') }}"
-                class="admin-btn">
+    <!-- ================= UPLOAD FORM ================= -->
 
-                ➕ Add Video
+    <div class="admin-card">
 
-            </a>
+        <h2>Upload New Video</h2>
 
-        </div>
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for('admin_videos') }}"
+        >
 
-        <table class="admin-table">
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
 
-            <thead>
 
-                <tr>
+            <!-- TITLE -->
 
-                    <th>Year</th>
+            <div class="form-group">
 
-                    <th>Title</th>
+                <label for="title">
+                    Video Title
+                </label>
 
-                    <th>YouTube Link</th>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="Example: Dance Competition 2026"
+                    required
+                >
 
-                    <th>Action</th>
+            </div>
 
-                </tr>
 
-            </thead>
+            <!-- YEAR -->
 
-            <tbody>
+            <div class="form-group">
 
-                {% for video in videos %}
+                <label for="year">
+                    Year
+                </label>
 
-                <tr>
+                <input
+                    type="text"
+                    id="year"
+                    name="year"
+                    placeholder="2026"
+                    required
+                >
 
-                    <td>{{ video.year }}</td>
+            </div>
 
-                    <td>{{ video.title }}</td>
 
-                    <td>{{ video.youtube }}</td>
+            <!-- EVENT -->
 
-                    <td>
+            <div class="form-group">
 
-                        <a
-                            href="{{ url_for('admin_edit_video', index=loop.index0) }}"
-                            class="admin-btn">
+                <label for="event">
+                    Event
+                </label>
 
-                            ✏ Edit
+                <input
+                    type="text"
+                    id="event"
+                    name="event"
+                    placeholder="Dance Competition"
+                    required
+                >
 
-                        </a>
+            </div>
 
-                        <a
-                            href="{{ url_for('admin_delete_video', index=loop.index0) }}"
-                            class="admin-btn delete-btn"
-                            onclick="return confirm('Delete this video?');">
 
-                            🗑 Delete
+            <!-- VIDEO -->
 
-                        </a>
+            <div class="form-group">
 
-                    </td>
+                <label for="videoFile">
+                    Select Video
+                </label>
 
-                </tr>
+                <input
+                    type="file"
+                    id="videoFile"
+                    name="video"
+                    accept="video/*"
+                    required
+                >
 
-                {% endfor %}
+            </div>
 
-            </tbody>
 
-        </table>
+            <!-- LOCAL PREVIEW -->
+
+            <div
+                id="videoPreview"
+                style="
+                    display:none;
+                    margin-top:20px;
+                "
+            >
+
+                <h3>Preview</h3>
+
+                <video
+                    id="previewPlayer"
+                    controls
+                    playsinline
+                    style="
+                        width:100%;
+                        max-width:700px;
+                        border-radius:12px;
+                        background:#000;
+                    "
+                ></video>
+
+            </div>
+
+
+            <!-- UPLOAD -->
+
+            <button
+                type="submit"
+                class="admin-btn"
+                style="margin-top:20px;"
+            >
+
+                📤 Upload Video
+
+            </button>
+
+        </form>
 
     </div>
 
-</section>
+
+    <hr>
+
+
+    <!-- ================= EXISTING VIDEOS ================= -->
+
+    <h2>Uploaded Videos</h2>
+
+
+    {% if videos %}
+
+        <div class="video-manager-grid">
+
+            {% for video in videos %}
+
+                <div class="video-manager-card">
+
+
+                    <!-- VIDEO PREVIEW -->
+
+                    {% if video.youtube_id %}
+
+                        <div class="video-preview">
+
+                            <iframe
+                                src="https://www.youtube.com/embed/{{ video.youtube_id }}"
+                                title="{{ video.title }}"
+                                loading="lazy"
+                                allowfullscreen
+                            ></iframe>
+
+                        </div>
+
+                    {% elif video.url %}
+
+                        <video
+                            src="{{ video.url }}"
+                            controls
+                            preload="metadata"
+                            style="width:100%;"
+                        ></video>
+
+                    {% endif %}
+
+
+                    <!-- DETAILS -->
+
+                    <div class="video-info">
+
+                        <h3>
+                            {{ video.title }}
+                        </h3>
+
+                        <p>
+                            <strong>Year:</strong>
+                            {{ video.year }}
+                        </p>
+
+                        <p>
+                            <strong>Event:</strong>
+                            {{ video.event }}
+                        </p>
+
+
+                        {% if video.youtube_id %}
+
+                            <p>
+                                <strong>Status:</strong>
+                                {{ video.privacy_status|default("Unlisted") }}
+                            </p>
+
+                        {% endif %}
+
+
+                        <!-- DELETE -->
+
+                        {% if video.doc_id %}
+
+                            <form
+                                method="POST"
+                                action="{{ url_for('delete_video') }}"
+                                onsubmit="return confirm('Are you sure you want to delete this video?');"
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="doc_id"
+                                    value="{{ video.doc_id }}"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="youtube_id"
+                                    value="{{ video.youtube_id|default('') }}"
+                                >
+
+
+                                <button
+                                    type="submit"
+                                    class="admin-btn"
+                                    style="
+                                        margin-top:10px;
+                                        background:#c62828;
+                                        color:#fff;
+                                    "
+                                >
+
+                                    🗑 Delete
+
+                                </button>
+
+                            </form>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p>
+            No videos uploaded yet.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ================= LOCAL VIDEO PREVIEW JS ================= -->
+
+<script>
+
+const videoInput = document.getElementById("videoFile");
+
+const videoPreview = document.getElementById("videoPreview");
+
+const previewPlayer = document.getElementById("previewPlayer");
+
+
+if (videoInput) {
+
+    videoInput.addEventListener("change", function () {
+
+        const file = this.files[0];
+
+        if (!file) {
+
+            videoPreview.style.display = "none";
+
+            previewPlayer.removeAttribute("src");
+
+            return;
+
+        }
+
+
+        if (!file.type.startsWith("video/")) {
+
+            alert("Please select a valid video file.");
+
+            this.value = "";
+
+            videoPreview.style.display = "none";
+
+            return;
+
+        }
+
+
+        const videoURL = URL.createObjectURL(file);
+
+        previewPlayer.src = videoURL;
+
+        videoPreview.style.display = "block";
+
+    });
+
+}
+
+</script>
+
 
 {% endblock %}
