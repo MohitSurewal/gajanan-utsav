@@ -1751,6 +1751,10 @@ def home():
 
     gallery = load_gallery()
 
+    # ==========================================
+    # LATEST GALLERY
+    # ==========================================
+
     latest_gallery = []
 
     for year in sorted(gallery.keys(), reverse=True):
@@ -1762,6 +1766,11 @@ def home():
                 latest_gallery.append(photo)
 
     latest_gallery = latest_gallery[:6]
+
+
+    # ==========================================
+    # LATEST WINNERS
+    # ==========================================
 
     latest_winners = []
 
@@ -1789,6 +1798,30 @@ def home():
 
     latest_winners = latest_winners[:6]
 
+
+    # ==========================================
+    # FESTIVAL GLIMPSE 2025
+    # ==========================================
+
+    videos = load_videos()
+
+    videos_2025 = [
+        video
+        for video in videos
+        if str(video.get("year", "")) == "2025"
+    ]
+
+    home_video_2025 = (
+        videos_2025[0]
+        if videos_2025
+        else None
+    )
+
+
+    # ==========================================
+    # HOME PAGE
+    # ==========================================
+
     return render_template(
         "home.html",
         notice=notice,
@@ -1796,8 +1829,13 @@ def home():
         committee=committee,
         latest_gallery=latest_gallery,
         latest_winners=latest_winners,
+        home_video_2025=home_video_2025,
         active_page="home"
     )
+    
+    
+    
+    
     
 @app.route("/admin/schedule", methods=["GET", "POST"])
 def admin_schedule():
