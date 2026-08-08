@@ -1,290 +1,178 @@
 {% extends "base.html" %}
 
 {% block title %}
-
 Gallery Manager
-
 {% endblock %}
 
 {% block content %}
-
-<section class="admin-dashboard">{% extends "base.html" %}
-
-{% block title %}
-
-Gallery Manager
-
-{% endblock %}
-
-{% block content %}
-
-<section class="admin-dashboard">
 
 <div class="container">
 
-<h1>🖼 Gallery Manager</h1>
+    <h1>📷 Gallery Manager</h1>
 
-<p>Upload Event Photos</p>
+    <!-- ================= UPLOAD FORM ================= -->
 
-<form
-method="POST"
-enctype="multipart/form-data"
->
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+        action="{{ url_for('admin_gallery') }}"
+    >
 
-<input
-type="hidden"
-name="csrf_token"
-value="{{ csrf_token() }}"
->
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
 
-<label>Year</label>
-
-<input
-type="text"
-name="year"
-placeholder="2026"
-required>
-
-<label>Event Folder</label>
-
-<input
-type="text"
-name="event"
-placeholder="dance-competition"
-required>
-
-<label>Select Images</label>
-
-<input
-type="file"
-name="photos"
-multiple
-accept=".jpg,.jpeg,.png,.webp"
-required>
-<div id="uploadPreview" class="upload-preview"></div>
-
-<button
-    type="submit"
-    class="admin-btn"
-    style="margin-top:10px;background:#c62828;color:#fff;"
-    onclick="return confirm('Are you sure you want to delete this image?');">
-
-    🗑 Delete
-
-</button>
-
-Upload
-
-</button>
-
-</form>
-
-<hr style="margin:40px 0;">
-
-<h2>Uploaded Photos</h2>
-
-{% for year, events in gallery.items() %}
-
-<h3>{{ year }}</h3>
-
-{% for event, images in events.items() %}
-
-<h4>{{ event.replace('-', ' ').title() }}</h4>
-
-<div class="gallery-grid">
-
-    {% for image in images %}
-
-    <div class="gallery-item">
-
-        <img
-            src="{{ image.url }}"
-            alt="Gallery Image">
-
-        <form
-            method="POST"
-            action="{{ url_for('delete_gallery_image') }}">
+        <div>
+            <label>Year</label>
 
             <input
-                type="hidden"
-                name="csrf_token"
-                value="{{ csrf_token() }}">
-
-            <input
-                type="hidden"
+                type="text"
                 name="year"
-                value="{{ year }}">
+                placeholder="2026"
+                required
+            >
+        </div>
+
+        <div>
+            <label>Event Folder</label>
 
             <input
-                type="hidden"
+                type="text"
                 name="event"
-                value="{{ event }}">
+                placeholder="Dance Competition"
+                required
+            >
+        </div>
+
+        <div>
+            <label>Select Images</label>
 
             <input
-                type="hidden"
-                name="public_id"
-                value="{{ image.public_id }}">
+                type="file"
+                name="photos"
+                accept="image/*"
+                multiple
+                required
+            >
+        </div>
 
-            <input
-                type="hidden"
-                name="doc_id"
-                value="{{ image.doc_id }}">
+        <button type="submit" class="admin-btn">
+            📤 Upload
+        </button>
 
-            <button
-                type="submit"
-                class="admin-btn"
-                style="margin-top:10px;background:#c62828;color:#fff;"
-                onclick="return confirm('Are you sure you want to delete this image?');">
+    </form>
 
-                🗑 Delete
 
-            </button>
-        </form>
+    <!-- ================= EXISTING GALLERY ================= -->
 
-    </div>
+    <hr>
+
+    <h2>Uploaded Photos</h2>
+
+
+    {% for year, events in gallery.items() %}
+
+        <div class="gallery-year">
+
+            <h2>{{ year }}</h2>
+
+
+            {% for event, images in events.items() %}
+
+                <div class="gallery-event">
+
+                    <h3>
+                        {{ event.replace('-', ' ').title() }}
+                    </h3>
+
+
+                    <div class="gallery-grid">
+
+                        {% for image in images %}
+
+                            <div class="gallery-item">
+
+                                <!-- PHOTO PREVIEW -->
+
+                                <img
+                                    src="{{ image.url }}"
+                                    alt="Gallery Image"
+                                    class="gallery-image"
+                                    loading="lazy"
+                                >
+
+
+                                <!-- DELETE FORM -->
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for('delete_gallery_image') }}"
+                                    onsubmit="return confirm('Are you sure you want to delete this photo?');"
+                                >
+
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="{{ csrf_token() }}"
+                                    >
+
+                                    <input
+                                        type="hidden"
+                                        name="year"
+                                        value="{{ year }}"
+                                    >
+
+                                    <input
+                                        type="hidden"
+                                        name="event"
+                                        value="{{ event }}"
+                                    >
+
+                                    <input
+                                        type="hidden"
+                                        name="public_id"
+                                        value="{{ image.public_id }}"
+                                    >
+
+                                    <!-- IMPORTANT: DOCUMENT ID -->
+
+                                    <input
+                                        type="hidden"
+                                        name="doc_id"
+                                        value="{{ image.doc_id }}"
+                                    >
+
+
+                                    <button
+                                        type="submit"
+                                        class="admin-btn"
+                                        style="margin-top:10px;background:#c62828;color:#fff;"
+                                    >
+                                        🗑 Delete
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p>No photos uploaded yet.</p>
 
     {% endfor %}
 
 </div>
 
-{% endfor %}
-
-{% endfor %}
-
-</div>
-
-</section>
-
 {% endblock %}
-
-
-
-<div class="container">
-
-<h1>🖼 Gallery Manager</h1>
-
-<p>Upload Event Photos</p>
-
-<form
-method="POST"
-enctype="multipart/form-data"
->
-
-<input
-type="hidden"
-name="csrf_token"
-value="{{ csrf_token() }}"
->
-
-<label>Year</label>
-
-<input
-type="text"
-name="year"
-placeholder="2026"
-required>
-
-<label>Event Folder</label>
-
-<input
-type="text"
-name="event"
-placeholder="dance-competition"
-required>
-
-<label>Select Images</label>
-
-<input
-type="file"
-name="photos"
-multiple
-accept=".jpg,.jpeg,.png,.webp"
-required>
-<div id="uploadPreview" class="upload-preview"></div>
-<button
-class="admin-btn"
-type="submit">
-
-Upload
-
-</button>
-
-</form>
-
-<hr style="margin:40px 0;">
-
-<h2>Uploaded Photos</h2>
-
-{% for year, events in gallery.items() %}
-
-<h3>{{ year }}</h3>
-
-{% for event, images in events.items() %}
-
-<h4>{{ event.replace('-', ' ').title() }}</h4>
-
-<div class="gallery-grid">
-
-    {% for image in images %}
-
-    <div class="gallery-item">
-
-        <img
-            src="{{ image.url }}"
-            alt="Gallery Image">
-
-        <form
-            method="POST"
-            action="{{ url_for('delete_gallery_image') }}">
-
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="{{ csrf_token() }}">
-
-            <input
-                type="hidden"
-                name="year"
-                value="{{ year }}">
-
-            <input
-                type="hidden"
-                name="event"
-                value="{{ event }}">
-
-            <input
-                type="hidden"
-                name="public_id"
-                value="{{ image.public_id }}">
-
-            <input
-                type="hidden"
-                name="doc_id"
-                value="{{ image.doc_id }}">
-
-            <button
-                class="admin-btn"
-                style="margin-top:10px;background:#c62828;color:#fff;">
-
-                🗑 Delete
-
-            </button>
-
-        </form>
-
-    </div>
-
-    {% endfor %}
-
-</div>
-
-{% endfor %}
-
-{% endfor %}
-
-</div>
-
-</section>
-
-{% endblock %}
-
