@@ -4468,22 +4468,35 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
 
 
 /* ==========================================
-   HOME FESTIVAL GLIMPSE
+   HOME FESTIVAL GLIMPSE 2025
 ========================================== */
 
-.youtube-home-wrapper {
+.home-video-card {
     width: 100%;
-    overflow: hidden;
+    max-width: 850px;
+    margin: 30px auto 0;
+
     border-radius: 18px;
+    overflow: hidden;
+
+    background: #111;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
 
 .youtube-home-thumbnail {
     position: relative;
+
     width: 100%;
+
     aspect-ratio: 16 / 9;
+
     overflow: hidden;
+
     cursor: pointer;
+
     background: #111;
 }
 
@@ -4491,8 +4504,17 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
 .youtube-home-thumbnail img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+
     display: block;
+
+    object-fit: cover;
+
+    transition: transform 0.3s ease;
+}
+
+
+.youtube-home-thumbnail:hover img {
+    transform: scale(1.03);
 }
 
 
@@ -4504,16 +4526,17 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
 
     transform: translate(-50%, -50%);
 
-    width: 80px;
-    height: 56px;
+    width: 70px;
+    height: 50px;
 
     border: none;
-    border-radius: 16px;
+    border-radius: 12px;
 
     background: #ff0000;
+
     color: white;
 
-    font-size: 30px;
+    font-size: 28px;
 
     cursor: pointer;
 
@@ -4532,11 +4555,60 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
 }
 
 
-.youtube-home-thumbnail:hover img {
-    transform: scale(1.02);
+/* YouTube player after clicking */
+
+.home-video-card iframe {
+    width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    height: auto;
+
+    display: block;
+
+    border: 0;
 }
 
 
-.youtube-home-thumbnail img {
-    transition: transform 0.3s ease;
+/* No video */
+
+.home-video-empty {
+    max-width: 850px;
+
+    margin: 30px auto;
+
+    padding: 40px 20px;
+
+    text-align: center;
+
+    border-radius: 18px;
+
+    background: #f5f5f5;
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 768px) {
+
+    .home-video-card {
+        max-width: 100%;
+
+        margin-top: 20px;
+
+        border-radius: 12px;
+    }
+
+
+    .youtube-home-play {
+        width: 60px;
+        height: 44px;
+
+        font-size: 23px;
+
+        border-radius: 10px;
+    }
+
 }
