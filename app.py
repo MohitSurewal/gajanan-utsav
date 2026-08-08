@@ -92,7 +92,6 @@ def load_gallery(event=None, year=None):
         y = data.get("year")
         e = data.get("event")
 
-        # Skip invalid docs
         if not y or not e or not data.get("url"):
             continue
 
@@ -108,7 +107,10 @@ def load_gallery(event=None, year=None):
             "doc_id": doc.id
         })
 
-    return dict(gallery)
+    return {
+        year: dict(gallery[year])
+        for year in sorted(gallery.keys(), key=lambda x: int(x), reverse=True)
+    }
 
 def load_notice():
     file_path = os.path.join(BASE_DIR, "data", "notice.json")
@@ -948,14 +950,28 @@ def delete_gallery_image():
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
 
-    public_id = request.form["public_id"]
-    doc_id = request.form["doc_id"]
+    public_id = request.form.get("public_id")
+    doc_id = request.form.get("doc_id")
 
-    cloudinary.uploader.destroy(public_id)
+    if not public_id or not doc_id:
+        flash("Invalid image data.", "danger")
+        return redirect(url_for("admin_gallery"))
 
-    db.collection("gallery").document(doc_id).delete()
+    try:
 
-    flash("Image deleted.", "success")
+        # Cloudinary
+        cloudinary.uploader.destroy(public_id)
+
+        # Firestore
+        db.collection("gallery").document(doc_id).delete()
+
+        flash("Image deleted successfully.", "success")
+
+    except Exception as e:
+
+        print("DELETE ERROR:", e)
+
+        flash("Unable to delete image.", "danger")
 
     return redirect(url_for("admin_gallery"))
 
