@@ -21,11 +21,26 @@ from config import *
 from config import FIREBASE_CREDENTIALS
 from google.auth.transport.requests import Request
 import hashlib
+from google_auth_oauthlib.flow import Flow
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
 
 
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
+
+YOUTUBE_CLIENT_ID = os.environ.get("YOUTUBE_CLIENT_ID")
+YOUTUBE_CLIENT_SECRET = os.environ.get("YOUTUBE_CLIENT_SECRET")
+YOUTUBE_REDIRECT_URI = os.environ.get(
+    "YOUTUBE_REDIRECT_URI"
+)
+
+YOUTUBE_SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.force-ssl"
+]
 
 cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 
@@ -349,6 +364,90 @@ def load_hall_of_fame():
 
 
 
+
+@app.route("/youtube/connect")
+def youtube_connect():
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    client_config = {
+        "web": {
+            "client_id": YOUTUBE_CLIENT_ID,
+            "client_secret": YOUTUBE_CLIENT_SECRET,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "redirect_uris": [YOUTUBE_REDIRECT_URI]
+        }
+    }
+
+    flow = Flow.from_client_config(
+        client_config,
+        scopes=YOUTUBE_SCOPES
+    )
+
+    flow.redirect_uri = YOUTUBE_REDIRECT_URI
+
+    authorization_url, state = flow.authorization_url(
+        access_type="offline",
+        include_granted_scopes="true",
+        prompt="consent"
+    )
+
+    session["youtube_oauth_state"] = state
+
+    return redirect(authorization_url)
+
+
+@app.route("/youtube/oauth/callback")
+def youtube_oauth_callback():
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    state = session.get("youtube_oauth_state")
+
+    if not state:
+        return "OAuth session expired. Please try again.", 400
+
+    client_config = {
+        "web": {
+            "client_id": YOUTUBE_CLIENT_ID,
+            "client_secret": YOUTUBE_CLIENT_SECRET,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "redirect_uris": [YOUTUBE_REDIRECT_URI]
+        }
+    }
+
+    flow = Flow.from_client_config(
+        client_config,
+        scopes=YOUTUBE_SCOPES,
+        state=state
+    )
+
+    flow.redirect_uri = YOUTUBE_REDIRECT_URI
+
+    flow.fetch_token(
+        authorization_response=request.url
+    )
+
+    credentials = flow.credentials
+
+    db.collection("settings").document("youtube").set({
+        "token": credentials.token,
+        "refresh_token": credentials.refresh_token,
+        "token_uri": credentials.token_uri,
+        "client_id": credentials.client_id,
+        "scopes": credentials.scopes
+    })
+
+    session.pop("youtube_oauth_state", None)
+
+    return """
+    <h2>YouTube Connected Successfully ✅</h2>
+    <p>You can close this page and return to the Admin Panel.</p>
+    """
 
 
 
