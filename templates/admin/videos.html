@@ -154,143 +154,107 @@ Video Manager
     </div>
 
 
+<!-- ================= UPLOADED VIDEOS ================= -->
+
     <hr>
-
-
-    <!-- ================= EXISTING VIDEOS ================= -->
 
     <h2>Uploaded Videos</h2>
 
+    <div class="admin-video-grid">
 
-    {% if videos %}
+    {% for video in videos %}
 
-        <div class="video-manager-grid">
+        <div class="admin-video-card">
 
-            {% for video in videos %}
+            <!-- VIDEO PREVIEW -->
 
-                <div class="video-manager-card">
+            {% if video.youtube_id %}
 
+            <div class="admin-video-preview">
 
-                    <!-- VIDEO PREVIEW -->
+                <iframe
+                    src="https://www.youtube.com/embed/{{ video.youtube_id }}"
+                    title="{{ video.title }}"
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
 
-                    {% if video.youtube_id %}
+            </div>
 
-                        <div class="video-preview">
-
-                            <iframe
-                                src="https://www.youtube.com/embed/{{ video.youtube_id }}"
-                                title="{{ video.title }}"
-                                loading="lazy"
-                                allowfullscreen
-                            ></iframe>
-
-                        </div>
-
-                    {% elif video.url %}
-
-                        <video
-                            src="{{ video.url }}"
-                            controls
-                            preload="metadata"
-                            style="width:100%;"
-                        ></video>
-
-                    {% endif %}
+            {% endif %}
 
 
-                    <!-- DETAILS -->
+            <!-- VIDEO INFORMATION -->
 
-                    <div class="video-info">
+            <div class="admin-video-info">
 
-                        <h3>
-                            {{ video.title }}
-                        </h3>
+                <h3>
+                    {{ video.title }}
+                </h3>
 
-                        <p>
-                            <strong>Year:</strong>
-                            {{ video.year }}
-                        </p>
+                <p>
+                    <strong>Year:</strong>
+                    {{ video.year }}
+                </p>
 
-                        <p>
-                            <strong>Event:</strong>
-                            {{ video.event }}
-                        </p>
-
-
-                        {% if video.youtube_id %}
-
-                            <p>
-                                <strong>Status:</strong>
-                                {{ video.privacy_status|default("Unlisted") }}
-                            </p>
-
-                        {% endif %}
+                <p>
+                    <strong>Event:</strong>
+                    {{ video.event.replace('-', ' ').title() }}
+                </p>
 
 
-                        <!-- DELETE -->
+                <!-- DELETE -->
 
-                        {% if video.doc_id %}
+                <form
+                    method="POST"
+                    action="{{ url_for('delete_video') }}"
+                    onsubmit="return confirm('Are you sure you want to permanently delete this video from YouTube?');"
+                >
 
-                            <form
-                                method="POST"
-                                action="{{ url_for('delete_video') }}"
-                                onsubmit="return confirm('Are you sure you want to delete this video?');"
-                            >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                    >
 
-                                <input
-                                    type="hidden"
-                                    name="csrf_token"
-                                    value="{{ csrf_token() }}"
-                                >
+                    <input
+                        type="hidden"
+                        name="doc_id"
+                        value="{{ video.doc_id }}"
+                    >
 
-                                <input
-                                    type="hidden"
-                                    name="doc_id"
-                                    value="{{ video.doc_id }}"
-                                >
+                    <input
+                        type="hidden"
+                        name="youtube_id"
+                        value="{{ video.youtube_id }}"
+                    >
 
-                                <input
-                                    type="hidden"
-                                    name="youtube_id"
-                                    value="{{ video.youtube_id|default('') }}"
-                                >
+                    <button
+                        type="submit"
+                        class="admin-video-delete"
+                        style="
+                            background:#c62828;
+                            color:#fff;
+                            margin-top:10px;
+                        "
+                    >
+                        🗑 Delete Video
+                    </button>
 
+                </form>
 
-                                <button
-                                    type="submit"
-                                    class="admin-btn"
-                                    style="
-                                        margin-top:10px;
-                                        background:#c62828;
-                                        color:#fff;
-                                    "
-                                >
-
-                                    🗑 Delete
-
-                                </button>
-
-                            </form>
-
-                        {% endif %}
-
-                    </div>
-
-                </div>
-
-            {% endfor %}
+            </div>
 
         </div>
 
     {% else %}
 
-        <p>
-            No videos uploaded yet.
-        </p>
+        <p>No videos uploaded yet.</p>
 
-    {% endif %}
+    {% endfor %}
 
-</div>
+    </div>
 
 
 <!-- ================= LOCAL VIDEO PREVIEW JS ================= -->
@@ -345,6 +309,93 @@ if (videoInput) {
 }
 
 </script>
+
+<style>
+
+.admin-video-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    margin-top: 30px;
+    align-items: start;
+}
+
+.admin-video-card {
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.10);
+    border: 1px solid #eeeeee;
+    width: 100%;
+}
+
+.admin-video-preview {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #111;
+    overflow: hidden;
+}
+
+.admin-video-preview iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: none;
+}
+
+.admin-video-info {
+    padding: 20px;
+}
+
+.admin-video-info h3 {
+    margin: 0 0 15px 0;
+    font-size: 22px;
+}
+
+.admin-video-info p {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.admin-video-delete {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    margin-top: 18px;
+    background: #d62828;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-video-delete:hover {
+    background: #b71c1c;
+}
+
+@media (max-width: 900px) {
+
+    .admin-video-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .admin-video-info {
+        padding: 16px;
+    }
+
+    .admin-video-info h3 {
+        font-size: 19px;
+    }
+
+}
+
+</style>
+
 
 
 {% endblock %}
