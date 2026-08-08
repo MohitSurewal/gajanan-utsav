@@ -1094,7 +1094,8 @@ def home():
     schedule = load_schedule()
     committee = load_committee()
     winners = load_winners()
-    gallery = {}
+
+    gallery = load_gallery()
 
     latest_gallery = []
 
