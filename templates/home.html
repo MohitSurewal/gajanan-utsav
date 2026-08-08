@@ -373,38 +373,65 @@ MEMORIES
 
     <div class="container preview-grid">
 
-        <div>
+        <div class="gallery-preview-text">
 
             <h2>Previous Years Memories</h2>
 
             <p>
-
                 Explore beautiful moments captured during previous Ganesh Utsav celebrations.
-
             </p>
 
             <a href="/gallery" class="btn">
-
                 View Gallery
-
             </a>
 
         </div>
 
-        <div class="gallery-grid">
+        <div class="gallery-slider">
 
             {% for photo in latest_gallery %}
 
-            <div class="gallery-item">
+            <div class="gallery-slide {% if loop.first %}active{% endif %}">
 
                 <img
                     src="{{ photo.url }}"
                     alt="Gallery Preview"
-                    loading="lazy">
+                    loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
 
             </div>
 
             {% endfor %}
+
+            {% if latest_gallery|length > 1 %}
+
+            <button
+                type="button"
+                class="gallery-prev"
+                aria-label="Previous Photo">
+                &#10094;
+            </button>
+
+            <button
+                type="button"
+                class="gallery-next"
+                aria-label="Next Photo">
+                &#10095;
+            </button>
+
+            <div class="gallery-dots">
+
+                {% for photo in latest_gallery %}
+
+                <span
+                    class="gallery-dot {% if loop.first %}active{% endif %}"
+                    data-slide="{{ loop.index0 }}">
+                </span>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
 
         </div>
 
