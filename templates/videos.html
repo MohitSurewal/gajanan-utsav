@@ -6,36 +6,52 @@ Videos | Gajanan Utsav Samiti 2026
 
 {% block content %}
 
-<div class="container">
+<div class="video-page">
 
-    <h1>🎬 Festival Videos</h1>
+    <!-- =========================
+         PAGE HEADER
+    ========================== -->
 
-    <p>Relive the beautiful moments of Ganesh Utsav</p>
+    <div class="video-page-title">
+
+        <h1>🎬 Festival Videos</h1>
+
+        <p>
+            Relive the beautiful moments of Ganesh Utsav
+        </p>
+
+    </div>
 
 
-    <!-- ================= FILTERS ================= -->
+    <!-- =========================
+         YEAR FILTERS
+    ========================== -->
 
     <div class="video-filters">
 
         <button
+            type="button"
             class="video-filter active"
             data-year="all">
             All
         </button>
 
         <button
+            type="button"
             class="video-filter"
             data-year="2026">
             2026
         </button>
 
         <button
+            type="button"
             class="video-filter"
             data-year="2025">
             2025
         </button>
 
         <button
+            type="button"
             class="video-filter"
             data-year="2024">
             2024
@@ -44,9 +60,14 @@ Videos | Gajanan Utsav Samiti 2026
     </div>
 
 
-    <!-- ================= VIDEOS ================= -->
+    <!-- =========================
+         VIDEOS
+    ========================== -->
 
-    <div class="public-video-grid" id="videoGrid">
+    <div
+        class="public-video-grid"
+        id="videoGrid"
+    >
 
         {% for video in videos %}
 
@@ -55,40 +76,57 @@ Videos | Gajanan Utsav Samiti 2026
             data-year="{{ video.year }}"
         >
 
-            <!-- VIDEO -->
+            <!-- =========================
+                 YOUTUBE VIDEO
+            ========================== -->
 
             <div class="youtube-wrapper">
 
                 {% if video.youtube_id %}
 
-                    <!-- Thumbnail first -->
-                    <div
-                        class="youtube-thumbnail"
-                        data-video-id="{{ video.youtube_id }}"
+                <!-- Thumbnail -->
+
+                <div
+                    class="youtube-thumbnail"
+                    data-video-id="{{ video.youtube_id }}"
+                >
+
+                    <img
+                        src="https://i.ytimg.com/vi/{{ video.youtube_id }}/hqdefault.jpg"
+                        alt="{{ video.title }}"
+                        loading="lazy"
                     >
 
-                        <img
-                            src="https://i.ytimg.com/vi/{{ video.youtube_id }}/hqdefault.jpg"
-                            alt="{{ video.title }}"
-                            loading="lazy"
-                        >
+                    <button
+                        type="button"
+                        class="youtube-play"
+                        aria-label="Play {{ video.title }}"
+                    >
+                        ▶
+                    </button>
 
-                        <button
-                            type="button"
-                            class="youtube-play"
-                            aria-label="Play {{ video.title }}"
-                        >
-                            ▶
-                        </button>
+                </div>
 
-                    </div>
+                {% else %}
+
+                <div class="video-error">
+
+                    <span>🎬</span>
+
+                    <p>
+                        Video unavailable
+                    </p>
+
+                </div>
 
                 {% endif %}
 
             </div>
 
 
-            <!-- DETAILS -->
+            <!-- =========================
+                 VIDEO DETAILS
+            ========================== -->
 
             <div class="public-video-info">
 
@@ -96,18 +134,23 @@ Videos | Gajanan Utsav Samiti 2026
                     {{ video.title }}
                 </h2>
 
+
                 <div class="video-meta">
 
                     <span>
                         📅 {{ video.year }}
                     </span>
 
+
                     <span>
+
                         🎉
+
                         {{ video.event
                             .replace('-', ' ')
                             .title()
                         }}
+
                     </span>
 
                 </div>
@@ -116,11 +159,22 @@ Videos | Gajanan Utsav Samiti 2026
 
         </div>
 
+
         {% else %}
+
+        <!-- =========================
+             NO VIDEOS
+        ========================== -->
 
         <div class="no-videos">
 
-            <h2>🎬 No Videos Yet</h2>
+            <div class="no-video-icon">
+                🎬
+            </div>
+
+            <h2>
+                No Videos Yet
+            </h2>
 
             <p>
                 Festival videos will appear here soon.
@@ -135,135 +189,67 @@ Videos | Gajanan Utsav Samiti 2026
 </div>
 
 
-<!-- ================= VIDEO JAVASCRIPT ================= -->
-
-<script>
-
-document.addEventListener("DOMContentLoaded", function () {
-
-
-    /* ==========================================
-       YOUTUBE LAZY LOAD
-       ========================================== */
-
-    const thumbnails =
-        document.querySelectorAll(".youtube-thumbnail");
-
-
-    thumbnails.forEach(function (thumbnail) {
-
-        thumbnail.addEventListener("click", function () {
-
-            const videoId =
-                this.dataset.videoId;
-
-
-            if (!videoId) {
-                return;
-            }
-
-
-            const iframe =
-                document.createElement("iframe");
-
-
-            iframe.src =
-                "https://www.youtube.com/embed/"
-                + videoId
-                + "?autoplay=1&rel=0";
-
-
-            iframe.title =
-                "YouTube video";
-
-
-            iframe.allow =
-                "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-
-
-            iframe.allowFullscreen = true;
-
-
-            iframe.loading = "lazy";
-
-
-            this.replaceWith(iframe);
-
-        });
-
-    });
-
-
-
-    /* ==========================================
-       YEAR FILTER
-       ========================================== */
-
-    const filterButtons =
-        document.querySelectorAll(".video-filter");
-
-
-    const videoCards =
-        document.querySelectorAll(".public-video-card");
-
-
-    filterButtons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-
-            /* Remove active */
-
-            filterButtons.forEach(function (btn) {
-
-                btn.classList.remove("active");
-
-            });
-
-
-            /* Add active */
-
-            this.classList.add("active");
-
-
-            const selectedYear =
-                this.dataset.year;
-
-
-            videoCards.forEach(function (card) {
-
-                const cardYear =
-                    card.dataset.year;
-
-
-                if (
-                    selectedYear === "all"
-                    ||
-                    cardYear === selectedYear
-                ) {
-
-                    card.style.display = "";
-
-                } else {
-
-                    card.style.display = "none";
-
-                }
-
-            });
-
-        });
-
-    });
-
-});
-
-</script>
-
-
-<!-- ================= VIDEO CSS ================= -->
+<!-- ==================================================
+     CSS
+================================================== -->
 
 <style>
+
+/* =========================================
+   MAIN PAGE
+========================================= */
+
+.video-page {
+
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    padding: 45px 20px 80px;
+
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.video-page-title {
+
+    text-align: center;
+
+    margin-bottom: 35px;
+
+}
+
+
+.video-page-title h1 {
+
+    margin: 0 0 12px;
+
+    font-family: Georgia, serif;
+
+    font-size: 48px;
+
+    color: #172033;
+
+}
+
+
+.video-page-title p {
+
+    margin: 0;
+
+    color: #666;
+
+    font-size: 17px;
+
+}
+
+
+/* =========================================
+   FILTERS
+========================================= */
 
 .video-filters {
 
@@ -271,46 +257,61 @@ document.addEventListener("DOMContentLoaded", function () {
 
     justify-content: center;
 
+    align-items: center;
+
     flex-wrap: wrap;
 
     gap: 10px;
 
-    margin: 30px 0;
+    margin-bottom: 40px;
 
 }
 
 
 .video-filter {
 
-    border: 1px solid #d6ad27;
+    border: 1px solid #d9ad2b;
 
     background: transparent;
 
-    color: #222;
+    color: #6f5610;
 
-    padding: 10px 22px;
+    padding: 9px 22px;
 
     border-radius: 30px;
 
-    cursor: pointer;
+    font-size: 15px;
 
     font-weight: 600;
 
-    transition: 0.3s;
+    cursor: pointer;
+
+    transition: all 0.25s ease;
 
 }
 
 
-.video-filter:hover,
+.video-filter:hover {
 
-.video-filter.active {
-
-    background: #d6ad27;
+    background: #d9ad2b;
 
     color: #fff;
 
 }
 
+
+.video-filter.active {
+
+    background: #d9ad2b;
+
+    color: #fff;
+
+}
+
+
+/* =========================================
+   VIDEO GRID
+========================================= */
 
 .public-video-grid {
 
@@ -321,10 +322,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     gap: 30px;
 
-    margin-top: 30px;
-
 }
 
+
+/* =========================================
+   VIDEO CARD
+========================================= */
 
 .public-video-card {
 
@@ -334,29 +337,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
     overflow: hidden;
 
+    border: 1px solid #eeeeee;
+
     box-shadow:
-        0 8px 30px rgba(0,0,0,0.08);
+        0 8px 25px rgba(0, 0, 0, 0.08);
 
     transition:
-        transform 0.3s ease,
-        box-shadow 0.3s ease;
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
 
 }
 
 
 .public-video-card:hover {
 
-    transform: translateY(-4px);
+    transform: translateY(-5px);
 
     box-shadow:
-        0 14px 35px rgba(0,0,0,0.12);
+        0 15px 35px rgba(0, 0, 0, 0.13);
 
 }
 
 
-.youtube-wrapper {
+/* =========================================
+   YOUTUBE AREA
+========================================= */
 
-    position: relative;
+.youtube-wrapper {
 
     width: 100%;
 
@@ -368,6 +375,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 }
 
+
+/* =========================================
+   THUMBNAIL
+========================================= */
 
 .youtube-thumbnail {
 
@@ -392,8 +403,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     display: block;
 
+    transition:
+        transform 0.35s ease;
+
 }
 
+
+.youtube-thumbnail:hover img {
+
+    transform: scale(1.03);
+
+}
+
+
+/* =========================================
+   PLAY BUTTON
+========================================= */
 
 .youtube-play {
 
@@ -406,15 +431,15 @@ document.addEventListener("DOMContentLoaded", function () {
     transform:
         translate(-50%, -50%);
 
-    width: 70px;
+    width: 72px;
 
-    height: 50px;
+    height: 52px;
 
     border: none;
 
     border-radius: 14px;
 
-    background: rgba(200, 0, 0, 0.95);
+    background: #e60000;
 
     color: #fff;
 
@@ -428,21 +453,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     justify-content: center;
 
-}
+    box-shadow:
+        0 5px 18px rgba(0,0,0,0.35);
 
-
-.youtube-wrapper iframe {
-
-    width: 100%;
-
-    height: 100%;
-
-    border: 0;
-
-    display: block;
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
 
 }
 
+
+.youtube-play:hover {
+
+    background: #c90000;
+
+    transform:
+        translate(-50%, -50%)
+        scale(1.08);
+
+}
+
+
+/* =========================================
+   VIDEO DETAILS
+========================================= */
 
 .public-video-info {
 
@@ -453,12 +487,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
 .public-video-info h2 {
 
-    margin: 0 0 12px;
+    margin: 0 0 14px;
 
-    font-size: 22px;
+    font-family: Georgia, serif;
+
+    font-size: 23px;
+
+    line-height: 1.3;
+
+    color: #172033;
 
 }
 
+
+/* =========================================
+   META
+========================================= */
 
 .video-meta {
 
@@ -466,14 +510,70 @@ document.addEventListener("DOMContentLoaded", function () {
 
     flex-wrap: wrap;
 
-    gap: 15px;
-
-    color: #666;
-
-    font-size: 15px;
+    gap: 9px;
 
 }
 
+
+.video-meta span {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    background: #faf4df;
+
+    color: #6f5610;
+
+    padding: 7px 12px;
+
+    border-radius: 20px;
+
+    font-size: 14px;
+
+}
+
+
+/* =========================================
+   VIDEO UNAVAILABLE
+========================================= */
+
+.video-error {
+
+    width: 100%;
+
+    height: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    color: #aaa;
+
+}
+
+
+.video-error span {
+
+    font-size: 45px;
+
+}
+
+
+.video-error p {
+
+    margin: 8px 0 0;
+
+}
+
+
+/* =========================================
+   NO VIDEOS
+========================================= */
 
 .no-videos {
 
@@ -481,22 +581,108 @@ document.addEventListener("DOMContentLoaded", function () {
 
     text-align: center;
 
-    padding: 60px 20px;
+    padding: 80px 20px;
+
+    color: #777;
 
 }
 
 
-/* ==========================================
-   MOBILE
-   ========================================== */
+.no-video-icon {
 
-@media (max-width: 768px) {
+    font-size: 55px;
+
+    margin-bottom: 10px;
+
+}
+
+
+.no-videos h2 {
+
+    margin: 0 0 8px;
+
+    font-family: Georgia, serif;
+
+    color: #333;
+
+}
+
+
+.no-videos p {
+
+    margin: 0;
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 800px) {
+
+    .video-page {
+
+        padding:
+            35px
+            15px
+            60px;
+
+    }
+
+
+    .video-page-title h1 {
+
+        font-size: 38px;
+
+    }
+
 
     .public-video-grid {
 
         grid-template-columns: 1fr;
 
-        gap: 20px;
+        gap: 22px;
+
+    }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 500px) {
+
+    .video-page-title {
+
+        margin-bottom: 28px;
+
+    }
+
+
+    .video-page-title h1 {
+
+        font-size: 31px;
+
+    }
+
+
+    .video-page-title p {
+
+        font-size: 15px;
+
+    }
+
+
+    .video-filter {
+
+        padding:
+            8px
+            17px;
+
+        font-size: 14px;
 
     }
 
@@ -510,25 +696,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     .public-video-info h2 {
 
-        font-size: 19px;
-
-    }
-
-
-    .video-filter {
-
-        padding: 8px 17px;
-
-        font-size: 14px;
+        font-size: 20px;
 
     }
 
 
     .youtube-play {
 
-        width: 60px;
+        width: 62px;
 
-        height: 44px;
+        height: 45px;
 
         font-size: 21px;
 
@@ -536,6 +713,235 @@ document.addEventListener("DOMContentLoaded", function () {
 
 }
 
+
+/* =========================================
+   VERY SMALL MOBILE
+========================================= */
+
+@media (max-width: 360px) {
+
+    .video-filters {
+
+        gap: 7px;
+
+    }
+
+
+    .video-filter {
+
+        padding:
+            7px
+            13px;
+
+        font-size: 13px;
+
+    }
+
+}
+
 </style>
+
+
+<!-- ==================================================
+     JAVASCRIPT
+================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* ==========================================
+           YOUTUBE LAZY LOAD
+        ========================================== */
+
+        const thumbnails =
+            document.querySelectorAll(
+                ".youtube-thumbnail"
+            );
+
+
+        thumbnails.forEach(
+            function (thumbnail) {
+
+
+                thumbnail.addEventListener(
+                    "click",
+                    function () {
+
+
+                        const videoId =
+                            this.dataset.videoId;
+
+
+                        if (!videoId) {
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * Create YouTube iframe
+                         * only after clicking Play.
+                         */
+
+                        const iframe =
+                            document.createElement(
+                                "iframe"
+                            );
+
+
+                        iframe.src =
+                            "https://www.youtube.com/embed/"
+                            +
+                            videoId
+                            +
+                            "?autoplay=1&rel=0";
+
+
+                        iframe.title =
+                            "YouTube video";
+
+
+                        iframe.allow =
+                            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+
+
+                        iframe.allowFullscreen =
+                            true;
+
+
+                        iframe.loading =
+                            "lazy";
+
+
+                        iframe.style.width =
+                            "100%";
+
+
+                        iframe.style.height =
+                            "100%";
+
+
+                        iframe.style.border =
+                            "0";
+
+
+                        /*
+                         * Replace thumbnail
+                         * with YouTube player.
+                         */
+
+                        this.replaceWith(
+                            iframe
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* ==========================================
+           YEAR FILTER
+        ========================================== */
+
+        const filterButtons =
+            document.querySelectorAll(
+                ".video-filter"
+            );
+
+
+        const videoCards =
+            document.querySelectorAll(
+                ".public-video-card"
+            );
+
+
+        filterButtons.forEach(
+            function (button) {
+
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+
+                        /*
+                         * Remove active
+                         * from all buttons.
+                         */
+
+                        filterButtons.forEach(
+                            function (btn) {
+
+                                btn.classList.remove(
+                                    "active"
+                                );
+
+                            }
+                        );
+
+
+                        /*
+                         * Make clicked button active.
+                         */
+
+                        this.classList.add(
+                            "active"
+                        );
+
+
+                        const selectedYear =
+                            this.dataset.year;
+
+
+                        /*
+                         * Show/hide cards.
+                         */
+
+                        videoCards.forEach(
+                            function (card) {
+
+
+                                const cardYear =
+                                    card.dataset.year;
+
+
+                                if (
+                                    selectedYear === "all"
+                                    ||
+                                    cardYear === selectedYear
+                                ) {
+
+                                    card.style.display =
+                                        "";
+
+                                }
+                                else {
+
+                                    card.style.display =
+                                        "none";
+
+                                }
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    }
+);
+
+</script>
 
 {% endblock %}
