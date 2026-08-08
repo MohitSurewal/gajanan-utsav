@@ -6,61 +6,536 @@ Videos | Gajanan Utsav Samiti 2026
 
 {% block content %}
 
-<section class="page-header">
+<div class="container">
 
-    <div class="container">
+    <h1>🎬 Festival Videos</h1>
 
-        <h1>Festival Videos</h1>
+    <p>Relive the beautiful moments of Ganesh Utsav</p>
 
-        <p>Relive the beautiful moments of Ganesh Utsav</p>
+
+    <!-- ================= FILTERS ================= -->
+
+    <div class="video-filters">
+
+        <button
+            class="video-filter active"
+            data-year="all">
+            All
+        </button>
+
+        <button
+            class="video-filter"
+            data-year="2026">
+            2026
+        </button>
+
+        <button
+            class="video-filter"
+            data-year="2025">
+            2025
+        </button>
+
+        <button
+            class="video-filter"
+            data-year="2024">
+            2024
+        </button>
 
     </div>
 
-</section>
 
-<section class="video-gallery">
+    <!-- ================= VIDEOS ================= -->
 
-<div class="container">
+    <div class="public-video-grid" id="videoGrid">
 
-<div class="video-filter">
+        {% for video in videos %}
 
-<button class="video-btn active" data-year="all">All</button>
+        <div
+            class="public-video-card"
+            data-year="{{ video.year }}"
+        >
 
-<button class="video-btn" data-year="2026">2026</button>
+            <!-- VIDEO -->
 
-<button class="video-btn" data-year="2025">2025</button>
+            <div class="youtube-wrapper">
 
-<button class="video-btn" data-year="2024">2024</button>
+                {% if video.youtube_id %}
+
+                    <!-- Thumbnail first -->
+                    <div
+                        class="youtube-thumbnail"
+                        data-video-id="{{ video.youtube_id }}"
+                    >
+
+                        <img
+                            src="https://i.ytimg.com/vi/{{ video.youtube_id }}/hqdefault.jpg"
+                            alt="{{ video.title }}"
+                            loading="lazy"
+                        >
+
+                        <button
+                            type="button"
+                            class="youtube-play"
+                            aria-label="Play {{ video.title }}"
+                        >
+                            ▶
+                        </button>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- DETAILS -->
+
+            <div class="public-video-info">
+
+                <h2>
+                    {{ video.title }}
+                </h2>
+
+                <div class="video-meta">
+
+                    <span>
+                        📅 {{ video.year }}
+                    </span>
+
+                    <span>
+                        🎉
+                        {{ video.event
+                            .replace('-', ' ')
+                            .title()
+                        }}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="no-videos">
+
+            <h2>🎬 No Videos Yet</h2>
+
+            <p>
+                Festival videos will appear here soon.
+            </p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
 
 </div>
 
-<div class="video-grid">
 
-{% for video in videos %}
+<!-- ================= VIDEO JAVASCRIPT ================= -->
 
-<div
-class="video-item"
-data-year="{{ video.year }}">
+<script>
 
-<iframe
-src="{{ video.youtube }}"
-allowfullscreen>
-</iframe>
+document.addEventListener("DOMContentLoaded", function () {
 
-<h3>
 
-{{ video.title }}
+    /* ==========================================
+       YOUTUBE LAZY LOAD
+       ========================================== */
 
-</h3>
+    const thumbnails =
+        document.querySelectorAll(".youtube-thumbnail");
 
-</div>
 
-{% endfor %}
+    thumbnails.forEach(function (thumbnail) {
 
-</div>
+        thumbnail.addEventListener("click", function () {
 
-</div>
+            const videoId =
+                this.dataset.videoId;
 
-</section>
+
+            if (!videoId) {
+                return;
+            }
+
+
+            const iframe =
+                document.createElement("iframe");
+
+
+            iframe.src =
+                "https://www.youtube.com/embed/"
+                + videoId
+                + "?autoplay=1&rel=0";
+
+
+            iframe.title =
+                "YouTube video";
+
+
+            iframe.allow =
+                "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+
+
+            iframe.allowFullscreen = true;
+
+
+            iframe.loading = "lazy";
+
+
+            this.replaceWith(iframe);
+
+        });
+
+    });
+
+
+
+    /* ==========================================
+       YEAR FILTER
+       ========================================== */
+
+    const filterButtons =
+        document.querySelectorAll(".video-filter");
+
+
+    const videoCards =
+        document.querySelectorAll(".public-video-card");
+
+
+    filterButtons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+
+            /* Remove active */
+
+            filterButtons.forEach(function (btn) {
+
+                btn.classList.remove("active");
+
+            });
+
+
+            /* Add active */
+
+            this.classList.add("active");
+
+
+            const selectedYear =
+                this.dataset.year;
+
+
+            videoCards.forEach(function (card) {
+
+                const cardYear =
+                    card.dataset.year;
+
+
+                if (
+                    selectedYear === "all"
+                    ||
+                    cardYear === selectedYear
+                ) {
+
+                    card.style.display = "";
+
+                } else {
+
+                    card.style.display = "none";
+
+                }
+
+            });
+
+        });
+
+    });
+
+});
+
+</script>
+
+
+<!-- ================= VIDEO CSS ================= -->
+
+<style>
+
+.video-filters {
+
+    display: flex;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin: 30px 0;
+
+}
+
+
+.video-filter {
+
+    border: 1px solid #d6ad27;
+
+    background: transparent;
+
+    color: #222;
+
+    padding: 10px 22px;
+
+    border-radius: 30px;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition: 0.3s;
+
+}
+
+
+.video-filter:hover,
+
+.video-filter.active {
+
+    background: #d6ad27;
+
+    color: #fff;
+
+}
+
+
+.public-video-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 30px;
+
+    margin-top: 30px;
+
+}
+
+
+.public-video-card {
+
+    background: #fff;
+
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 8px 30px rgba(0,0,0,0.08);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+
+}
+
+
+.public-video-card:hover {
+
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 14px 35px rgba(0,0,0,0.12);
+
+}
+
+
+.youtube-wrapper {
+
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    background: #111;
+
+    overflow: hidden;
+
+}
+
+
+.youtube-thumbnail {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 100%;
+
+    cursor: pointer;
+
+}
+
+
+.youtube-thumbnail img {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+}
+
+
+.youtube-play {
+
+    position: absolute;
+
+    top: 50%;
+
+    left: 50%;
+
+    transform:
+        translate(-50%, -50%);
+
+    width: 70px;
+
+    height: 50px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    background: rgba(200, 0, 0, 0.95);
+
+    color: #fff;
+
+    font-size: 25px;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+}
+
+
+.youtube-wrapper iframe {
+
+    width: 100%;
+
+    height: 100%;
+
+    border: 0;
+
+    display: block;
+
+}
+
+
+.public-video-info {
+
+    padding: 20px;
+
+}
+
+
+.public-video-info h2 {
+
+    margin: 0 0 12px;
+
+    font-size: 22px;
+
+}
+
+
+.video-meta {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 15px;
+
+    color: #666;
+
+    font-size: 15px;
+
+}
+
+
+.no-videos {
+
+    grid-column: 1 / -1;
+
+    text-align: center;
+
+    padding: 60px 20px;
+
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 768px) {
+
+    .public-video-grid {
+
+        grid-template-columns: 1fr;
+
+        gap: 20px;
+
+    }
+
+
+    .public-video-info {
+
+        padding: 16px;
+
+    }
+
+
+    .public-video-info h2 {
+
+        font-size: 19px;
+
+    }
+
+
+    .video-filter {
+
+        padding: 8px 17px;
+
+        font-size: 14px;
+
+    }
+
+
+    .youtube-play {
+
+        width: 60px;
+
+        height: 44px;
+
+        font-size: 21px;
+
+    }
+
+}
+
+</style>
 
 {% endblock %}
