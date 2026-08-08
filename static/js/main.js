@@ -547,3 +547,51 @@ document.addEventListener("DOMContentLoaded", function () {
     startAutoSlide();
 
 });
+
+
+/* =========================
+   ADMIN GALLERY UPLOAD PREVIEW
+========================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const fileInput = document.querySelector('input[name="photos"]');
+    const preview = document.getElementById("uploadPreview");
+
+    if (!fileInput || !preview) {
+        return;
+    }
+
+    fileInput.addEventListener("change", function () {
+
+        preview.innerHTML = "";
+
+        const files = Array.from(fileInput.files);
+
+        files.forEach(function (file) {
+
+            if (!file.type.startsWith("image/")) {
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                const item = document.createElement("div");
+                item.className = "upload-preview-item";
+
+                item.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <span>${file.name}</span>
+                `;
+
+                preview.appendChild(item);
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+    });
+
+});
