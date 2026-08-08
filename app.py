@@ -25,7 +25,8 @@ from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
-
+import secrets
+import string
 
 
 app = Flask(__name__)
@@ -381,9 +382,18 @@ def youtube_connect():
         }
     }
 
+    # Generate PKCE code verifier
+    characters = string.ascii_letters + string.digits + "-._~"
+
+    code_verifier = "".join(
+        secrets.choice(characters)
+        for _ in range(128)
+    )
+
     flow = Flow.from_client_config(
         client_config,
-        scopes=YOUTUBE_SCOPES
+        scopes=YOUTUBE_SCOPES,
+        code_verifier=code_verifier
     )
 
     flow.redirect_uri = YOUTUBE_REDIRECT_URI
@@ -394,7 +404,9 @@ def youtube_connect():
         prompt="consent"
     )
 
+    # Save BOTH values for callback
     session["youtube_oauth_state"] = state
+    session["youtube_code_verifier"] = code_verifier
 
     return redirect(authorization_url)
 
@@ -406,9 +418,26 @@ def youtube_oauth_callback():
         return redirect(url_for("admin_login"))
 
     state = session.get("youtube_oauth_state")
+    code_verifier = session.get("youtube_code_verifier")
 
     if not state:
         return "OAuth session expired. Please try again.", 400
+
+    if not code_verifier:
+        return "OAuth code verifier missing. Please start the connection again.", 400
+
+    # Verify state returned by Google
+    returned_state = request.args.get("state")
+
+    if returned_state != state:
+        return "Invalid OAuth state. Please try again.", 400
+
+    # Check if Google returned an error
+    if request.args.get("error"):
+        return (
+            f"Google OAuth error: "
+            f"{request.args.get('error')}"
+        ), 400
 
     client_config = {
         "web": {
@@ -423,33 +452,79 @@ def youtube_oauth_callback():
     flow = Flow.from_client_config(
         client_config,
         scopes=YOUTUBE_SCOPES,
-        state=state
+        state=state,
+        code_verifier=code_verifier
     )
 
     flow.redirect_uri = YOUTUBE_REDIRECT_URI
 
+    # Exchange authorization code for tokens
     flow.fetch_token(
         authorization_response=request.url
     )
 
     credentials = flow.credentials
 
+    # Save YouTube credentials in Firestore
     db.collection("settings").document("youtube").set({
+
         "token": credentials.token,
+
         "refresh_token": credentials.refresh_token,
+
         "token_uri": credentials.token_uri,
+
         "client_id": credentials.client_id,
+
         "scopes": credentials.scopes
+
     })
 
+    # Remove temporary OAuth values
     session.pop("youtube_oauth_state", None)
+    session.pop("youtube_code_verifier", None)
 
     return """
-    <h2>YouTube Connected Successfully ✅</h2>
-    <p>You can close this page and return to the Admin Panel.</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>YouTube Connected</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                padding-top: 100px;
+                background: #111;
+                color: white;
+            }
+
+            .success {
+                font-size: 50px;
+            }
+
+            h1 {
+                color: #4caf50;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="success">✅</div>
+
+        <h1>YouTube Connected Successfully</h1>
+
+        <p>
+            Your YouTube account has been connected successfully.
+        </p>
+
+        <p>
+            You can close this window and return to the Admin Panel.
+        </p>
+
+    </body>
+    </html>
     """
-
-
 
 
 
