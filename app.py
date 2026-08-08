@@ -1801,22 +1801,38 @@ def home():
 
     # ==========================================
     # FESTIVAL GLIMPSE 2025
+    # GET LATEST 2025 VIDEO FROM FIRESTORE
     # ==========================================
 
-    videos = load_videos()
+    home_video_2025 = None
 
-    videos_2025 = [
-        video
-        for video in videos
-        if str(video.get("year", "")) == "2025"
-    ]
+    try:
 
-    home_video_2025 = (
-        videos_2025[0]
-        if videos_2025
-        else None
-    )
+        video_docs = (
+            db.collection("videos")
+            .where("year", "==", "2025")
+            .order_by(
+                "created_at",
+                direction=firestore.Query.DESCENDING
+            )
+            .limit(1)
+            .stream()
+        )
 
+        for doc in video_docs:
+
+            home_video_2025 = doc.to_dict()
+
+            home_video_2025["doc_id"] = doc.id
+
+            break
+
+    except Exception as e:
+
+        print(
+            "Home 2025 video loading error:",
+            e
+        )
 
     # ==========================================
     # HOME PAGE
