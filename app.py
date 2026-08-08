@@ -1,4 +1,5 @@
 from unittest import result
+from urllib import response
 import firebase_admin
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -24,6 +25,8 @@ import hashlib
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+import tempfile
 from google.auth.transport.requests import Request
 import secrets
 import string
@@ -165,6 +168,58 @@ def load_videos():
     with open(file_path, "r", encoding="utf-8") as f:
 
         return json.load(f)
+
+
+def get_youtube_credentials():
+
+    doc = (
+        db.collection("settings")
+        .document("youtube")
+        .get()
+    )
+
+    if not doc.exists:
+        return None
+
+    data = doc.to_dict()
+
+    credentials = Credentials(
+        token=data.get("token"),
+        refresh_token=data.get("refresh_token"),
+        token_uri=data.get(
+            "token_uri",
+            "https://oauth2.googleapis.com/token"
+        ),
+        client_id=data.get("client_id"),
+        client_secret=YOUTUBE_CLIENT_SECRET,
+        scopes=data.get("scopes", YOUTUBE_SCOPES)
+    )
+
+    # Refresh expired access token
+    if credentials.expired and credentials.refresh_token:
+
+        credentials.refresh(Request())
+
+        db.collection("settings").document("youtube").update({
+            "token": credentials.token
+        })
+
+    return credentials
+
+
+def get_youtube_service():
+
+    credentials = get_youtube_credentials()
+
+    if not credentials:
+        return None
+
+    return build(
+        "youtube",
+        "v3",
+        credentials=credentials
+    )
+
 
 
 def save_videos(data):
@@ -611,7 +666,33 @@ def gallery():
 @app.route("/videos")
 def videos():
 
-    videos = load_videos()
+    videos = []
+
+    try:
+
+        docs = (
+            db.collection("videos")
+            .order_by(
+                "created_at",
+                direction=firestore.Query.DESCENDING
+            )
+            .stream()
+        )
+
+        for doc in docs:
+
+            data = doc.to_dict()
+
+            data["doc_id"] = doc.id
+
+            videos.append(data)
+
+    except Exception as e:
+
+        print("Error loading videos from Firestore:")
+
+        import traceback
+        print(traceback.format_exc())
 
     return render_template(
         "videos.html",
@@ -1217,116 +1298,358 @@ def delete_gallery_image():
 
 
 
-@app.route("/admin/videos")
+@app.route("/admin/videos", methods=["GET", "POST"])
 def admin_videos():
 
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
 
-    videos = load_videos()
+    # ==============================
+    # UPLOAD VIDEO
+    # ==============================
+
+    if request.method == "POST":
+
+        title = request.form.get("title", "").strip()
+        year = request.form.get("year", "").strip()
+        event = request.form.get("event", "").strip()
+
+        video_file = request.files.get("video")
+
+        # Basic validation
+        if not title or not year or not event:
+            flash(
+                "Title, Year and Event are required.",
+                "danger"
+            )
+            return redirect(url_for("admin_videos"))
+
+        if not video_file or not video_file.filename:
+            flash(
+                "Please select a video.",
+                "danger"
+            )
+            return redirect(url_for("admin_videos"))
+
+        # Check YouTube connection
+        youtube = get_youtube_service()
+
+        if not youtube:
+            flash(
+                "YouTube account is not connected.",
+                "danger"
+            )
+            return redirect(url_for("admin_videos"))
+
+        temp_path = None
+
+        try:
+
+            # =====================================
+            # SAVE TEMPORARILY
+            # =====================================
+
+            suffix = os.path.splitext(
+                video_file.filename
+            )[1]
+
+            temp_file = tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=suffix
+            )
+
+            temp_path = temp_file.name
+
+            temp_file.close()
+
+            video_file.save(temp_path)
+
+
+            # =====================================
+            # YOUTUBE VIDEO METADATA
+            # =====================================
+
+            body = {
+
+                "snippet": {
+
+                    "title": title,
+
+                    "description": (
+                        f"{event}\n\n"
+                        f"Gajanan Utsav Samiti {year}\n"
+                        f"Event: {event}\n"
+                        f"Year: {year}"
+                    ),
+
+                    "categoryId": "22"
+
+                },
+
+                "status": {
+
+                    "privacyStatus": "unlisted",
+
+                    "selfDeclaredMadeForKids": False
+
+                }
+
+            }
+
+
+            # =====================================
+            # UPLOAD TO YOUTUBE
+            # =====================================
+
+            media = MediaFileUpload(
+                temp_path,
+                mimetype=video_file.mimetype,
+                resumable=True,
+                chunksize=8 * 1024 * 1024
+            )
+
+
+            print("Starting YouTube upload...")
+
+            request_upload = youtube.videos().insert(
+                part="snippet,status",
+                body=body,
+                media_body=media
+            )
+
+
+            response = None
+
+            while response is None:
+
+                status, response = (
+                    request_upload.next_chunk()
+                )
+
+                if status:
+
+                    progress = int(
+                        status.progress() * 100
+                    )
+
+                    print(
+                        f"YouTube Upload: {progress}%"
+                    )
+
+
+            youtube_id = response.get("id")
+
+
+            if not youtube_id:
+
+                raise Exception(
+                    "YouTube did not return a video ID."
+                )
+
+
+            print(
+                "YouTube Upload Success:",
+                youtube_id
+            )
+
+
+            # =====================================
+            # SAVE TO FIRESTORE
+            # =====================================
+
+            db.collection("videos").add({
+
+                "title": title,
+
+                "year": year,
+
+                "event": (
+                    event
+                    .lower()
+                    .replace(" ", "-")
+                ),
+
+                "youtube_id": youtube_id,
+
+                "youtube_url": (
+                    f"https://www.youtube.com/watch?v={youtube_id}"
+                ),
+
+                "embed_url": (
+                    f"https://www.youtube.com/embed/{youtube_id}"
+                ),
+
+                "privacy_status": "unlisted",
+
+                "created_at": firestore.SERVER_TIMESTAMP
+
+            })
+
+
+            flash(
+                "Video uploaded to YouTube successfully.",
+                "success"
+            )
+
+            return redirect(
+                url_for("admin_videos")
+            )
+
+
+        except Exception as e:
+
+            import traceback
+
+            print(
+                "YOUTUBE UPLOAD ERROR:"
+            )
+
+            print(
+                traceback.format_exc()
+            )
+
+            flash(
+                f"Video upload failed: {str(e)}",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_videos")
+            )
+
+
+        finally:
+
+            # =====================================
+            # DELETE TEMPORARY FILE
+            # =====================================
+
+            if temp_path:
+
+                try:
+
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+
+                except Exception as e:
+
+                    print(
+                        "Temporary file cleanup error:",
+                        e
+                    )
+
+
+    # ==========================================
+    # LOAD VIDEOS FROM FIRESTORE
+    # ==========================================
+
+    videos = []
+
+    docs = (
+        db.collection("videos")
+        .order_by(
+            "created_at",
+            direction=firestore.Query.DESCENDING
+        )
+        .stream()
+    )
+
+    for doc in docs:
+
+        data = doc.to_dict()
+
+        data["doc_id"] = doc.id
+
+        videos.append(data)
+
 
     return render_template(
         "admin/videos.html",
         videos=videos
     )
     
-    
-@app.route("/admin/videos/add", methods=["GET", "POST"])
-def admin_add_video():
+
+@app.route("/admin/videos/delete", methods=["POST"])
+def delete_video():
 
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
 
-    videos = load_videos()
+    doc_id = request.form.get("doc_id")
+    youtube_id = request.form.get("youtube_id")
 
-    if request.method == "POST":
+    if not doc_id:
+        flash(
+            "Invalid video data.",
+            "danger"
+        )
 
-        videos.append({
+        return redirect(
+            url_for("admin_videos")
+        )
 
-            "year": request.form.get("year"),
+    try:
 
-            "title": request.form.get("title"),
+        # =====================================
+        # DELETE FROM YOUTUBE
+        # =====================================
 
-            "youtube": request.form.get("youtube")
+        if youtube_id:
 
-        })
+            youtube = get_youtube_service()
 
-        save_videos(videos)
+            if youtube:
+
+                youtube.videos().delete(
+                    id=youtube_id
+                ).execute()
+
+                print(
+                    "YouTube video deleted:",
+                    youtube_id
+                )
+
+
+        # =====================================
+        # DELETE FROM FIRESTORE
+        # =====================================
+
+        db.collection("videos") \
+            .document(doc_id) \
+            .delete()
+
 
         flash(
-            "Video Added Successfully.",
+            "Video deleted successfully.",
             "success"
         )
 
-        return redirect(url_for("admin_videos"))
 
-    return render_template(
-        "admin/add_video.html"
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "VIDEO DELETE ERROR:"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        flash(
+            f"Unable to delete video: {str(e)}",
+            "danger"
+        )
+
+
+    return redirect(
+        url_for("admin_videos")
     )
-    
-@app.route("/admin/videos/edit/<int:index>", methods=["GET", "POST"])
-def admin_edit_video(index):
 
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
-
-    videos = load_videos()
-
-    if index < 0 or index >= len(videos):
-
-        flash("Video not found.", "danger")
-
-        return redirect(url_for("admin_videos"))
-
-    if request.method == "POST":
-
-        videos[index]["year"] = request.form.get("year")
-
-        videos[index]["title"] = request.form.get("title")
-
-        videos[index]["youtube"] = request.form.get("youtube")
-
-        save_videos(videos)
-
-        flash("Video updated successfully.", "success")
-
-        return redirect(url_for("admin_videos"))
-
-    return render_template(
-
-        "admin/edit_video.html",
-
-        video=videos[index],
-
-        index=index
-
-    )
     
 
-@app.route("/admin/videos/delete/<int:index>")
-def admin_delete_video(index):
 
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
-
-    videos = load_videos()
-
-    if index < 0 or index >= len(videos):
-
-        flash("Video not found.", "danger")
-
-        return redirect(url_for("admin_videos"))
-
-    videos.pop(index)
-
-    save_videos(videos)
-
-    flash(
-        "Video deleted successfully.",
-        "success"
-    )
-
-    return redirect(url_for("admin_videos"))
 
 
 @app.route("/admin/logout")
@@ -1492,6 +1815,8 @@ def apply_security_headers(response):
         "script-src 'self' 'unsafe-inline' https:; "
         "font-src 'self' https: data:; "
         "connect-src 'self' https:; "
+        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; "
+        "media-src 'self' blob:; "
         "frame-ancestors 'none';"
     )
 
