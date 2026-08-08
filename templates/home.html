@@ -555,6 +555,10 @@ LOCATION
      FESTIVAL GLIMPSE 2025
 ========================== -->
 
+<!-- =========================
+     FESTIVAL GLIMPSE 2025
+========================== -->
+
 <section class="video-preview reveal">
 
     <div class="container">
@@ -567,6 +571,8 @@ LOCATION
 
         </div>
 
+
+        {% if home_video_2025 %}
 
         <div class="video-card">
 
@@ -596,6 +602,18 @@ LOCATION
             </div>
 
         </div>
+
+        {% else %}
+
+        <div class="video-card no-home-video">
+
+            <p>
+                Festival Glimpse 2025 video will be available soon.
+            </p>
+
+        </div>
+
+        {% endif %}
 
     </div>
 
