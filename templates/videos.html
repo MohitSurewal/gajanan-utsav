@@ -29,33 +29,45 @@ Videos | Gajanan Utsav Samiti 2026
 
     <div class="video-filters">
 
+        <!-- ALL -->
+
         <button
             type="button"
             class="video-filter active"
             data-year="all">
+
             All
+
         </button>
 
-        <button
-            type="button"
-            class="video-filter"
-            data-year="2026">
-            2026
-        </button>
 
-        <button
-            type="button"
-            class="video-filter"
-            data-year="2025">
-            2025
-        </button>
+        <!-- DYNAMIC YEARS -->
 
-        <button
-            type="button"
-            class="video-filter"
-            data-year="2024">
-            2024
-        </button>
+        {% set video_years = [] %}
+
+        {% for video in videos %}
+
+            {% if video.year not in video_years %}
+
+                {% set _ = video_years.append(video.year) %}
+
+            {% endif %}
+
+        {% endfor %}
+
+
+        {% for year in video_years|sort(reverse=true) %}
+
+            <button
+                type="button"
+                class="video-filter"
+                data-year="{{ year }}">
+
+                {{ year }}
+
+            </button>
+
+        {% endfor %}
 
     </div>
 
