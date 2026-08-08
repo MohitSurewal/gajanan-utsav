@@ -22,6 +22,7 @@ Video Manager
         <h2>Upload New Video</h2>
 
         <form
+            id="videoUploadForm"
             method="POST"
             enctype="multipart/form-data"
             action="{{ url_for('admin_videos') }}"
@@ -141,13 +142,32 @@ Video Manager
 
             <button
                 type="submit"
+                id="uploadVideoBtn"
                 class="admin-btn"
                 style="margin-top:20px;"
             >
-
                 📤 Upload Video
-
             </button>
+
+            <div
+                id="uploadStatus"
+                style="
+                    display:none;
+                    margin-top:15px;
+                    padding:15px;
+                    border-radius:10px;
+                    background:#fff8e1;
+                    color:#6f5610;
+                    text-align:center;
+                    font-weight:600;
+                "
+            >
+                🎬 Uploading video to YouTube...
+                <br>
+                <small>
+                    Please don't close or refresh this page.
+                </small>
+            </div>
 
         </form>
 
@@ -305,6 +325,62 @@ if (videoInput) {
         videoPreview.style.display = "block";
 
     });
+
+}
+
+</script>
+
+<script>
+
+const videoUploadForm =
+    document.getElementById("videoUploadForm");
+
+const uploadVideoBtn =
+    document.getElementById("uploadVideoBtn");
+
+const uploadStatus =
+    document.getElementById("uploadStatus");
+
+
+if (videoUploadForm) {
+
+    videoUploadForm.addEventListener(
+        "submit",
+        function () {
+
+            /*
+             * Prevent accidental
+             * double-click uploads.
+             */
+
+            uploadVideoBtn.disabled = true;
+
+
+            uploadVideoBtn.innerHTML =
+                "⏳ Uploading...";
+
+
+            /*
+             * Show upload message.
+             */
+
+            uploadStatus.style.display =
+                "block";
+
+
+            /*
+             * Prevent user from accidentally
+             * clicking the button again.
+             */
+
+            uploadVideoBtn.style.opacity =
+                "0.7";
+
+            uploadVideoBtn.style.cursor =
+                "not-allowed";
+
+        }
+    );
 
 }
 
