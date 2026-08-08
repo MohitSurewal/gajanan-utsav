@@ -434,3 +434,30 @@ padding:8px 10px;
     }
 
 }
+
+
+
+@media (max-width: 768px) {
+
+    .youtube-home-play {
+
+        width: 64px;
+        height: 46px;
+
+        font-size: 24px;
+
+        border-radius: 12px;
+    }
+
+
+    .youtube-home-wrapper iframe {
+
+        width: 100%;
+        height: auto;
+
+        aspect-ratio: 16 / 9;
+
+        display: block;
+    }
+
+}
