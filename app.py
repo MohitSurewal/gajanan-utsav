@@ -1578,9 +1578,10 @@ def delete_video():
     doc_id = request.form.get("doc_id")
     youtube_id = request.form.get("youtube_id")
 
-    if not doc_id:
+    if not doc_id or not youtube_id:
+
         flash(
-            "Invalid video data.",
+            "Invalid video information.",
             "danger"
         )
 
@@ -1590,29 +1591,22 @@ def delete_video():
 
     try:
 
-        # =====================================
+        # ==============================
         # DELETE FROM YOUTUBE
-        # =====================================
+        # ==============================
 
-        if youtube_id:
+        youtube = get_youtube_service()
 
-            youtube = get_youtube_service()
+        if youtube:
 
-            if youtube:
-
-                youtube.videos().delete(
-                    id=youtube_id
-                ).execute()
-
-                print(
-                    "YouTube video deleted:",
-                    youtube_id
-                )
+            youtube.videos().delete(
+                id=youtube_id
+            ).execute()
 
 
-        # =====================================
+        # ==============================
         # DELETE FROM FIRESTORE
-        # =====================================
+        # ==============================
 
         db.collection("videos") \
             .document(doc_id) \
@@ -1620,7 +1614,7 @@ def delete_video():
 
 
         flash(
-            "Video deleted successfully.",
+            "Video deleted successfully from YouTube and website.",
             "success"
         )
 
@@ -1638,7 +1632,7 @@ def delete_video():
         )
 
         flash(
-            f"Unable to delete video: {str(e)}",
+            f"Video deletion failed: {str(e)}",
             "danger"
         )
 
@@ -1646,7 +1640,6 @@ def delete_video():
     return redirect(
         url_for("admin_videos")
     )
-
     
 
 
