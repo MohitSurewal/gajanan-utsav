@@ -33,6 +33,7 @@ import string
 
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024
 csrf = CSRFProtect(app)
 
 YOUTUBE_CLIENT_ID = os.environ.get("YOUTUBE_CLIENT_ID")
@@ -54,6 +55,14 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 
+ALLOWED_VIDEO_EXTENSIONS = {
+    "mp4",
+    "mov",
+    "avi",
+    "mkv",
+    "webm",
+    "m4v"
+}
 
 
 
@@ -93,7 +102,17 @@ def allowed_file(filename):
         and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
     )
 
+def allowed_video_file(filename):
 
+    if not filename:
+        return False
+
+    if "." not in filename:
+        return False
+
+    extension = filename.rsplit(".", 1)[1].lower()
+
+    return extension in ALLOWED_VIDEO_EXTENSIONS
 
 
 
@@ -236,6 +255,7 @@ def calculate_file_hash(file_path):
             sha256.update(chunk)
 
     return sha256.hexdigest()
+
 
 def save_videos(data):
 
@@ -1345,6 +1365,17 @@ def admin_videos():
                 "danger"
             )
             return redirect(url_for("admin_videos"))
+        
+        if not allowed_video_file(video_file.filename):
+
+            flash(
+                "Invalid video format. Allowed formats: MP4, MOV, AVI, MKV, WEBM and M4V.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_videos")
+            )
 
         # Check YouTube connection
         youtube = get_youtube_service()
