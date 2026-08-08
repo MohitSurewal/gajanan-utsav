@@ -5,3 +5,5 @@ WTForms==3.2.1
 cloudinary==1.45.0
 gunicorn==23.0.0
 firebase-admin==7.1.0
+google-api-python-client
+google-auth-oauthlib
