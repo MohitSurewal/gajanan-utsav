@@ -559,6 +559,10 @@ LOCATION
      FESTIVAL GLIMPSE 2025
 ========================== -->
 
+<!-- =========================
+     FESTIVAL GLIMPSE 2025
+========================== -->
+
 <section class="video-preview reveal">
 
     <div class="container">
@@ -567,37 +571,35 @@ LOCATION
 
             <h2>Festival Glimpse 2025</h2>
 
-            <p>Relive the beautiful moments of Ganesh Utsav</p>
+            <p>
+                Relive the beautiful moments of Ganesh Utsav
+            </p>
 
         </div>
 
 
-        {% if home_video_2025 %}
+        {% if home_video_2025 and home_video_2025.youtube_id %}
 
-        <div class="video-card">
+        <div class="home-video-card">
 
-            <div class="youtube-home-wrapper">
+            <div
+                class="youtube-home-thumbnail"
+                data-video-id="{{ home_video_2025.youtube_id }}"
+            >
 
-                <div
-                    class="youtube-home-thumbnail"
-                    data-video-id="{{ home_video_2025.youtube_id }}"
+                <img
+                    src="https://i.ytimg.com/vi/{{ home_video_2025.youtube_id }}/hqdefault.jpg"
+                    alt="{{ home_video_2025.title }}"
+                    loading="lazy"
                 >
 
-                    <img
-                        src="https://i.ytimg.com/vi/{{ home_video_2025.youtube_id }}/hqdefault.jpg"
-                        alt="{{ home_video_2025.title }}"
-                        loading="lazy"
-                    >
-
-                    <button
-                        type="button"
-                        class="youtube-home-play"
-                        aria-label="Play Festival Glimpse 2025"
-                    >
-                        ▶
-                    </button>
-
-                </div>
+                <button
+                    type="button"
+                    class="youtube-home-play"
+                    aria-label="Play Festival Glimpse 2025"
+                >
+                    ▶
+                </button>
 
             </div>
 
@@ -605,10 +607,10 @@ LOCATION
 
         {% else %}
 
-        <div class="video-card no-home-video">
+        <div class="home-video-empty">
 
             <p>
-                Festival Glimpse 2025 video will be available soon.
+                🎬 Festival Glimpse 2025 video will be available soon.
             </p>
 
         </div>
@@ -667,52 +669,30 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-
     thumbnail.addEventListener("click", function () {
 
         const videoId =
-            this.getAttribute("data-video-id");
+            this.dataset.videoId;
 
         if (!videoId) {
             return;
         }
 
-
-        /*
-         * Create YouTube iframe
-         */
-
         const iframe =
             document.createElement("iframe");
-
 
         iframe.src =
             "https://www.youtube.com/embed/"
             + videoId
             + "?autoplay=1&rel=0";
 
-
         iframe.title =
             "Festival Glimpse 2025";
-
-
-        iframe.width = "100%";
-        iframe.height = "500";
-
-
-        iframe.frameBorder = "0";
-
 
         iframe.allow =
             "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
 
-
         iframe.allowFullscreen = true;
-
-
-        /*
-         * Replace thumbnail with YouTube player
-         */
 
         this.replaceWith(iframe);
 
