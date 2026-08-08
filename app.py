@@ -220,7 +220,22 @@ def get_youtube_service():
         credentials=credentials
     )
 
+def calculate_file_hash(file_path):
 
+    sha256 = hashlib.sha256()
+
+    with open(file_path, "rb") as f:
+
+        while True:
+
+            chunk = f.read(1024 * 1024)
+
+            if not chunk:
+                break
+
+            sha256.update(chunk)
+
+    return sha256.hexdigest()
 
 def save_videos(data):
 
@@ -1363,7 +1378,52 @@ def admin_videos():
             temp_file.close()
 
             video_file.save(temp_path)
+            
+            # =====================================
+            # CALCULATE VIDEO HASH
+            # =====================================
 
+            video_hash = calculate_file_hash(temp_path)
+
+            print(
+                "Video SHA-256:",
+                video_hash
+            )
+
+
+            # =====================================
+            # CHECK DUPLICATE VIDEO
+            # =====================================
+
+            duplicate_docs = (
+                db.collection("videos")
+                .where("file_hash", "==", video_hash)
+                .limit(1)
+                .stream()
+            )
+
+            duplicate_found = False
+
+            for duplicate_doc in duplicate_docs:
+
+                duplicate_found = True
+                break
+
+
+            if duplicate_found:
+
+                flash(
+                    "This exact video has already been uploaded.",
+                    "warning"
+                )
+
+                return redirect(
+                    url_for("admin_videos")
+                )
+
+            
+            
+            
 
             # =====================================
             # YOUTUBE VIDEO METADATA
@@ -1463,11 +1523,7 @@ def admin_videos():
 
                 "year": year,
 
-                "event": (
-                    event
-                    .lower()
-                    .replace(" ", "-")
-                ),
+                "event": event,
 
                 "youtube_id": youtube_id,
 
@@ -1480,6 +1536,8 @@ def admin_videos():
                 ),
 
                 "privacy_status": "unlisted",
+
+                "file_hash": video_hash,
 
                 "created_at": firestore.SERVER_TIMESTAMP
 
