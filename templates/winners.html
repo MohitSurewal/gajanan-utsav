@@ -127,9 +127,10 @@ Games Winners
                     <div class="winner-row">
 
                         <img
-                            src="{{ url_for('static', filename=person.photo if person.photo else 'images/default-user.png') }}"
+                            src="{{ person.photo if person.photo else url_for('static', filename='images/default-user.png') }}"
                             class="winner-photo"
-                            alt="{{ person.name }}">
+                            alt="{{ person.name }}"
+                            loading="lazy">
 
                         <div class="winner-details">
 
@@ -176,9 +177,10 @@ Games Winners
                         <div class="winner-row">
 
                             <img
-                                src="{{ url_for('static', filename=group.winner.photo if group.winner.photo else 'images/default-user.png') }}"
+                                src="{{ group.winner.photo if group.winner.photo else url_for('static', filename='images/default-user.png') }}"
                                 class="winner-photo"
-                                alt="{{ group.winner.name }}">
+                                alt="{{ group.winner.name }}"
+    loading="lazy">
 
                             <div class="winner-details">
 
