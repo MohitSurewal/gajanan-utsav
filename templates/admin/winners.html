@@ -1,99 +1,722 @@
 {% extends "base.html" %}
 
-{% block title %}Winners Manager{% endblock %}
+{% block title %}
+Winners Manager
+{% endblock %}
 
 {% block content %}
 
-<section class="admin-dashboard">
+<section class="admin-dashboard winners-manager">
 
     <div class="container">
 
-        <h1>🏆 Winners Manager</h1>
+        <!-- ==========================================
+             HEADER
+        =========================================== -->
 
-        <p>Manage All Winners</p>
-        
-        <div style="margin:20px 0;">
+        <div class="wm-header">
+
+            <div>
+                <div class="wm-title">
+                    🏆 Winners Manager
+                </div>
+
+                <p>
+                    Manage competition winners, age groups and winner records.
+                </p>
+            </div>
 
             <a
                 href="{{ url_for('admin_add_winner') }}"
-                class="admin-btn">
-
+                class="wm-add-btn"
+            >
                 ➕ Add New Winner
-
             </a>
 
         </div>
 
-        <div class="table-responsive">
 
-            <table class="admin-table">
+        <!-- ==========================================
+             STATISTICS
+        =========================================== -->
 
-                <thead>
+        {% set total_games = namespace(value=0) %}
+        {% set total_winners = namespace(value=0) %}
+        {% set total_years = winners.keys()|list|length %}
 
-                    <tr>
+        {% for year, games in winners.items() %}
 
-                        <th>Year</th>
+            {% for game in games %}
 
-                        <th>Game</th>
+                {% set total_games.value = total_games.value + 1 %}
 
-                        <th>Type</th>
+                {% if game.type == "ranking" %}
 
-                        <th>Action</th>
+                    {% set total_winners.value =
+                        total_winners.value + (game.winners|length)
+                    %}
 
-                    </tr>
+                {% elif game.type == "age_group" %}
 
-                </thead>
+                    {% set total_winners.value =
+                        total_winners.value + (game.groups|length)
+                    %}
 
-                <tbody>
+                {% elif game.type == "team" %}
 
-                    {% for year, games in winners.items() %}
+                    {% set total_winners.value =
+                        total_winners.value + (game.teams|length)
+                    %}
 
-                        {% for game in games %}
+                {% endif %}
 
-                        <tr>
+            {% endfor %}
 
-                            <td>{{ year }}</td>
+        {% endfor %}
 
-                            <td>{{ game.game }}</td>
 
-                            <td>{{ game.type|replace("_"," ")|title }}</td>
+        <div class="wm-stats">
 
-                            <td>
+            <div class="wm-stat-card">
 
-                                <a
-                                    href="{{ url_for('admin_edit_winner', year=year, slug=game.slug) }}"
-                                    class="admin-btn">
+                <div class="wm-stat-icon">
+                    🏆
+                </div>
 
-                                    Edit
+                <div>
+                    <span class="wm-stat-label">
+                        Competitions
+                    </span>
 
-                                </a>
+                    <strong>
+                        {{ total_games.value }}
+                    </strong>
+                </div>
 
-                                    <a
-                                        href="{{ url_for('admin_delete_winner', year=year, slug=game.slug) }}"
-                                        class="admin-btn delete-btn"
+            </div>
 
-                                        onclick="return confirm('Delete this winner permanently?');">
 
-                                        🗑 Delete
+            <div class="wm-stat-card">
 
-                                    </a>
+                <div class="wm-stat-icon">
+                    👑
+                </div>
 
-                            </td>
+                <div>
+                    <span class="wm-stat-label">
+                        Winners
+                    </span>
 
-                        </tr>
+                    <strong>
+                        {{ total_winners.value }}
+                    </strong>
+                </div>
 
-                        {% endfor %}
+            </div>
+
+
+            <div class="wm-stat-card">
+
+                <div class="wm-stat-icon">
+                    📅
+                </div>
+
+                <div>
+                    <span class="wm-stat-label">
+                        Years
+                    </span>
+
+                    <strong>
+                        {{ total_years }}
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==========================================
+             SEARCH / FILTER
+        =========================================== -->
+
+        <div class="wm-filter-box">
+
+            <div class="wm-search">
+
+                <span>🔍</span>
+
+                <input
+                    type="text"
+                    id="wmSearch"
+                    placeholder="Search game or winner..."
+                >
+
+            </div>
+
+
+            <select id="wmYearFilter">
+
+                <option value="all">
+                    All Years
+                </option>
+
+                {% for year in winners.keys() %}
+
+                <option value="{{ year }}">
+                    {{ year }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <select id="wmGameFilter">
+
+                <option value="all">
+                    All Games
+                </option>
+
+                {% set game_names = [] %}
+
+                {% for year, games in winners.items() %}
+
+                    {% for game in games %}
+
+                        {% if game.game not in game_names %}
+
+                            {% set _ = game_names.append(game.game) %}
+
+                            <option value="{{ game.slug }}">
+                                {{ game.game }}
+                            </option>
+
+                        {% endif %}
 
                     {% endfor %}
 
-                </tbody>
+                {% endfor %}
 
-            </table>
+            </select>
+
+
+            <select id="wmTypeFilter">
+
+                <option value="all">
+                    All Types
+                </option>
+
+                <option value="ranking">
+                    🥇 Ranking
+                </option>
+
+                <option value="age_group">
+                    👦 Age Group
+                </option>
+
+                <option value="team">
+                    👥 Team
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- ==========================================
+             NO RESULTS
+        =========================================== -->
+
+        <div
+            id="wmNoResults"
+            class="wm-no-results"
+            style="display:none;"
+        >
+
+            <div>
+                🔍
+            </div>
+
+            <h3>
+                No Winners Found
+            </h3>
+
+            <p>
+                Try changing your search or filters.
+            </p>
+
+        </div>
+
+
+        <!-- ==========================================
+             WINNER CARDS
+        =========================================== -->
+
+        <div class="wm-grid" id="wmGrid">
+
+            {% for year, games in winners.items() %}
+
+                {% for game in games %}
+
+                <div
+                    class="wm-card"
+
+                    data-year="{{ year }}"
+
+                    data-game="{{ game.slug }}"
+
+                    data-type="{{ game.type }}"
+
+                    data-search="
+                        {{ game.game|lower }}
+                        {% if game.type == 'ranking' %}
+                            {% for person in game.winners %}
+                                {{ person.name|lower }}
+                            {% endfor %}
+                        {% elif game.type == 'age_group' %}
+                            {% for group in game.groups %}
+                                {{ group.winner.name|lower }}
+                            {% endfor %}
+                        {% elif game.type == 'team' %}
+                            {% for team in game.teams %}
+                                {{ team.team|lower }}
+                            {% endfor %}
+                        {% endif %}
+                    "
+                >
+
+                    <!-- CARD HEADER -->
+
+                    <div class="wm-card-header">
+
+                        <div class="wm-game-icon">
+
+                            {% if game.icon %}
+                                {{ game.icon }}
+                            {% else %}
+                                🏆
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="wm-game-heading">
+
+                            <h3>
+                                {{ game.game }}
+                            </h3>
+
+                            <span>
+                                {{ year }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="wm-type-badge">
+
+                            {% if game.type == "ranking" %}
+
+                                🥇 Ranking
+
+                            {% elif game.type == "age_group" %}
+
+                                👦 Age Group
+
+                            {% elif game.type == "team" %}
+
+                                👥 Team
+
+                            {% else %}
+
+                                {{ game.type|replace("_"," ")|title }}
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CARD BODY -->
+
+                    <div class="wm-card-body">
+
+
+                        <!-- RANKING -->
+
+                        {% if game.type == "ranking" %}
+
+                            <div class="wm-winner-preview">
+
+                                {% for person in game.winners[:3] %}
+
+                                <div class="wm-person">
+
+                                    <div class="wm-person-photo">
+
+                                        {% if person.photo %}
+
+                                        <img
+                                            src="{{ person.photo }}"
+                                            alt="{{ person.name }}"
+                                        >
+
+                                        {% else %}
+
+                                        <span>
+                                            👤
+                                        </span>
+
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    <div class="wm-person-info">
+
+                                        <strong>
+                                            {{ person.name }}
+                                        </strong>
+
+                                        <span>
+
+                                            {% if person.position == 1 %}
+                                                🥇 Gold
+                                            {% elif person.position == 2 %}
+                                                🥈 Silver
+                                            {% elif person.position == 3 %}
+                                                🥉 Bronze
+                                            {% else %}
+                                                🏅 Position {{ person.position }}
+                                            {% endif %}
+
+                                        </span>
+
+                                        {% if person.age %}
+
+                                        <small>
+                                            Age {{ person.age }}
+                                        </small>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            {% if game.winners|length > 3 %}
+
+                            <div class="wm-more">
+                                + {{ game.winners|length - 3 }} more winners
+                            </div>
+
+                            {% endif %}
+
+
+                        <!-- AGE GROUP -->
+
+                        {% elif game.type == "age_group" %}
+
+                            <div class="wm-age-list">
+
+                                {% for group in game.groups %}
+
+                                <div class="wm-age-row">
+
+                                    <div class="wm-age-label">
+                                        {{ group.age_group }}
+                                    </div>
+
+                                    <div class="wm-age-person">
+
+                                        {% if group.winner.photo %}
+
+                                        <img
+                                            src="{{ group.winner.photo }}"
+                                            alt="{{ group.winner.name }}"
+                                        >
+
+                                        {% else %}
+
+                                        <div class="wm-default-photo">
+                                            👤
+                                        </div>
+
+                                        {% endif %}
+
+
+                                        <div>
+
+                                            <strong>
+                                                {{ group.winner.name }}
+                                            </strong>
+
+                                            {% if group.winner.age %}
+
+                                            <small>
+                                                Age {{ group.winner.age }}
+                                            </small>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                        <!-- TEAM -->
+
+                        {% elif game.type == "team" %}
+
+                            <div class="wm-team-list">
+
+                                {% for team in game.teams %}
+
+                                <div class="wm-team-row">
+                                    👥
+                                    <strong>
+                                        {{ team.team }}
+                                    </strong>
+                                </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- CARD FOOTER -->
+
+                    <div class="wm-card-footer">
+
+                        <div class="wm-record-count">
+
+                            {% if game.type == "ranking" %}
+
+                                👤 {{ game.winners|length }} Winner{% if game.winners|length != 1 %}s{% endif %}
+
+                            {% elif game.type == "age_group" %}
+
+                                👦 {{ game.groups|length }} Age Group{% if game.groups|length != 1 %}s{% endif %}
+
+                            {% elif game.type == "team" %}
+
+                                👥 {{ game.teams|length }} Team{% if game.teams|length != 1 %}s{% endif %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="wm-actions">
+
+                            <a
+                                href="{{ url_for(
+                                    'admin_edit_winner',
+                                    year=year,
+                                    slug=game.slug
+                                ) }}"
+                                class="wm-edit-btn"
+                            >
+                                ✏️ Edit
+                            </a>
+
+
+                            <a
+                                href="{{ url_for(
+                                    'admin_delete_winner',
+                                    year=year,
+                                    slug=game.slug
+                                ) }}"
+                                class="wm-delete-btn"
+
+                                onclick="
+                                    return confirm(
+                                        'Delete {{ game.game }} ({{ year }}) permanently?'
+                                    );
+                                "
+                            >
+                                🗑 Delete
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            {% endfor %}
 
         </div>
 
     </div>
 
 </section>
+
+
+<!-- ==========================================
+     FILTER JAVASCRIPT
+=========================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const search =
+            document.getElementById("wmSearch");
+
+        const yearFilter =
+            document.getElementById("wmYearFilter");
+
+        const gameFilter =
+            document.getElementById("wmGameFilter");
+
+        const typeFilter =
+            document.getElementById("wmTypeFilter");
+
+        const cards =
+            document.querySelectorAll(".wm-card");
+
+        const noResults =
+            document.getElementById("wmNoResults");
+
+
+        function filterWinners() {
+
+            const searchValue =
+                search.value
+                    .toLowerCase()
+                    .trim();
+
+            const yearValue =
+                yearFilter.value;
+
+            const gameValue =
+                gameFilter.value;
+
+            const typeValue =
+                typeFilter.value;
+
+
+            let visible = 0;
+
+
+            cards.forEach(
+                function (card) {
+
+                    const text =
+                        card.dataset.search
+                            .toLowerCase();
+
+                    const year =
+                        card.dataset.year;
+
+                    const game =
+                        card.dataset.game;
+
+                    const type =
+                        card.dataset.type;
+
+
+                    const searchMatch =
+                        !searchValue ||
+                        text.includes(
+                            searchValue
+                        );
+
+
+                    const yearMatch =
+                        yearValue === "all" ||
+                        year === yearValue;
+
+
+                    const gameMatch =
+                        gameValue === "all" ||
+                        game === gameValue;
+
+
+                    const typeMatch =
+                        typeValue === "all" ||
+                        type === typeValue;
+
+
+                    if (
+                        searchMatch &&
+                        yearMatch &&
+                        gameMatch &&
+                        typeMatch
+                    ) {
+
+                        card.style.display =
+                            "";
+
+                        visible++;
+
+                    } else {
+
+                        card.style.display =
+                            "none";
+
+                    }
+
+                }
+            );
+
+
+            noResults.style.display =
+                visible === 0
+                    ? "block"
+                    : "none";
+
+        }
+
+
+        search.addEventListener(
+            "input",
+            filterWinners
+        );
+
+
+        yearFilter.addEventListener(
+            "change",
+            filterWinners
+        );
+
+
+        gameFilter.addEventListener(
+            "change",
+            filterWinners
+        );
+
+
+        typeFilter.addEventListener(
+            "change",
+            filterWinners
+        );
+
+    }
+);
+
+</script>
 
 {% endblock %}
