@@ -81,6 +81,33 @@ cloudinary.config(
 
 app.secret_key = SECRET_KEY
 
+# ==========================================
+# GLOBAL ADMIN PROTECTION
+# ==========================================
+
+@app.before_request
+def protect_admin_routes():
+
+    # Sirf /admin/ wale pages protect karo
+    if not request.path.startswith("/admin"):
+        return None
+
+    # Login page ko public rakho
+    if request.path == "/admin/login":
+        return None
+
+    # Logout ko bhi allow karo
+    if request.path == "/admin/logout":
+        return None
+
+    # Admin login check
+    if not session.get("admin"):
+        return redirect(
+            url_for("admin_login")
+        )
+
+    return None
+
 
 app.config.update(
 
