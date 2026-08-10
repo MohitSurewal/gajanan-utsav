@@ -313,6 +313,239 @@ def validate_game(game, filename):
 
 
 
+def migrate_winners_to_firestore():
+
+    """
+    Existing JSON winners ko Firestore me copy karta hai.
+
+    IMPORTANT:
+    - Existing JSON files delete nahi karta.
+    - Existing Firestore documents ko overwrite nahi karta.
+    - Same winner ko baar-baar duplicate nahi banata.
+    """
+
+    winners_path = os.path.join(
+        BASE_DIR,
+        "data",
+        "winners"
+    )
+
+    if not os.path.exists(winners_path):
+
+        print(
+            "[Winners Migration] "
+            "data/winners folder not found."
+        )
+
+        return
+
+
+    migrated = 0
+    skipped = 0
+
+
+    for year in sorted(
+        os.listdir(winners_path),
+        reverse=True
+    ):
+
+        year_path = os.path.join(
+            winners_path,
+            year
+        )
+
+
+        if not os.path.isdir(year_path):
+
+            continue
+
+
+        for filename in sorted(
+            os.listdir(year_path)
+        ):
+
+            if not filename.endswith(".json"):
+
+                continue
+
+
+            file_path = os.path.join(
+                year_path,
+                filename
+            )
+
+
+            try:
+
+                # ==========================================
+                # READ EXISTING JSON
+                # ==========================================
+
+                with open(
+                    file_path,
+                    "r",
+                    encoding="utf-8"
+                ) as f:
+
+                    game = json.load(f)
+
+
+                # ==========================================
+                # BASIC VALIDATION
+                # ==========================================
+
+                if not validate_game(
+                    game,
+                    filename
+                ):
+
+                    print(
+                        "[Winners Migration] "
+                        f"Skipped invalid file: {filename}"
+                    )
+
+                    skipped += 1
+
+                    continue
+
+
+                slug = game.get(
+                    "slug"
+                )
+
+
+                if not slug:
+
+                    print(
+                        "[Winners Migration] "
+                        f"Skipped {filename}: slug missing."
+                    )
+
+                    skipped += 1
+
+                    continue
+
+
+                # ==========================================
+                # FIRESTORE DOCUMENT ID
+                # ==========================================
+
+                document_id = (
+                    f"{year}-{slug}"
+                )
+
+
+                document_ref = (
+                    db.collection("winners")
+                    .document(document_id)
+                )
+
+
+                # ==========================================
+                # CHECK IF ALREADY EXISTS
+                # ==========================================
+
+                existing = document_ref.get()
+
+
+                if existing.exists:
+
+                    print(
+                        "[Winners Migration] "
+                        f"Already exists: {document_id}"
+                    )
+
+                    skipped += 1
+
+                    continue
+
+
+                # ==========================================
+                # ADD METADATA
+                # ==========================================
+
+                firestore_data = dict(game)
+
+                firestore_data["year"] = str(
+                    year
+                )
+
+                firestore_data["slug"] = slug
+
+                firestore_data["migrated_from"] = (
+                    "json"
+                )
+
+                firestore_data["source_file"] = (
+                    filename
+                )
+
+                firestore_data["created_at"] = (
+                    firestore.SERVER_TIMESTAMP
+                )
+
+
+                # ==========================================
+                # SAVE TO FIRESTORE
+                # ==========================================
+
+                document_ref.set(
+                    firestore_data
+                )
+
+
+                print(
+                    "[Winners Migration] "
+                    f"SUCCESS: {document_id}"
+                )
+
+
+                migrated += 1
+
+
+            except Exception as e:
+
+                print(
+                    "[Winners Migration ERROR]"
+                )
+
+                print(
+                    f"File: {filename}"
+                )
+
+                print(
+                    str(e)
+                )
+
+                skipped += 1
+
+
+    print(
+        "======================================"
+    )
+
+    print(
+        "WINNERS MIGRATION COMPLETE"
+    )
+
+    print(
+        f"Migrated: {migrated}"
+    )
+
+    print(
+        f"Skipped: {skipped}"
+    )
+
+    print(
+        "======================================"
+    )
+
+
+
+
+
+
+
 def load_winners():
 
     winners = {}
@@ -449,6 +682,55 @@ def load_hall_of_fame():
     )
 
     return hall
+
+
+
+
+
+@app.route("/admin/migrate-winners")
+def admin_migrate_winners():
+
+    if not session.get("admin"):
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    try:
+
+        migrate_winners_to_firestore()
+
+
+        flash(
+            "Existing winners migrated to Firestore successfully.",
+            "success"
+        )
+
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "WINNERS MIGRATION ERROR:"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+
+        flash(
+            f"Winner migration failed: {str(e)}",
+            "danger"
+        )
+
+
+    return redirect(
+        url_for("admin_winners")
+    )
+
+
 
 
 
