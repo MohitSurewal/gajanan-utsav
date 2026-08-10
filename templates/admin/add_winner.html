@@ -22,12 +22,18 @@ Add Winner | Winners Manager
 
 
         <form
-        method="POST"
-        action="{{ url_for('admin_add_winner') }}"
-        id="winnerForm"
-        class="winner-form"
-        enctype="multipart/form-data"
+            method="POST"
+            action="{{ url_for('admin_add_winner') }}"
+            id="winnerForm"
+            class="winner-form"
+            enctype="multipart/form-data"
         >
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
 
 
             <!-- ==========================================
