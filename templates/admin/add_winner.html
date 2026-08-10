@@ -1,91 +1,1286 @@
 {% extends "base.html" %}
 
-{% block title %}Add Winner{% endblock %}
+{% block title %}
+Add Winner | Winners Manager
+{% endblock %}
 
 {% block content %}
 
 <section class="admin-dashboard">
 
-<div class="container">
+    <div class="container">
 
-<h1>➕ Add Winner</h1>
+        <div class="winner-admin-header">
 
-<form method="POST">
+            <h1>🏆 Add New Winner</h1>
 
-<input type="hidden"
-name="csrf_token"
-value="{{ csrf_token() }}">
+            <p>
+                Add competition winners for the selected year.
+            </p>
 
-<label>Year</label>
-<input type="text" name="year" required>
+        </div>
 
-<label>Game Name</label>
-<input type="text" name="game" required>
 
-<label>Slug</label>
-<input type="text" name="slug" required>
+        <form
+        method="POST"
+        action="{{ url_for('admin_add_winner') }}"
+        id="winnerForm"
+        class="winner-form"
+        enctype="multipart/form-data"
+        >
 
-<label>Icon</label>
-<input type="text" name="icon" value="🏆">
 
-<label>Date</label>
-<input type="text" name="date">
+            <!-- ==========================================
+                 BASIC DETAILS
+            =========================================== -->
 
-<hr>
+            <div class="form-section">
 
-<h3>🥇 First Position</h3>
+                <h2>📋 Competition Details</h2>
 
-<input
-type="text"
-name="first"
-placeholder="Winner Name">
 
-<input
-type="text"
-name="first_photo"
-placeholder="Photo URL">
+                <div class="form-grid">
 
-<hr>
 
-<h3>🥈 Second Position</h3>
+                    <!-- YEAR -->
 
-<input
-type="text"
-name="second"
-placeholder="Winner Name">
+                    <div class="form-group">
 
-<input
-type="text"
-name="second_photo"
-placeholder="Photo URL">
+                        <label for="year">
+                            Year
+                        </label>
 
-<hr>
+                        <input
+                            type="number"
+                            id="year"
+                            name="year"
+                            value="2026"
+                            min="2000"
+                            max="2100"
+                            required
+                        >
 
-<h3>🥉 Third Position</h3>
+                    </div>
 
-<input
-type="text"
-name="third"
-placeholder="Winner Name">
 
-<input
-type="text"
-name="third_photo"
-placeholder="Photo URL">
+                    <!-- GAME -->
 
-<br><br>
+                    <div class="form-group">
 
-<button
-class="admin-btn">
+                        <label for="game">
+                            Game / Competition
+                        </label>
 
-Save Winner
+                        <input
+                            type="text"
+                            id="game"
+                            name="game"
+                            placeholder="e.g. Cricket"
+                            required
+                        >
 
-</button>
+                    </div>
 
-</form>
 
-</div>
+                    <!-- SLUG -->
+
+                    <div class="form-group">
+
+                        <label for="slug">
+                            Slug
+                        </label>
+
+                        <input
+                            type="text"
+                            id="slug"
+                            name="slug"
+                            placeholder="e.g. cricket"
+                        >
+
+                        <small>
+                            Leave empty to generate automatically.
+                        </small>
+
+                    </div>
+
+
+                    <!-- ICON -->
+
+                    <div class="form-group">
+
+                        <label for="icon">
+                            Game Icon
+                        </label>
+
+                        <input
+                            type="text"
+                            id="icon"
+                            name="icon"
+                            placeholder="🏆"
+                            maxlength="10"
+                        >
+
+                    </div>
+
+
+                    <!-- DATE -->
+
+                    <div class="form-group">
+
+                        <label for="date">
+                            Competition Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="date"
+                            name="date"
+                        >
+
+                    </div>
+
+
+                    <!-- TYPE -->
+
+                    <div class="form-group">
+
+                        <label for="type">
+                            Winner Type
+                        </label>
+
+                        <select
+                            id="type"
+                            name="type"
+                        >
+
+                            <option value="ranking">
+                                🏆 Ranking
+                            </option>
+
+                            <option value="age_group">
+                                👶 Age Group
+                            </option>
+
+                            <option value="team">
+                                👥 Team
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ==========================================
+                 RANKING WINNERS
+            =========================================== -->
+
+            <div
+                id="rankingSection"
+                class="form-section"
+            >
+
+                <div class="section-heading-row">
+
+                    <div>
+
+                        <h2>
+                            🏆 Ranking Winners
+                        </h2>
+
+                        <p id="rankingHelp">
+                            Normal competitions start with 1 winner.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="winner_count"
+                    id="winnerCount"
+                    value="1"
+                >
+
+
+                <div
+                    id="rankingWinners"
+                    class="dynamic-winner-list"
+                ></div>
+
+
+                <button
+                    type="button"
+                    id="addWinnerBtn"
+                    class="admin-btn add-btn"
+                >
+                    ➕ Add Winner
+                </button>
+
+            </div>
+
+
+
+            <!-- ==========================================
+                 AGE GROUP
+            =========================================== -->
+
+            <div
+                id="ageGroupSection"
+                class="form-section"
+                style="display:none;"
+            >
+
+                <div class="section-heading-row">
+
+                    <div>
+
+                        <h2>
+                            👶 Age Group Winners
+                        </h2>
+
+                        <p>
+                            Default 2 age groups. Add more when required.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="group_count"
+                    id="groupCount"
+                    value="2"
+                >
+
+
+                <div
+                    id="ageGroups"
+                    class="dynamic-winner-list"
+                ></div>
+
+
+                <button
+                    type="button"
+                    id="addAgeGroupBtn"
+                    class="admin-btn add-btn"
+                >
+                    ➕ Add Age Group
+                </button>
+
+            </div>
+
+
+
+            <!-- ==========================================
+                 TEAM
+            =========================================== -->
+
+            <div
+                id="teamSection"
+                class="form-section"
+                style="display:none;"
+            >
+
+                <div class="section-heading-row">
+
+                    <div>
+
+                        <h2>
+                            👥 Teams
+                        </h2>
+
+                        <p>
+                            Add winning teams.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="team_count"
+                    id="teamCount"
+                    value="1"
+                >
+
+
+                <div
+                    id="teams"
+                    class="dynamic-winner-list"
+                ></div>
+
+
+                <button
+                    type="button"
+                    id="addTeamBtn"
+                    class="admin-btn add-btn"
+                >
+                    ➕ Add Team
+                </button>
+
+            </div>
+
+
+
+            <!-- ==========================================
+                 ACTIONS
+            =========================================== -->
+
+            <div class="form-actions">
+
+                <a
+                    href="{{ url_for('admin_winners') }}"
+                    class="admin-btn secondary-btn"
+                >
+                    ← Cancel
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="admin-btn save-btn"
+                >
+                    💾 Save Winners
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </div>
 
 </section>
+
+
+
+<style>
+
+/* ==========================================
+   WINNER ADMIN FORM
+========================================== */
+
+.winner-form {
+    width: 100%;
+    max-width: 1000px;
+
+    margin: 30px auto;
+}
+
+
+.form-section {
+    margin-bottom: 30px;
+
+    padding: 25px;
+
+    background: #fff;
+
+    border-radius: 18px;
+
+    border: 1px solid #eee;
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,.07);
+}
+
+
+.form-section h2 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+
+.form-section p {
+    margin-top: 0;
+    color: #777;
+}
+
+
+/* ==========================================
+   BASIC FORM
+========================================== */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 20px;
+
+    margin-top: 20px;
+}
+
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-weight: 600;
+}
+
+
+.form-group input,
+.form-group select {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 12px 14px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 10px;
+
+    background: #fff;
+
+    font-size: 15px;
+}
+
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+
+    border-color: #d8aa25;
+
+    box-shadow:
+        0 0 0 3px rgba(216,170,37,.12);
+}
+
+
+.form-group small {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #888;
+
+    font-size: 12px;
+}
+
+
+/* ==========================================
+   SECTION HEADING
+========================================== */
+
+.section-heading-row {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+}
+
+
+/* ==========================================
+   WINNER ITEM
+========================================== */
+
+.dynamic-winner-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 15px;
+
+    margin-bottom: 20px;
+}
+
+
+.dynamic-winner-item {
+    padding: 18px;
+
+    border: 1px solid #e5e5e5;
+
+    border-radius: 14px;
+
+    background: #fafafa;
+}
+
+
+.dynamic-winner-title {
+    font-size: 17px;
+
+    font-weight: 700;
+
+    margin-bottom: 15px;
+}
+
+
+.dynamic-winner-fields {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 15px;
+}
+
+
+.dynamic-winner-fields label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+.dynamic-winner-fields input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 11px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 9px;
+
+    font-size: 15px;
+}
+
+
+/* ==========================================
+   BUTTONS
+========================================== */
+
+.add-btn {
+    background: #198754 !important;
+
+    color: #fff !important;
+
+    border: none;
+}
+
+
+.save-btn {
+    background: #d8aa25 !important;
+
+    color: #fff !important;
+
+    border: none;
+}
+
+
+.secondary-btn {
+    background: #666 !important;
+
+    color: #fff !important;
+}
+
+
+.form-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    margin-top: 25px;
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 700px) {
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .form-section {
+        padding: 18px;
+
+        border-radius: 14px;
+    }
+
+
+    .dynamic-winner-fields {
+        grid-template-columns: 1fr;
+    }
+
+
+    .section-heading-row {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+
+    .form-actions .admin-btn {
+        width: 100%;
+
+        text-align: center;
+
+        box-sizing: border-box;
+    }
+
+}
+
+</style>
+
+
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* ==========================================
+           ELEMENTS
+        ========================================== */
+
+        const typeSelect =
+            document.getElementById("type");
+
+        const gameInput =
+            document.getElementById("game");
+
+        const slugInput =
+            document.getElementById("slug");
+
+
+        const rankingSection =
+            document.getElementById("rankingSection");
+
+        const ageGroupSection =
+            document.getElementById("ageGroupSection");
+
+        const teamSection =
+            document.getElementById("teamSection");
+
+
+        const rankingWinners =
+            document.getElementById("rankingWinners");
+
+        const ageGroups =
+            document.getElementById("ageGroups");
+
+        const teams =
+            document.getElementById("teams");
+
+
+        const winnerCount =
+            document.getElementById("winnerCount");
+
+        const groupCount =
+            document.getElementById("groupCount");
+
+        const teamCount =
+            document.getElementById("teamCount");
+
+
+        const rankingHelp =
+            document.getElementById("rankingHelp");
+
+
+        /* ==========================================
+           AUTO SLUG
+        ========================================== */
+
+        let slugManuallyChanged = false;
+
+
+        slugInput.addEventListener(
+            "input",
+            function () {
+
+                slugManuallyChanged = true;
+
+            }
+        );
+
+
+        gameInput.addEventListener(
+            "input",
+            function () {
+
+                if (!slugManuallyChanged) {
+
+                    slugInput.value =
+                        this.value
+                            .toLowerCase()
+                            .trim()
+                            .replace(
+                                /[^a-z0-9]+/g,
+                                "-"
+                            )
+                            .replace(
+                                /^-+|-+$/g,
+                                ""
+                            );
+
+                }
+
+            }
+        );
+
+
+        /* ==========================================
+           POSITION LABEL
+        ========================================== */
+
+        function getPositionLabel(position) {
+
+            if (position === 1) {
+                return "🥇 1st Winner";
+            }
+
+            if (position === 2) {
+                return "🥈 2nd Winner";
+            }
+
+            if (position === 3) {
+                return "🥉 3rd Winner";
+            }
+
+            return "🏅 " + position + "th Winner";
+
+        }
+
+
+        /* ==========================================
+           RANKING WINNER
+        ========================================== */
+
+        function createRankingWinner(
+            position
+        ) {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "dynamic-winner-item";
+
+
+            item.innerHTML = `
+
+                <div class="dynamic-winner-title">
+
+                    ${getPositionLabel(position)}
+
+                </div>
+
+
+                <div class="dynamic-winner-fields">
+
+                    <div>
+
+                        <label>
+                            Winner Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="winner_name_${position}"
+                            placeholder="Enter winner name"
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label>
+                            Winner Photo
+                        </label>
+
+                        <input
+                            type="file"
+                            name="winner_photo_${position}"
+                            accept="image/*"
+                        >
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            rankingWinners.appendChild(item);
+
+        }
+
+
+        /* ==========================================
+           AGE GROUP
+        ========================================== */
+
+        function createAgeGroup(
+            position
+        ) {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "dynamic-winner-item";
+
+
+            item.innerHTML = `
+
+                <div class="dynamic-winner-title">
+
+                    👶 Age Group ${position}
+
+                </div>
+
+
+                <div class="dynamic-winner-fields">
+
+                    <div>
+
+                        <label>
+                            Age Group
+                        </label>
+
+                        <input
+                            type="text"
+                            name="age_group_${position}"
+                            placeholder="e.g. 5-8 Years"
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label>
+                            Winner Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="age_winner_${position}"
+                            placeholder="Enter winner name"
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label>
+                            Winner Photo
+                        </label>
+
+                        <input
+                            type="file"
+                            name="age_photo_${position}"
+                            accept="image/*"
+                        >
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            ageGroups.appendChild(item);
+
+        }
+
+
+        /* ==========================================
+           TEAM
+        ========================================== */
+
+        function createTeam(
+            position
+        ) {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "dynamic-winner-item";
+
+
+            item.innerHTML = `
+
+                <div class="dynamic-winner-title">
+
+                    👥 Team ${position}
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Team Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="team_name_${position}"
+                        placeholder="Enter team name"
+                        style="
+                            width:100%;
+                            box-sizing:border-box;
+                            padding:11px;
+                            border:1px solid #ddd;
+                            border-radius:9px;
+                        "
+                    >
+
+                </div>
+
+            `;
+
+
+            teams.appendChild(item);
+
+        }
+
+
+        /* ==========================================
+           RANKING DEFAULT
+        ========================================== */
+
+        function resetRanking(
+            count
+        ) {
+
+            rankingWinners.innerHTML = "";
+
+
+            for (
+                let i = 1;
+                i <= count;
+                i++
+            ) {
+
+                createRankingWinner(i);
+
+            }
+
+
+            winnerCount.value = count;
+
+        }
+
+
+        /* ==========================================
+           AGE GROUP DEFAULT
+        ========================================== */
+
+        function resetAgeGroups(
+            count
+        ) {
+
+            ageGroups.innerHTML = "";
+
+
+            for (
+                let i = 1;
+                i <= count;
+                i++
+            ) {
+
+                createAgeGroup(i);
+
+            }
+
+
+            groupCount.value = count;
+
+        }
+
+
+        /* ==========================================
+           TEAM DEFAULT
+        ========================================== */
+
+        function resetTeams(
+            count
+        ) {
+
+            teams.innerHTML = "";
+
+
+            for (
+                let i = 1;
+                i <= count;
+                i++
+            ) {
+
+                createTeam(i);
+
+            }
+
+
+            teamCount.value = count;
+
+        }
+
+
+        /* ==========================================
+           GAME TYPE CHANGE
+        ========================================== */
+
+        function updateType() {
+
+            const type =
+                typeSelect.value;
+
+
+            rankingSection.style.display =
+                type === "ranking"
+                    ? "block"
+                    : "none";
+
+
+            ageGroupSection.style.display =
+                type === "age_group"
+                    ? "block"
+                    : "none";
+
+
+            teamSection.style.display =
+                type === "team"
+                    ? "block"
+                    : "none";
+
+
+            if (type === "ranking") {
+
+                const game =
+                    gameInput.value
+                        .trim()
+                        .toLowerCase();
+
+
+                /*
+                 * Dance = 3 default winners
+                 * Everything else = 1
+                 */
+
+                if (
+                    game.includes("dance")
+                ) {
+
+                    resetRanking(3);
+
+                    rankingHelp.textContent =
+                        "Dance competitions start with 3 winners. You can add more.";
+
+                } else {
+
+                    resetRanking(1);
+
+                    rankingHelp.textContent =
+                        "This competition starts with 1 winner. You can add more.";
+
+                }
+
+            }
+
+
+            if (type === "age_group") {
+
+                resetAgeGroups(2);
+
+            }
+
+
+            if (type === "team") {
+
+                resetTeams(1);
+
+            }
+
+        }
+
+
+        /* ==========================================
+           GAME NAME CHANGE
+        ========================================== */
+
+        gameInput.addEventListener(
+            "input",
+            function () {
+
+                if (
+                    typeSelect.value === "ranking"
+                ) {
+
+                    const game =
+                        this.value
+                            .trim()
+                            .toLowerCase();
+
+
+                    if (
+                        game.includes("dance")
+                    ) {
+
+                        resetRanking(3);
+
+                        rankingHelp.textContent =
+                            "Dance competitions start with 3 winners. You can add more.";
+
+                    } else {
+
+                        resetRanking(1);
+
+                        rankingHelp.textContent =
+                            "This competition starts with 1 winner. You can add more.";
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        /* ==========================================
+           ADD WINNER
+        ========================================== */
+
+        document
+            .getElementById("addWinnerBtn")
+            .addEventListener(
+                "click",
+                function () {
+
+                    let count =
+                        parseInt(
+                            winnerCount.value
+                        ) || 0;
+
+
+                    count++;
+
+
+                    createRankingWinner(
+                        count
+                    );
+
+
+                    winnerCount.value =
+                        count;
+
+                }
+            );
+
+
+        /* ==========================================
+           ADD AGE GROUP
+        ========================================== */
+
+        document
+            .getElementById("addAgeGroupBtn")
+            .addEventListener(
+                "click",
+                function () {
+
+                    let count =
+                        parseInt(
+                            groupCount.value
+                        ) || 0;
+
+
+                    count++;
+
+
+                    createAgeGroup(
+                        count
+                    );
+
+
+                    groupCount.value =
+                        count;
+
+                }
+            );
+
+
+        /* ==========================================
+           ADD TEAM
+        ========================================== */
+
+        document
+            .getElementById("addTeamBtn")
+            .addEventListener(
+                "click",
+                function () {
+
+                    let count =
+                        parseInt(
+                            teamCount.value
+                        ) || 0;
+
+
+                    count++;
+
+
+                    createTeam(
+                        count
+                    );
+
+
+                    teamCount.value =
+                        count;
+
+                }
+            );
+
+
+        /* ==========================================
+           INITIAL LOAD
+        ========================================== */
+
+        updateType();
+
+
+        /* ==========================================
+           TYPE CHANGE
+        ========================================== */
+
+        typeSelect.addEventListener(
+            "change",
+            updateType
+        );
+
+
+    }
+);
+
+</script>
 
 {% endblock %}
