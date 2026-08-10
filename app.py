@@ -1960,23 +1960,227 @@ def admin_delete_winner(year, slug):
         f"{slug}.json"
     )
 
-    if os.path.exists(file_path):
+    # ==========================================
+    # CHECK FILE
+    # ==========================================
 
-        os.remove(file_path)
-
-        flash(
-            "Winner deleted successfully.",
-            "success"
-        )
-
-    else:
+    if not os.path.exists(file_path):
 
         flash(
-            "Winner not found.",
+            "Winner file not found.",
             "danger"
         )
 
-    return redirect(url_for("admin_winners"))
+        return redirect(
+            url_for("admin_winners")
+        )
+
+
+    # ==========================================
+    # LOAD DATA
+    # ==========================================
+
+    try:
+
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8"
+        ) as f:
+
+            game = json.load(f)
+
+    except Exception as e:
+
+        print(
+            "Winner JSON read error:",
+            e
+        )
+
+        flash(
+            "Unable to read winner data.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("admin_winners")
+        )
+
+
+    # ==========================================
+    # DELETE CLOUDINARY PHOTOS
+    # ==========================================
+
+    try:
+
+        winner_type = game.get(
+            "type",
+            "ranking"
+        )
+
+
+        # --------------------------------------
+        # RANKING
+        # --------------------------------------
+
+        if winner_type == "ranking":
+
+            for person in game.get(
+                "winners",
+                []
+            ):
+
+                public_id = person.get(
+                    "photo_public_id"
+                )
+
+                if public_id:
+
+                    try:
+
+                        cloudinary.uploader.destroy(
+                            public_id,
+                            resource_type="image"
+                        )
+
+                        print(
+                            "Deleted Cloudinary image:",
+                            public_id
+                        )
+
+                    except Exception as e:
+
+                        print(
+                            "Cloudinary delete error:",
+                            e
+                        )
+
+
+        # --------------------------------------
+        # AGE GROUP
+        # --------------------------------------
+
+        elif winner_type == "age_group":
+
+            for group in game.get(
+                "groups",
+                []
+            ):
+
+                winner = group.get(
+                    "winner",
+                    {}
+                )
+
+                public_id = winner.get(
+                    "photo_public_id"
+                )
+
+                if public_id:
+
+                    try:
+
+                        cloudinary.uploader.destroy(
+                            public_id,
+                            resource_type="image"
+                        )
+
+                        print(
+                            "Deleted Cloudinary image:",
+                            public_id
+                        )
+
+                    except Exception as e:
+
+                        print(
+                            "Cloudinary delete error:",
+                            e
+                        )
+
+
+        # --------------------------------------
+        # TEAM
+        # --------------------------------------
+
+        elif winner_type == "team":
+
+            for team in game.get(
+                "teams",
+                []
+            ):
+
+                public_id = team.get(
+                    "photo_public_id"
+                )
+
+                if public_id:
+
+                    try:
+
+                        cloudinary.uploader.destroy(
+                            public_id,
+                            resource_type="image"
+                        )
+
+                        print(
+                            "Deleted Cloudinary image:",
+                            public_id
+                        )
+
+                    except Exception as e:
+
+                        print(
+                            "Cloudinary delete error:",
+                            e
+                        )
+
+
+    except Exception as e:
+
+        print(
+            "Winner Cloudinary cleanup error:",
+            e
+        )
+
+
+    # ==========================================
+    # DELETE JSON
+    # ==========================================
+
+    try:
+
+        os.remove(file_path)
+
+    except Exception as e:
+
+        print(
+            "Winner JSON delete error:",
+            e
+        )
+
+        flash(
+            "Could not delete winner record.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("admin_winners")
+        )
+
+
+    # ==========================================
+    # SUCCESS
+    # ==========================================
+
+    flash(
+        "Winner and associated photos deleted successfully.",
+        "success"
+    )
+
+
+    return redirect(
+        url_for("admin_winners")
+    )
 
 
 
