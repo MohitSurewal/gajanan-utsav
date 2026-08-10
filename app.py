@@ -922,11 +922,19 @@ def admin_winners():
         winners=winners
     )
     
-@app.route("/admin/winners/edit/<year>/<slug>", methods=["GET", "POST"])
+@app.route(
+    "/admin/winners/edit/<year>/<slug>",
+    methods=["GET", "POST"]
+)
 def admin_edit_winner(year, slug):
 
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
+
+
+    # ==========================================
+    # FILE PATH
+    # ==========================================
 
     file_path = os.path.join(
         BASE_DIR,
@@ -936,53 +944,412 @@ def admin_edit_winner(year, slug):
         f"{slug}.json"
     )
 
+
     if not os.path.exists(file_path):
 
-        flash("Winner file not found.", "danger")
+        flash(
+            "Winner file not found.",
+            "danger"
+        )
 
-        return redirect(url_for("admin_winners"))
+        return redirect(
+            url_for("admin_winners")
+        )
 
-    with open(file_path, "r", encoding="utf-8") as f:
+
+    # ==========================================
+    # LOAD GAME
+    # ==========================================
+
+    with open(
+        file_path,
+        "r",
+        encoding="utf-8"
+    ) as f:
 
         game = json.load(f)
-        
+
+
+    # ==========================================
+    # POST
+    # ==========================================
+
     if request.method == "POST":
-        
-        game["game"] = request.form.get("game", "").strip()
 
-        if game["type"] == "ranking":
+        game_type = game.get(
+            "type",
+            "ranking"
+        )
 
-            for i, person in enumerate(game["winners"], start=1):
 
-                person["name"] = request.form.get(f"name{i}")
+        # ======================================
+        # RANKING
+        # ======================================
 
-                photo = request.files.get(f"photo{i}")
+        if game_type == "ranking":
 
-                if photo and photo.filename:
+            winners = []
+
+            try:
+
+                winner_count = int(
+                    request.form.get(
+                        "winner_count",
+                        len(game.get("winners", []))
+                    )
+                )
+
+            except ValueError:
+
+                winner_count = len(
+                    game.get(
+                        "winners",
+                        []
+                    )
+                )
+
+
+            winner_count = max(
+                1,
+                min(winner_count, 20)
+            )
+
+
+            old_winners = game.get(
+                "winners",
+                []
+            )
+
+
+            for i in range(
+                1,
+                winner_count + 1
+            ):
+
+                name = request.form.get(
+                    f"winner_name_{i}",
+                    ""
+                ).strip()
+
+
+                # ----------------------------------
+                # OLD PHOTO
+                # ----------------------------------
+
+                old_photo = ""
+
+                old_public_id = ""
+
+
+                if i <= len(old_winners):
+
+                    old_photo = old_winners[
+                        i - 1
+                    ].get(
+                        "photo",
+                        ""
+                    )
+
+                    old_public_id = old_winners[
+                        i - 1
+                    ].get(
+                        "photo_public_id",
+                        ""
+                    )
+
+
+                # ----------------------------------
+                # NEW PHOTO
+                # ----------------------------------
+
+                photo_file = request.files.get(
+                    f"winner_photo_{i}"
+                )
+
+
+                photo_url = old_photo
+
+                photo_public_id = old_public_id
+
+
+                if (
+                    photo_file
+                    and photo_file.filename
+                ):
 
                     result = cloudinary.uploader.upload(
 
-                        photo,
+                        photo_file,
 
-                        folder=f"Gajanan-Utsav/Winners/{year}"
+                        folder=(
+                            f"Gajanan-Utsav/"
+                            f"Winners/"
+                            f"{year}/"
+                            f"{slug}"
+                        )
 
                     )
 
-                    person["photo"] = result["secure_url"]
 
-                else:
+                    photo_url = result.get(
+                        "secure_url",
+                        ""
+                    )
 
-                    person["photo"] = request.form.get(f"old_photo{i}")
-                
-        elif game["type"] == "age_group":
 
-            for i, group in enumerate(game["groups"], start=1):
+                    photo_public_id = result.get(
+                        "public_id",
+                        ""
+                    )
 
-                group["winner"]["name"] = request.form.get(f"winner{i}")
 
-                group["winner"]["photo"] = request.form.get(f"photo{i}")
+                # ----------------------------------
+                # SAVE WINNER
+                # ----------------------------------
 
-        with open(file_path, "w", encoding="utf-8") as f:
+                if name:
+
+                    winners.append({
+
+                        "position": i,
+
+                        "name": name,
+
+                        "photo": photo_url,
+
+                        "photo_public_id":
+                            photo_public_id
+
+                    })
+
+
+            game["winners"] = winners
+
+
+        # ======================================
+        # AGE GROUP
+        # ======================================
+
+        elif game_type == "age_group":
+
+            groups = []
+
+            try:
+
+                group_count = int(
+                    request.form.get(
+                        "group_count",
+                        len(game.get("groups", []))
+                    )
+                )
+
+            except ValueError:
+
+                group_count = len(
+                    game.get(
+                        "groups",
+                        []
+                    )
+                )
+
+
+            group_count = max(
+                1,
+                min(group_count, 20)
+            )
+
+
+            old_groups = game.get(
+                "groups",
+                []
+            )
+
+
+            for i in range(
+                1,
+                group_count + 1
+            ):
+
+                age_group = request.form.get(
+                    f"age_group_{i}",
+                    ""
+                ).strip()
+
+
+                name = request.form.get(
+                    f"age_winner_{i}",
+                    ""
+                ).strip()
+
+
+                # ----------------------------------
+                # OLD PHOTO
+                # ----------------------------------
+
+                old_photo = ""
+
+                old_public_id = ""
+
+
+                if i <= len(old_groups):
+
+                    old_winner = old_groups[
+                        i - 1
+                    ].get(
+                        "winner",
+                        {}
+                    )
+
+
+                    old_photo = old_winner.get(
+                        "photo",
+                        ""
+                    )
+
+
+                    old_public_id = old_winner.get(
+                        "photo_public_id",
+                        ""
+                    )
+
+
+                # ----------------------------------
+                # NEW PHOTO
+                # ----------------------------------
+
+                photo_file = request.files.get(
+                    f"age_photo_{i}"
+                )
+
+
+                photo_url = old_photo
+
+                photo_public_id = old_public_id
+
+
+                if (
+                    photo_file
+                    and photo_file.filename
+                ):
+
+                    result = cloudinary.uploader.upload(
+
+                        photo_file,
+
+                        folder=(
+                            f"Gajanan-Utsav/"
+                            f"Winners/"
+                            f"{year}/"
+                            f"{slug}"
+                        )
+
+                    )
+
+
+                    photo_url = result.get(
+                        "secure_url",
+                        ""
+                    )
+
+
+                    photo_public_id = result.get(
+                        "public_id",
+                        ""
+                    )
+
+
+                # ----------------------------------
+                # SAVE GROUP
+                # ----------------------------------
+
+                if age_group or name:
+
+                    groups.append({
+
+                        "age_group": age_group,
+
+                        "winner": {
+
+                            "name": name,
+
+                            "photo": photo_url,
+
+                            "photo_public_id":
+                                photo_public_id
+
+                        }
+
+                    })
+
+
+            game["groups"] = groups
+
+
+        # ======================================
+        # TEAM
+        # ======================================
+
+        elif game_type == "team":
+
+            teams = []
+
+            try:
+
+                team_count = int(
+                    request.form.get(
+                        "team_count",
+                        len(game.get("teams", []))
+                    )
+                )
+
+            except ValueError:
+
+                team_count = len(
+                    game.get(
+                        "teams",
+                        []
+                    )
+                )
+
+
+            team_count = max(
+                1,
+                min(team_count, 20)
+            )
+
+
+            for i in range(
+                1,
+                team_count + 1
+            ):
+
+                team_name = request.form.get(
+                    f"team_name_{i}",
+                    ""
+                ).strip()
+
+
+                if team_name:
+
+                    teams.append({
+
+                        "team": team_name
+
+                    })
+
+
+            game["teams"] = teams
+
+
+        # ======================================
+        # SAVE
+        # ======================================
+
+        with open(
+            file_path,
+            "w",
+            encoding="utf-8"
+        ) as f:
 
             json.dump(
                 game,
@@ -991,10 +1358,12 @@ def admin_edit_winner(year, slug):
                 ensure_ascii=False
             )
 
+
         flash(
             "Winner Updated Successfully.",
             "success"
         )
+
 
         return redirect(
             url_for(
@@ -1003,16 +1372,16 @@ def admin_edit_winner(year, slug):
                 slug=slug
             )
         )
-        
+
+
+    # ==========================================
+    # GET
+    # ==========================================
 
     return render_template(
-
         "admin/edit_winner.html",
-
         game=game,
-
         year=year
-
     )
     
     
@@ -1025,49 +1394,85 @@ def admin_add_winner():
 
     if request.method == "POST":
 
-        year = request.form.get("year").strip()
+        # ==========================================
+        # BASIC DETAILS
+        # ==========================================
 
-        slug = request.form.get("slug").strip().lower().replace(" ", "-")
+        year = request.form.get(
+            "year",
+            ""
+        ).strip()
 
-        data = {
+        game = request.form.get(
+            "game",
+            ""
+        ).strip()
 
-            "id": slug,
+        slug = request.form.get(
+            "slug",
+            ""
+        ).strip().lower()
 
-            "slug": slug,
+        icon = request.form.get(
+            "icon",
+            ""
+        ).strip()
 
-            "game": request.form.get("game"),
+        date = request.form.get(
+            "date",
+            ""
+        ).strip()
 
-            "icon": request.form.get("icon"),
+        winner_type = request.form.get(
+            "type",
+            "ranking"
+        ).strip()
 
-            "date": request.form.get("date"),
 
-            "status": "Completed",
+        # ==========================================
+        # BASIC VALIDATION
+        # ==========================================
 
-            "type": "ranking",
+        if not year:
 
-            "gallery": [],
+            flash(
+                "Year is required.",
+                "danger"
+            )
 
-            "winners": [
+            return redirect(
+                url_for("admin_add_winner")
+            )
 
-                {
-                    "position": 1,
-                    "name": request.form.get("first"),
-                    "photo": request.form.get("first_photo")
-                },
-                {
-                    "position": 2,
-                    "name": request.form.get("second"),
-                    "photo": request.form.get("second_photo")
-                },
-                {
-                    "position": 3,
-                    "name": request.form.get("third"),
-                    "photo": request.form.get("third_photo")
-                }
 
-            ]
+        if not game:
 
-        }
+            flash(
+                "Game name is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_add_winner")
+            )
+
+
+        # ==========================================
+        # AUTO SLUG
+        # ==========================================
+
+        if not slug:
+
+            slug = (
+                game.lower()
+                .strip()
+                .replace(" ", "-")
+            )
+
+
+        # ==========================================
+        # YEAR FOLDER
+        # ==========================================
 
         year_folder = os.path.join(
             BASE_DIR,
@@ -1076,16 +1481,435 @@ def admin_add_winner():
             year
         )
 
-        os.makedirs(year_folder, exist_ok=True)
+        os.makedirs(
+            year_folder,
+            exist_ok=True
+        )
+
+
+        file_path = os.path.join(
+            year_folder,
+            f"{slug}.json"
+        )
+
+
+        # ==========================================
+        # DUPLICATE CHECK
+        # ==========================================
+
+        if os.path.exists(file_path):
+
+            flash(
+                f"{game} already exists for {year}.",
+                "warning"
+            )
+
+            return redirect(
+                url_for("admin_add_winner")
+            )
+
+
+        # ==========================================
+        # COMMON DATA
+        # ==========================================
+
+        data = {
+
+            "id": slug,
+
+            "slug": slug,
+
+            "game": game,
+
+            "icon": icon,
+
+            "date": date,
+
+            "status": "completed",
+
+            "type": winner_type,
+
+            "gallery": []
+
+        }
+
+
+        # ==================================================
+        # RANKING WINNERS
+        # ==================================================
+
+        if winner_type == "ranking":
+
+            winners = []
+
+
+            try:
+
+                winner_count = int(
+                    request.form.get(
+                        "winner_count",
+                        "1"
+                    )
+                )
+
+            except ValueError:
+
+                winner_count = 1
+
+
+            # Safety limit
+
+            winner_count = max(
+                1,
+                min(winner_count, 20)
+            )
+
+
+            for i in range(
+                1,
+                winner_count + 1
+            ):
+
+                # ------------------------------
+                # WINNER NAME
+                # ------------------------------
+
+                name = request.form.get(
+                    f"winner_name_{i}",
+                    ""
+                ).strip()
+
+
+                # ------------------------------
+                # WINNER PHOTO
+                # ------------------------------
+
+                photo_file = request.files.get(
+                    f"winner_photo_{i}"
+                )
+
+
+                photo_url = ""
+
+                photo_public_id = ""
+
+
+                # ------------------------------
+                # UPLOAD TO CLOUDINARY
+                # ------------------------------
+
+                if (
+                    photo_file
+                    and photo_file.filename
+                ):
+
+                    result = cloudinary.uploader.upload(
+
+                        photo_file,
+
+                        folder=(
+                            f"Gajanan-Utsav/"
+                            f"Winners/"
+                            f"{year}/"
+                            f"{slug}"
+                        )
+
+                    )
+
+
+                    photo_url = result.get(
+                        "secure_url",
+                        ""
+                    )
+
+
+                    photo_public_id = result.get(
+                        "public_id",
+                        ""
+                    )
+
+
+                # ------------------------------
+                # SAVE WINNER
+                # ------------------------------
+
+                if name:
+
+                    winners.append({
+
+                        "position": i,
+
+                        "name": name,
+
+                        "photo": photo_url,
+
+                        "photo_public_id":
+                            photo_public_id
+
+                    })
+
+
+            # Save ranking winners
+
+            data["winners"] = winners
+
+
+        # ==================================================
+        # AGE GROUP WINNERS
+        # ==================================================
+
+        elif winner_type == "age_group":
+
+            groups = []
+
+
+            try:
+
+                group_count = int(
+                    request.form.get(
+                        "group_count",
+                        "2"
+                    )
+                )
+
+            except ValueError:
+
+                group_count = 2
+
+
+            # Safety limit
+
+            group_count = max(
+                1,
+                min(group_count, 20)
+            )
+
+
+            for i in range(
+                1,
+                group_count + 1
+            ):
+
+                # ------------------------------
+                # AGE GROUP
+                # ------------------------------
+
+                age_group = request.form.get(
+                    f"age_group_{i}",
+                    ""
+                ).strip()
+
+
+                # ------------------------------
+                # WINNER NAME
+                # ------------------------------
+
+                name = request.form.get(
+                    f"age_winner_{i}",
+                    ""
+                ).strip()
+
+
+                # ------------------------------
+                # WINNER PHOTO
+                # ------------------------------
+
+                photo_file = request.files.get(
+                    f"age_photo_{i}"
+                )
+
+
+                photo_url = ""
+
+                photo_public_id = ""
+
+
+                # ------------------------------
+                # UPLOAD TO CLOUDINARY
+                # ------------------------------
+
+                if (
+                    photo_file
+                    and photo_file.filename
+                ):
+
+                    result = cloudinary.uploader.upload(
+
+                        photo_file,
+
+                        folder=(
+                            f"Gajanan-Utsav/"
+                            f"Winners/"
+                            f"{year}/"
+                            f"{slug}"
+                        )
+
+                    )
+
+
+                    photo_url = result.get(
+                        "secure_url",
+                        ""
+                    )
+
+
+                    photo_public_id = result.get(
+                        "public_id",
+                        ""
+                    )
+
+
+                # ------------------------------
+                # SAVE AGE GROUP
+                # ------------------------------
+
+                if age_group or name:
+
+                    groups.append({
+
+                        "age_group": age_group,
+
+                        "winner": {
+
+                            "name": name,
+
+                            "photo": photo_url,
+
+                            "photo_public_id":
+                                photo_public_id
+
+                        }
+
+                    })
+
+
+            # Save age groups
+
+            data["groups"] = groups
+
+
+        # ==================================================
+        # TEAM
+        # ==================================================
+
+        elif winner_type == "team":
+
+            teams = []
+
+
+            try:
+
+                team_count = int(
+                    request.form.get(
+                        "team_count",
+                        "1"
+                    )
+                )
+
+            except ValueError:
+
+                team_count = 1
+
+
+            team_count = max(
+                1,
+                min(team_count, 20)
+            )
+
+
+            for i in range(
+                1,
+                team_count + 1
+            ):
+
+                team_name = request.form.get(
+                    f"team_name_{i}",
+                    ""
+                ).strip()
+
+
+                if team_name:
+
+                    teams.append({
+
+                        "team": team_name
+
+                    })
+
+
+            data["teams"] = teams
+
+
+        # ==================================================
+        # INVALID TYPE
+        # ==================================================
+
+        else:
+
+            flash(
+                "Invalid winner type.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_add_winner")
+            )
+
+
+        # ==================================================
+        # VALIDATE AT LEAST ONE WINNER
+        # ==================================================
+
+        if winner_type == "ranking":
+
+            if not data.get("winners"):
+
+                flash(
+                    "Please add at least one winner.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for("admin_add_winner")
+                )
+
+
+        elif winner_type == "age_group":
+
+            if not data.get("groups"):
+
+                flash(
+                    "Please add at least one age group.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for("admin_add_winner")
+                )
+
+
+        elif winner_type == "team":
+
+            if not data.get("teams"):
+
+                flash(
+                    "Please add at least one team.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for("admin_add_winner")
+                )
+
+
+        # ==================================================
+        # SAVE JSON
+        # ==================================================
 
         with open(
-
-            os.path.join(year_folder, f"{slug}.json"),
-
+            file_path,
             "w",
-
             encoding="utf-8"
-
         ) as f:
 
             json.dump(
@@ -1095,12 +1919,29 @@ def admin_add_winner():
                 ensure_ascii=False
             )
 
-        flash("Winner Added Successfully.", "success")
 
-        return redirect(url_for("admin_winners"))
+        # ==================================================
+        # SUCCESS
+        # ==================================================
 
-    return render_template("admin/add_winner.html")
+        flash(
+            "Winner Added Successfully.",
+            "success"
+        )
 
+
+        return redirect(
+            url_for("admin_winners")
+        )
+
+
+    # ======================================================
+    # GET
+    # ======================================================
+
+    return render_template(
+        "admin/add_winner.html"
+    )
 
 
 
