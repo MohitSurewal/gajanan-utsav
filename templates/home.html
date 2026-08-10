@@ -267,9 +267,11 @@ Home | Gajanan Utsav Samiti 2026
 
                     <div class="winner-row">
                         <img
-                        src="{{ url_for('static', filename=winner.photo) }}"
-                        alt="{{ winner.name }}"
-                        class="winner-thumb">
+                            src="{{ winner.photo if winner.photo else url_for('static', filename='images/default-user.png') }}"
+                            alt="{{ winner.name }}"
+                            class="winner-thumb"
+                            loading="lazy"
+                        >
 
                         <span>
 
