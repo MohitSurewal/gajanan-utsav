@@ -690,22 +690,28 @@ def load_hall_of_fame():
 @app.route("/admin/migrate-winners")
 def admin_migrate_winners():
 
+    # ==========================================
+    # ADMIN LOGIN CHECK
+    # ==========================================
+
     if not session.get("admin"):
         return redirect(
             url_for("admin_login")
         )
 
 
+    # ==========================================
+    # MIGRATION
+    # ==========================================
+
     try:
 
         migrate_winners_to_firestore()
-
 
         flash(
             "Existing winners migrated to Firestore successfully.",
             "success"
         )
-
 
     except Exception as e:
 
@@ -718,7 +724,6 @@ def admin_migrate_winners():
         print(
             traceback.format_exc()
         )
-
 
         flash(
             f"Winner migration failed: {str(e)}",
@@ -1195,7 +1200,9 @@ def admin_notice():
 def admin_winners():
 
     if not session.get("admin"):
-        return redirect(url_for("admin_login"))
+        return redirect(
+            url_for("admin_login")
+        )
 
     winners = load_winners()
 
@@ -1203,6 +1210,9 @@ def admin_winners():
         "admin/winners.html",
         winners=winners
     )
+    
+    
+    
 @app.route("/admin/winners/edit/<year>/<slug>", methods=["GET", "POST"])
 def admin_edit_winner(year, slug):
 
