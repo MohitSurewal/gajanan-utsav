@@ -2628,17 +2628,11 @@ def admin_edit_winner(year, slug):
         slug=slug
     )
 
-@app.route(
-    "/admin/winners/add",
-    methods=["GET", "POST"]
-)
+@app.route("/admin/winners/add", methods=["GET", "POST"])
 def admin_add_winner():
 
     if not session.get("admin"):
-        return redirect(
-            url_for("admin_login")
-        )
-
+        return redirect(url_for("admin_login"))
 
     if request.method == "POST":
 
@@ -2681,11 +2675,11 @@ def admin_add_winner():
             winner_type = request.form.get(
                 "type",
                 "ranking"
-            )
+            ).strip()
 
 
             # ==========================================
-            # REQUIRED FIELDS
+            # VALIDATION
             # ==========================================
 
             if not year or not slug or not game:
@@ -2701,6 +2695,36 @@ def admin_add_winner():
 
 
             # ==========================================
+            # FIRESTORE DOCUMENT ID
+            # ==========================================
+
+            document_id = f"{year}-{slug}"
+
+            winner_ref = (
+                db
+                .collection("winners")
+                .document(document_id)
+            )
+
+
+            # ==========================================
+            # DUPLICATE CHECK
+            # ==========================================
+
+            if winner_ref.get().exists:
+
+                flash(
+                    f"Winner game already exists: "
+                    f"{game} ({year})",
+                    "warning"
+                )
+
+                return redirect(
+                    url_for("admin_add_winner")
+                )
+
+
+            # ==========================================
             # RANKING GAME
             # ==========================================
 
@@ -2708,12 +2732,18 @@ def admin_add_winner():
 
                 winners = []
 
-                winner_count = int(
-                    request.form.get(
-                        "winner_count",
-                        0
+                try:
+
+                    winner_count = int(
+                        request.form.get(
+                            "winner_count",
+                            0
+                        )
                     )
-                )
+
+                except ValueError:
+
+                    winner_count = 0
 
 
                 for i in range(
@@ -2744,7 +2774,7 @@ def admin_add_winner():
 
 
                     # ==================================
-                    # CLOUDINARY PHOTO
+                    # PHOTO UPLOAD
                     # ==================================
 
                     if photo and photo.filename:
@@ -2754,7 +2784,8 @@ def admin_add_winner():
                         ):
 
                             flash(
-                                f"Invalid photo format for Winner {i}.",
+                                f"Invalid photo format "
+                                f"for Winner {i}.",
                                 "danger"
                             )
 
@@ -2771,31 +2802,39 @@ def admin_add_winner():
                             .upload(
                                 photo,
                                 folder=(
-                                    f"Gajanan-Utsav/"
-                                    f"Winners/"
+                                    "Gajanan-Utsav/"
+                                    "Winners/"
                                     f"{year}/"
                                     f"{slug}"
                                 )
                             )
                         )
 
-                        photo_url = result[
-                            "secure_url"
-                        ]
+                        photo_url = result.get(
+                            "secure_url",
+                            ""
+                        )
 
 
                     # ==================================
-                    # ADD WINNER
+                    # SAVE WINNER
                     # ==================================
 
                     if name:
 
+                        try:
+                            position_value = int(
+                                position
+                            )
+
+                        except ValueError:
+                            position_value = i
+
+
                         winners.append({
 
                             "position":
-                                int(position)
-                                if position.isdigit()
-                                else i,
+                                position_value,
 
                             "name":
                                 name,
@@ -2833,10 +2872,13 @@ def admin_add_winner():
                         "ranking",
 
                     "gallery":
-                        [],
+                        slug,
 
                     "winners":
-                        winners
+                        winners,
+
+                    "year":
+                        str(year)
 
                 }
 
@@ -2849,12 +2891,18 @@ def admin_add_winner():
 
                 groups = []
 
-                group_count = int(
-                    request.form.get(
-                        "group_count",
-                        0
+                try:
+
+                    group_count = int(
+                        request.form.get(
+                            "group_count",
+                            0
+                        )
                     )
-                )
+
+                except ValueError:
+
+                    group_count = 0
 
 
                 for i in range(
@@ -2885,7 +2933,7 @@ def admin_add_winner():
 
 
                     # ==================================
-                    # CLOUDINARY PHOTO
+                    # PHOTO UPLOAD
                     # ==================================
 
                     if photo and photo.filename:
@@ -2895,7 +2943,8 @@ def admin_add_winner():
                         ):
 
                             flash(
-                                f"Invalid photo format for Age Group {i}.",
+                                f"Invalid photo format "
+                                f"for Age Group {i}.",
                                 "danger"
                             )
 
@@ -2912,21 +2961,22 @@ def admin_add_winner():
                             .upload(
                                 photo,
                                 folder=(
-                                    f"Gajanan-Utsav/"
-                                    f"Winners/"
+                                    "Gajanan-Utsav/"
+                                    "Winners/"
                                     f"{year}/"
                                     f"{slug}"
                                 )
                             )
                         )
 
-                        photo_url = result[
-                            "secure_url"
-                        ]
+                        photo_url = result.get(
+                            "secure_url",
+                            ""
+                        )
 
 
                     # ==================================
-                    # ADD AGE GROUP
+                    # SAVE GROUP
                     # ==================================
 
                     if age_group or winner_name:
@@ -2976,17 +3026,93 @@ def admin_add_winner():
                         "age_group",
 
                     "gallery":
-                        [],
+                        slug,
 
                     "groups":
-                        groups
+                        groups,
+
+                    "year":
+                        str(year)
 
                 }
 
 
             # ==========================================
-            # INVALID TYPE
+            # TEAM GAME
             # ==========================================
+
+            elif winner_type == "team":
+
+                teams = []
+
+                try:
+
+                    team_count = int(
+                        request.form.get(
+                            "team_count",
+                            0
+                        )
+                    )
+
+                except ValueError:
+
+                    team_count = 0
+
+
+                for i in range(
+                    1,
+                    team_count + 1
+                ):
+
+                    team_name = request.form.get(
+                        f"team_name_{i}",
+                        ""
+                    ).strip()
+
+                    if team_name:
+
+                        teams.append({
+
+                            "team":
+                                team_name
+
+                        })
+
+
+                data = {
+
+                    "id":
+                        slug,
+
+                    "slug":
+                        slug,
+
+                    "game":
+                        game,
+
+                    "icon":
+                        icon,
+
+                    "date":
+                        date,
+
+                    "status":
+                        "Completed",
+
+                    "type":
+                        "team",
+
+                    "gallery":
+                        slug,
+
+                    "teams":
+                        teams,
+
+                    "year":
+                        str(year)
+
+                }
+
 
             else:
 
@@ -3003,119 +3129,59 @@ def admin_add_winner():
 
 
             # ==========================================
-            # FIRESTORE DOCUMENT
+            # SAVE TO FIRESTORE
             # ==========================================
 
-            document_id = (
-                f"{year}-{slug}"
+            data["created_at"] = (
+                firestore.SERVER_TIMESTAMP
             )
 
-            winner_ref = (
-                db
-                .collection("winners")
-                .document(document_id)
-            )
-
-
-            # ==========================================
-            # DUPLICATE CHECK
-            # ==========================================
-
-            if winner_ref.get().exists:
-
-                flash(
-                    "This winner/game already exists for this year.",
-                    "danger"
-                )
-
-                return redirect(
-                    url_for(
-                        "admin_add_winner"
-                    )
-                )
-
-
-            # ==========================================
-            # FIRESTORE DATA
-            # ==========================================
-
-            firestore_data = dict(
-                data
-            )
-
-            firestore_data[
-                "year"
-            ] = year
-
-            firestore_data[
-                "id"
-            ] = slug
-
-            firestore_data[
-                "slug"
-            ] = slug
-
-            firestore_data[
-                "created_at"
-            ] = firestore.SERVER_TIMESTAMP
-
-            firestore_data[
-                "migrated_from"
-            ] = "admin"
-
-
-            # ==========================================
-            # SAVE FIRESTORE
-            # ==========================================
+            data["source"] = "admin"
 
             winner_ref.set(
-                firestore_data
+                data
             )
-
-
-            # ==========================================
-            # JSON BACKUP
-            # ==========================================
-
-            year_folder = os.path.join(
-                BASE_DIR,
-                "data",
-                "winners",
-                year
-            )
-
-            os.makedirs(
-                year_folder,
-                exist_ok=True
-            )
-
-
-            file_path = os.path.join(
-                year_folder,
-                f"{slug}.json"
-            )
-
-
-            with open(
-                file_path,
-                "w",
-                encoding="utf-8"
-            ) as f:
-
-                json.dump(
-                    data,
-                    f,
-                    indent=4,
-                    ensure_ascii=False
-                )
 
 
             # ==========================================
             # SUCCESS
             # ==========================================
 
+            print(
+                "======================================"
+            )
+
+            print(
+                "WINNER ADDED SUCCESSFULLY"
+            )
+
+            print(
+                f"Year : {year}"
+            )
+
+            print(
+                f"Game : {game}"
+            )
+
+            print(
+                f"Slug : {slug}"
+            )
+
+            print(
+                f"Type : {winner_type}"
+            )
+
+            print(
+                f"Firestore ID : {document_id}"
+            )
+
+            print(
+                "======================================"
+            )
+
+
             flash(
-                "Winner Added Successfully and saved permanently.",
+                "Winner Added Successfully.",
                 "success"
             )
 
@@ -3137,7 +3203,7 @@ def admin_add_winner():
             )
 
             print(
-                "ADD WINNER ERROR"
+                "❌ ADD WINNER ERROR"
             )
 
             print(
@@ -3148,94 +3214,22 @@ def admin_add_winner():
                 "======================================"
             )
 
-            return f"""
-            <html>
 
-            <head>
+            flash(
+                f"Error adding winner: {str(e)}",
+                "danger"
+            )
 
-                <title>Add Winner Error</title>
-
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1"
-                >
-
-                <style>
-
-                    body {{
-                        font-family: Arial, sans-serif;
-                        background: #f5f5f5;
-                        padding: 30px;
-                    }}
-
-                    .box {{
-                        max-width: 1000px;
-                        margin: auto;
-                        background: white;
-                        padding: 30px;
-                        border-radius: 16px;
-                        box-shadow:
-                            0 10px 30px
-                            rgba(0,0,0,.10);
-                    }}
-
-                    h1 {{
-                        color: #c62828;
-                    }}
-
-                    pre {{
-                        background: #111;
-                        color: #ff7777;
-                        padding: 20px;
-                        border-radius: 10px;
-                        overflow-x: auto;
-                        white-space: pre-wrap;
-                    }}
-
-                    a {{
-                        display: inline-block;
-                        margin-top: 20px;
-                        padding: 12px 20px;
-                        background: #d4af37;
-                        color: #111;
-                        text-decoration: none;
-                        border-radius: 8px;
-                        font-weight: 700;
-                    }}
-
-                </style>
-
-            </head>
-
-
-            <body>
-
-                <div class="box">
-
-                    <h1>
-                        ❌ Add Winner Error
-                    </h1>
-
-                    <pre>
-        {error_text}
-                    </pre>
-
-                    <a href="{url_for('admin_add_winner')}">
-                        ← Back to Add Winner
-                    </a>
-
-                </div>
-
-            </body>
-
-            </html>
-            """
+            return redirect(
+                url_for(
+                    "admin_add_winner"
+                )
+            )
 
 
     return render_template(
         "admin/add_winner.html"
     )
-    
 # ==========================================
 # ADMIN - DELETE WINNER
 # ==========================================
