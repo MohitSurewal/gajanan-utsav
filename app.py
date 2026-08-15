@@ -347,45 +347,281 @@ def validate_game(game, filename):
 
 
 
+# ==========================================
+# LOAD WINNERS FROM FIRESTORE
+# ==========================================
+
 def load_winners():
 
     winners = {}
 
-    winners_path = os.path.join(BASE_DIR, "data", "winners")
+    try:
 
-    if not os.path.exists(winners_path):
-        return winners
+        # --------------------------------------
+        # GET ALL WINNER DOCUMENTS
+        # --------------------------------------
 
-    for year in sorted(os.listdir(winners_path), reverse=True):
+        docs = (
+            db
+            .collection("winners")
+            .stream()
+        )
 
-        year_path = os.path.join(winners_path, year)
 
-        if not os.path.isdir(year_path):
-            continue
+        # --------------------------------------
+        # READ EACH DOCUMENT
+        # --------------------------------------
 
-        winners[year] = []
-
-        for file in sorted(os.listdir(year_path)):
-
-            if not file.endswith(".json"):
-                continue
-
-            file_path = os.path.join(year_path, file)
+        for doc in docs:
 
             try:
 
-                with open(file_path, "r", encoding="utf-8") as f:
+                game = doc.to_dict()
 
-                    game = json.load(f)
+                if not game:
+                    continue
 
-                if validate_game(game, file):
-                    winners[year].append(game)
+
+                # ----------------------------------
+                # YEAR
+                # ----------------------------------
+
+                year = str(
+                    game.get("year", "")
+                ).strip()
+
+                if not year:
+                    continue
+
+
+                # ----------------------------------
+                # BASIC REQUIRED FIELDS
+                # ----------------------------------
+
+                game.setdefault(
+                    "id",
+                    doc.id
+                )
+
+                game.setdefault(
+                    "slug",
+                    doc.id
+                )
+
+                game.setdefault(
+                    "game",
+                    "Unknown Game"
+                )
+
+                game.setdefault(
+                    "icon",
+                    ""
+                )
+
+                game.setdefault(
+                    "date",
+                    ""
+                )
+
+                game.setdefault(
+                    "status",
+                    "Completed"
+                )
+
+                game.setdefault(
+                    "type",
+                    "ranking"
+                )
+
+                game.setdefault(
+                    "gallery",
+                    []
+                )
+
+
+                # ----------------------------------
+                # RANKING WINNERS
+                # ----------------------------------
+
+                if game.get("type") == "ranking":
+
+                    game.setdefault(
+                        "winners",
+                        []
+                    )
+
+
+                    for person in game["winners"]:
+
+                        if not isinstance(
+                            person,
+                            dict
+                        ):
+                            continue
+
+
+                        person.setdefault(
+                            "name",
+                            ""
+                        )
+
+                        person.setdefault(
+                            "photo",
+                            ""
+                        )
+
+                        person.setdefault(
+                            "position",
+                            1
+                        )
+
+
+                # ----------------------------------
+                # AGE GROUP WINNERS
+                # ----------------------------------
+
+                elif game.get("type") == "age_group":
+
+                    game.setdefault(
+                        "groups",
+                        []
+                    )
+
+
+                    for group in game["groups"]:
+
+                        if not isinstance(
+                            group,
+                            dict
+                        ):
+                            continue
+
+
+                        group.setdefault(
+                            "age_group",
+                            ""
+                        )
+
+
+                        winner = group.get(
+                            "winner"
+                        )
+
+                        if not isinstance(
+                            winner,
+                            dict
+                        ):
+
+                            group["winner"] = {
+                                "name": "",
+                                "age": "",
+                                "photo": ""
+                            }
+
+                        else:
+
+                            winner.setdefault(
+                                "name",
+                                ""
+                            )
+
+                            winner.setdefault(
+                                "age",
+                                ""
+                            )
+
+                            winner.setdefault(
+                                "photo",
+                                ""
+                            )
+
+
+                # ----------------------------------
+                # TEAM WINNERS
+                # ----------------------------------
+
+                elif game.get("type") == "team":
+
+                    game.setdefault(
+                        "teams",
+                        []
+                    )
+
+
+                # ----------------------------------
+                # CREATE YEAR
+                # ----------------------------------
+
+                if year not in winners:
+
+                    winners[year] = []
+
+
+                # ----------------------------------
+                # ADD GAME
+                # ----------------------------------
+
+                winners[year].append(
+                    game
+                )
+
 
             except Exception as e:
 
-                print(f"[Winner Loader] {file} : {e}")
+                print(
+                    f"[Winner Loader] "
+                    f"Document {doc.id} error: {e}"
+                )
 
-    return winners
+
+        # --------------------------------------
+        # SORT YEARS
+        # NEWEST FIRST
+        # --------------------------------------
+
+        winners = dict(
+            sorted(
+                winners.items(),
+                key=lambda item: item[0],
+                reverse=True
+            )
+        )
+
+
+        # --------------------------------------
+        # SORT GAMES INSIDE EACH YEAR
+        # --------------------------------------
+
+        for year in winners:
+
+            winners[year].sort(
+                key=lambda game: (
+                    game.get(
+                        "game",
+                        ""
+                    ).lower()
+                )
+            )
+
+
+        print(
+            f"[Winner Loader] "
+            f"Loaded {sum(len(games) for games in winners.values())} "
+            f"winner games from Firestore."
+        )
+
+
+        return winners
+
+
+    except Exception as e:
+
+        print(
+            "[Winner Loader] Firestore error:",
+            e
+        )
+
+        return {}
 
 
 def load_hall_of_fame():
@@ -1498,58 +1734,101 @@ def admin_winners():
 @app.route("/admin/winners/edit/<year>/<slug>", methods=["GET", "POST"])
 def admin_edit_winner(year, slug):
 
+    # ==========================================
+    # ADMIN LOGIN CHECK
+    # ==========================================
+
     if not session.get("admin"):
-        return redirect(url_for("admin_login"))
+
+        return redirect(
+            url_for("admin_login")
+        )
 
 
     # ==========================================
-    # FIND WINNER JSON
+    # FIRESTORE DOCUMENT
     # ==========================================
 
-    winner_file = os.path.join(
-        BASE_DIR,
-        "data",
-        "winners",
-        str(year),
-        f"{slug}.json"
+    document_id = f"{year}-{slug}"
+
+    winner_ref = (
+        db
+        .collection("winners")
+        .document(document_id)
     )
 
 
-    if not os.path.exists(winner_file):
-
-        flash(
-            "Winner record not found.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("admin_winners")
-        )
-
-
     # ==========================================
-    # LOAD JSON
+    # LOAD FROM FIRESTORE
     # ==========================================
 
-    try:
+    winner_doc = winner_ref.get()
 
-        with open(
-            winner_file,
-            "r",
-            encoding="utf-8"
-        ) as f:
 
-            data = json.load(f)
+    if not winner_doc.exists:
 
-    except Exception as e:
+        # --------------------------------------
+        # FALLBACK TO JSON
+        # --------------------------------------
 
-        print(
-            "Winner JSON Load Error:",
-            e
+        winner_file = os.path.join(
+            BASE_DIR,
+            "data",
+            "winners",
+            str(year),
+            f"{slug}.json"
         )
 
+
+        if not os.path.exists(winner_file):
+
+            flash(
+                "Winner record not found.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_winners")
+            )
+
+
+        try:
+
+            with open(
+                winner_file,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
+                data = json.load(f)
+
+
+        except Exception as e:
+
+            print(
+                "Winner JSON Load Error:",
+                e
+            )
+
+            flash(
+                "Unable to load winner record.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_winners")
+            )
+
+
+    else:
+
+        data = winner_doc.to_dict()
+
+
+    if not data:
+
         flash(
-            "Unable to load winner record.",
+            "Winner data is empty.",
             "danger"
         )
 
@@ -1572,9 +1851,9 @@ def admin_edit_winner(year, slug):
             )
 
 
-            # ==================================================
-            # RANKING
-            # ==================================================
+            # ======================================
+            # RANKING GAME
+            # ======================================
 
             if game_type == "ranking":
 
@@ -1585,6 +1864,12 @@ def admin_edit_winner(year, slug):
                         "winner_count",
                         0
                     )
+                )
+
+
+                old_winners = data.get(
+                    "winners",
+                    []
                 )
 
 
@@ -1611,18 +1896,18 @@ def admin_edit_winner(year, slug):
                     ).strip()
 
 
-                    # ------------------------------------------
-                    # Skip completely empty winner
-                    # ------------------------------------------
+                    # ----------------------------------
+                    # SKIP EMPTY WINNER
+                    # ----------------------------------
 
                     if not name:
 
                         continue
 
 
-                    # ------------------------------------------
+                    # ----------------------------------
                     # POSITION
-                    # ------------------------------------------
+                    # ----------------------------------
 
                     try:
 
@@ -1635,9 +1920,9 @@ def admin_edit_winner(year, slug):
                         position_value = i
 
 
-                    # ------------------------------------------
+                    # ----------------------------------
                     # AGE
-                    # ------------------------------------------
+                    # ----------------------------------
 
                     if age:
 
@@ -1649,39 +1934,55 @@ def admin_edit_winner(year, slug):
 
                         except:
 
-                            age_value = None
+                            age_value = age
 
                     else:
 
-                        age_value = None
+                        age_value = ""
 
 
-                    # ------------------------------------------
+                    # ----------------------------------
                     # OLD PHOTO
-                    # ------------------------------------------
+                    # ----------------------------------
 
                     old_photo = ""
 
-
-                    old_winners = data.get(
-                        "winners",
-                        []
-                    )
+                    old_photo_public_id = ""
 
 
                     if i <= len(old_winners):
 
-                        old_photo = old_winners[
-                            i - 1
-                        ].get(
-                            "photo",
-                            ""
+                        old_winner = (
+                            old_winners[
+                                i - 1
+                            ]
                         )
 
 
-                    # ------------------------------------------
+                        if isinstance(
+                            old_winner,
+                            dict
+                        ):
+
+                            old_photo = (
+                                old_winner.get(
+                                    "photo",
+                                    ""
+                                )
+                            )
+
+
+                            old_photo_public_id = (
+                                old_winner.get(
+                                    "photo_public_id",
+                                    ""
+                                )
+                            )
+
+
+                    # ----------------------------------
                     # NEW PHOTO
-                    # ------------------------------------------
+                    # ----------------------------------
 
                     photo_file = request.files.get(
                         f"winner_photo_{i}"
@@ -1690,46 +1991,86 @@ def admin_edit_winner(year, slug):
 
                     photo_url = old_photo
 
+                    photo_public_id = (
+                        old_photo_public_id
+                    )
+
 
                     if (
                         photo_file
                         and photo_file.filename
                     ):
 
-                        print(
-                            f"Uploading ranking winner {i} photo..."
+                        if not allowed_file(
+                            photo_file.filename
+                        ):
+
+                            flash(
+                                f"Invalid photo format for Winner {i}.",
+                                "danger"
+                            )
+
+                            return redirect(
+                                url_for(
+                                    "admin_edit_winner",
+                                    year=year,
+                                    slug=slug
+                                )
+                            )
+
+
+                        upload_result = (
+                            cloudinary
+                            .uploader
+                            .upload(
+                                photo_file,
+                                folder=(
+                                    "Gajanan-Utsav/"
+                                    f"Winners/"
+                                    f"{year}/"
+                                    f"{slug}"
+                                ),
+                                resource_type="image"
+                            )
                         )
 
 
-                        upload_result = cloudinary.uploader.upload(
-                            photo_file,
-                            folder=(
-                                "gajanan_utsav/"
-                                f"winners/{year}/{slug}"
-                            ),
-                            resource_type="image"
+                        photo_url = (
+                            upload_result.get(
+                                "secure_url",
+                                old_photo
+                            )
                         )
 
 
-                        photo_url = upload_result.get(
-                            "secure_url",
-                            old_photo
+                        photo_public_id = (
+                            upload_result.get(
+                                "public_id",
+                                old_photo_public_id
+                            )
                         )
 
 
-                    # ------------------------------------------
+                    # ----------------------------------
                     # SAVE WINNER
-                    # ------------------------------------------
+                    # ----------------------------------
 
                     winner_data = {
 
-                        "position": position_value,
+                        "position":
+                            position_value,
 
-                        "name": name,
+                        "name":
+                            name,
 
-                        "age": age_value,
+                        "age":
+                            age_value,
 
-                        "photo": photo_url
+                        "photo":
+                            photo_url,
+
+                        "photo_public_id":
+                            photo_public_id
 
                     }
 
@@ -1739,24 +2080,25 @@ def admin_edit_winner(year, slug):
                     )
 
 
-                # ------------------------------------------
+                # ----------------------------------
                 # SORT BY POSITION
-                # ------------------------------------------
+                # ----------------------------------
 
                 winners.sort(
-                    key=lambda x: x.get(
-                        "position",
-                        999
-                    )
+                    key=lambda x:
+                        x.get(
+                            "position",
+                            999
+                        )
                 )
 
 
                 data["winners"] = winners
 
 
-            # ==================================================
-            # AGE GROUP
-            # ==================================================
+            # ======================================
+            # AGE GROUP GAME
+            # ======================================
 
             elif game_type == "age_group":
 
@@ -1799,9 +2141,9 @@ def admin_edit_winner(year, slug):
                     ).strip()
 
 
-                    # ------------------------------------------
-                    # Skip completely empty group
-                    # ------------------------------------------
+                    # ----------------------------------
+                    # SKIP EMPTY GROUP
+                    # ----------------------------------
 
                     if (
                         not age_group
@@ -1811,9 +2153,9 @@ def admin_edit_winner(year, slug):
                         continue
 
 
-                    # ------------------------------------------
+                    # ----------------------------------
                     # AGE
-                    # ------------------------------------------
+                    # ----------------------------------
 
                     if winner_age:
 
@@ -1825,39 +2167,68 @@ def admin_edit_winner(year, slug):
 
                         except:
 
-                            age_value = None
+                            age_value = winner_age
 
                     else:
 
-                        age_value = None
+                        age_value = ""
 
 
-                    # ------------------------------------------
+                    # ----------------------------------
                     # OLD PHOTO
-                    # ------------------------------------------
+                    # ----------------------------------
 
                     old_photo = ""
+
+                    old_photo_public_id = ""
 
 
                     if i <= len(old_groups):
 
-                        old_winner = old_groups[
-                            i - 1
-                        ].get(
-                            "winner",
-                            {}
+                        old_group = (
+                            old_groups[
+                                i - 1
+                            ]
                         )
 
 
-                        old_photo = old_winner.get(
-                            "photo",
-                            ""
-                        )
+                        if isinstance(
+                            old_group,
+                            dict
+                        ):
+
+                            old_winner = (
+                                old_group.get(
+                                    "winner",
+                                    {}
+                                )
+                            )
 
 
-                    # ------------------------------------------
+                            if isinstance(
+                                old_winner,
+                                dict
+                            ):
+
+                                old_photo = (
+                                    old_winner.get(
+                                        "photo",
+                                        ""
+                                    )
+                                )
+
+
+                                old_photo_public_id = (
+                                    old_winner.get(
+                                        "photo_public_id",
+                                        ""
+                                    )
+                                )
+
+
+                    # ----------------------------------
                     # NEW PHOTO
-                    # ------------------------------------------
+                    # ----------------------------------
 
                     photo_file = request.files.get(
                         f"age_photo_{i}"
@@ -1866,48 +2237,88 @@ def admin_edit_winner(year, slug):
 
                     photo_url = old_photo
 
+                    photo_public_id = (
+                        old_photo_public_id
+                    )
+
 
                     if (
                         photo_file
                         and photo_file.filename
                     ):
 
-                        print(
-                            f"Uploading age group {i} photo..."
+                        if not allowed_file(
+                            photo_file.filename
+                        ):
+
+                            flash(
+                                f"Invalid photo format for Age Group {i}.",
+                                "danger"
+                            )
+
+                            return redirect(
+                                url_for(
+                                    "admin_edit_winner",
+                                    year=year,
+                                    slug=slug
+                                )
+                            )
+
+
+                        upload_result = (
+                            cloudinary
+                            .uploader
+                            .upload(
+                                photo_file,
+                                folder=(
+                                    "Gajanan-Utsav/"
+                                    f"Winners/"
+                                    f"{year}/"
+                                    f"{slug}"
+                                ),
+                                resource_type="image"
+                            )
                         )
 
 
-                        upload_result = cloudinary.uploader.upload(
-                            photo_file,
-                            folder=(
-                                "gajanan_utsav/"
-                                f"winners/{year}/{slug}"
-                            ),
-                            resource_type="image"
+                        photo_url = (
+                            upload_result.get(
+                                "secure_url",
+                                old_photo
+                            )
                         )
 
 
-                        photo_url = upload_result.get(
-                            "secure_url",
-                            old_photo
+                        photo_public_id = (
+                            upload_result.get(
+                                "public_id",
+                                old_photo_public_id
+                            )
                         )
 
 
-                    # ------------------------------------------
-                    # SAVE AGE GROUP
-                    # ------------------------------------------
+                    # ----------------------------------
+                    # SAVE GROUP
+                    # ----------------------------------
 
                     group_data = {
 
-                        "age_group": age_group,
+                        "age_group":
+                            age_group,
 
                         "winner": {
 
-                            "name": winner_name,
+                            "name":
+                                winner_name,
 
-                            "age": age_value,
+                            "age":
+                                age_value,
 
-                            "photo": photo_url
+                            "photo":
+                                photo_url,
+
+                            "photo_public_id":
+                                photo_public_id
 
                         }
 
@@ -1922,9 +2333,9 @@ def admin_edit_winner(year, slug):
                 data["groups"] = groups
 
 
-            # ==================================================
-            # TEAM
-            # ==================================================
+            # ======================================
+            # TEAM GAME
+            # ======================================
 
             elif game_type == "team":
 
@@ -1935,6 +2346,12 @@ def admin_edit_winner(year, slug):
                         "team_count",
                         0
                     )
+                )
+
+
+                old_teams = data.get(
+                    "teams",
+                    []
                 )
 
 
@@ -1954,9 +2371,117 @@ def admin_edit_winner(year, slug):
                         continue
 
 
+                    old_photo = ""
+
+                    old_photo_public_id = ""
+
+
+                    if i <= len(old_teams):
+
+                        old_team = (
+                            old_teams[
+                                i - 1
+                            ]
+                        )
+
+
+                        if isinstance(
+                            old_team,
+                            dict
+                        ):
+
+                            old_photo = (
+                                old_team.get(
+                                    "photo",
+                                    ""
+                                )
+                            )
+
+                            old_photo_public_id = (
+                                old_team.get(
+                                    "photo_public_id",
+                                    ""
+                                )
+                            )
+
+
+                    photo_file = request.files.get(
+                        f"team_photo_{i}"
+                    )
+
+
+                    photo_url = old_photo
+
+                    photo_public_id = (
+                        old_photo_public_id
+                    )
+
+
+                    if (
+                        photo_file
+                        and photo_file.filename
+                    ):
+
+                        if not allowed_file(
+                            photo_file.filename
+                        ):
+
+                            flash(
+                                f"Invalid photo format for Team {i}.",
+                                "danger"
+                            )
+
+                            return redirect(
+                                url_for(
+                                    "admin_edit_winner",
+                                    year=year,
+                                    slug=slug
+                                )
+                            )
+
+
+                        upload_result = (
+                            cloudinary
+                            .uploader
+                            .upload(
+                                photo_file,
+                                folder=(
+                                    "Gajanan-Utsav/"
+                                    f"Winners/"
+                                    f"{year}/"
+                                    f"{slug}"
+                                ),
+                                resource_type="image"
+                            )
+                        )
+
+
+                        photo_url = (
+                            upload_result.get(
+                                "secure_url",
+                                old_photo
+                            )
+                        )
+
+
+                        photo_public_id = (
+                            upload_result.get(
+                                "public_id",
+                                old_photo_public_id
+                            )
+                        )
+
+
                     teams.append({
 
-                        "team": team_name
+                        "team":
+                            team_name,
+
+                        "photo":
+                            photo_url,
+
+                        "photo_public_id":
+                            photo_public_id
 
                     })
 
@@ -1964,9 +2489,68 @@ def admin_edit_winner(year, slug):
                 data["teams"] = teams
 
 
-            # ==================================================
-            # SAVE JSON
-            # ==================================================
+            # ======================================
+            # UPDATE BASIC DATA
+            # ======================================
+
+            data["year"] = str(year)
+
+            data["id"] = slug
+
+            data["slug"] = slug
+
+
+            # ======================================
+            # UPDATE FIRESTORE
+            # ======================================
+
+            data["updated_at"] = (
+                firestore.SERVER_TIMESTAMP
+            )
+
+
+            winner_ref.set(
+                data
+            )
+
+
+            # ======================================
+            # JSON BACKUP
+            # ======================================
+
+            winner_file = os.path.join(
+                BASE_DIR,
+                "data",
+                "winners",
+                str(year),
+                f"{slug}.json"
+            )
+
+
+            os.makedirs(
+                os.path.dirname(
+                    winner_file
+                ),
+                exist_ok=True
+            )
+
+
+            backup_data = dict(data)
+
+
+            # Firestore timestamp JSON me
+            # serialize nahi hota.
+
+            backup_data.pop(
+                "updated_at",
+                None
+            )
+
+            backup_data.pop(
+                "created_at",
+                None
+            )
+
 
             with open(
                 winner_file,
@@ -1975,15 +2559,19 @@ def admin_edit_winner(year, slug):
             ) as f:
 
                 json.dump(
-                    data,
+                    backup_data,
                     f,
                     indent=4,
                     ensure_ascii=False
                 )
 
 
+            # ======================================
+            # SUCCESS
+            # ======================================
+
             flash(
-                "Winner updated successfully.",
+                "Winner updated successfully and saved permanently.",
                 "success"
             )
 
@@ -1998,11 +2586,19 @@ def admin_edit_winner(year, slug):
             import traceback
 
             print(
+                "===================================="
+            )
+
+            print(
                 "EDIT WINNER ERROR:"
             )
 
             print(
                 traceback.format_exc()
+            )
+
+            print(
+                "===================================="
             )
 
 
@@ -2031,28 +2627,78 @@ def admin_edit_winner(year, slug):
         year=year,
         slug=slug
     )
-    
 
-@app.route("/admin/winners/add", methods=["GET", "POST"])
+@app.route(
+    "/admin/winners/add",
+    methods=["GET", "POST"]
+)
 def admin_add_winner():
 
     if not session.get("admin"):
-        return redirect(url_for("admin_login"))
+        return redirect(
+            url_for("admin_login")
+        )
+
 
     if request.method == "POST":
 
         try:
 
-            year = request.form.get("year", "").strip()
-            slug = request.form.get("slug", "").strip().lower().replace(" ", "-")
-            game = request.form.get("game", "").strip()
-            icon = request.form.get("icon", "").strip()
-            date = request.form.get("date", "").strip()
-            winner_type = request.form.get("type", "ranking")
+            # ==========================================
+            # BASIC DETAILS
+            # ==========================================
+
+            year = request.form.get(
+                "year",
+                ""
+            ).strip()
+
+            slug = (
+                request.form.get(
+                    "slug",
+                    ""
+                )
+                .strip()
+                .lower()
+                .replace(" ", "-")
+            )
+
+            game = request.form.get(
+                "game",
+                ""
+            ).strip()
+
+            icon = request.form.get(
+                "icon",
+                ""
+            ).strip()
+
+            date = request.form.get(
+                "date",
+                ""
+            ).strip()
+
+            winner_type = request.form.get(
+                "type",
+                "ranking"
+            )
+
+
+            # ==========================================
+            # REQUIRED FIELDS
+            # ==========================================
 
             if not year or not slug or not game:
-                flash("Year, Game Name and Slug are required.", "danger")
-                return redirect(url_for("admin_add_winner"))
+
+                flash(
+                    "Year, Game Name and Slug are required.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for("admin_add_winner")
+                )
+
 
             # ==========================================
             # RANKING GAME
@@ -2062,12 +2708,18 @@ def admin_add_winner():
 
                 winners = []
 
-                # Number of ranking winners submitted
                 winner_count = int(
-                    request.form.get("winner_count", 0)
+                    request.form.get(
+                        "winner_count",
+                        0
+                    )
                 )
 
-                for i in range(1, winner_count + 1):
+
+                for i in range(
+                    1,
+                    winner_count + 1
+                ):
 
                     name = request.form.get(
                         f"winner_name_{i}",
@@ -2090,69 +2742,104 @@ def admin_add_winner():
 
                     photo_url = ""
 
-                    # --------------------------
-                    # Upload Photo to Cloudinary
-                    # --------------------------
+
+                    # ==================================
+                    # CLOUDINARY PHOTO
+                    # ==================================
 
                     if photo and photo.filename:
 
-                        if not allowed_file(photo.filename):
+                        if not allowed_file(
+                            photo.filename
+                        ):
+
                             flash(
                                 f"Invalid photo format for Winner {i}.",
                                 "danger"
                             )
+
                             return redirect(
-                                url_for("admin_add_winner")
+                                url_for(
+                                    "admin_add_winner"
+                                )
                             )
 
-                        result = cloudinary.uploader.upload(
-                            photo,
-                            folder=f"Gajanan-Utsav/Winners/{year}/{slug}"
+
+                        result = (
+                            cloudinary
+                            .uploader
+                            .upload(
+                                photo,
+                                folder=(
+                                    f"Gajanan-Utsav/"
+                                    f"Winners/"
+                                    f"{year}/"
+                                    f"{slug}"
+                                )
+                            )
                         )
 
-                        photo_url = result["secure_url"]
+                        photo_url = result[
+                            "secure_url"
+                        ]
 
-                    # --------------------------
-                    # Save winner
-                    # --------------------------
+
+                    # ==================================
+                    # ADD WINNER
+                    # ==================================
 
                     if name:
 
                         winners.append({
 
-                            "position": int(position)
-                            if position.isdigit()
-                            else i,
+                            "position":
+                                int(position)
+                                if position.isdigit()
+                                else i,
 
-                            "name": name,
+                            "name":
+                                name,
 
-                            "age": age,
+                            "age":
+                                age,
 
-                            "photo": photo_url
+                            "photo":
+                                photo_url
 
                         })
 
+
                 data = {
 
-                    "id": slug,
+                    "id":
+                        slug,
 
-                    "slug": slug,
+                    "slug":
+                        slug,
 
-                    "game": game,
+                    "game":
+                        game,
 
-                    "icon": icon,
+                    "icon":
+                        icon,
 
-                    "date": date,
+                    "date":
+                        date,
 
-                    "status": "Completed",
+                    "status":
+                        "Completed",
 
-                    "type": "ranking",
+                    "type":
+                        "ranking",
 
-                    "gallery": [],
+                    "gallery":
+                        [],
 
-                    "winners": winners
+                    "winners":
+                        winners
 
                 }
+
 
             # ==========================================
             # AGE GROUP GAME
@@ -2163,10 +2850,17 @@ def admin_add_winner():
                 groups = []
 
                 group_count = int(
-                    request.form.get("group_count", 0)
+                    request.form.get(
+                        "group_count",
+                        0
+                    )
                 )
 
-                for i in range(1, group_count + 1):
+
+                for i in range(
+                    1,
+                    group_count + 1
+                ):
 
                     age_group = request.form.get(
                         f"age_group_{i}",
@@ -2189,82 +2883,198 @@ def admin_add_winner():
 
                     photo_url = ""
 
-                    # --------------------------
-                    # Upload Photo
-                    # --------------------------
+
+                    # ==================================
+                    # CLOUDINARY PHOTO
+                    # ==================================
 
                     if photo and photo.filename:
 
-                        if not allowed_file(photo.filename):
+                        if not allowed_file(
+                            photo.filename
+                        ):
+
                             flash(
                                 f"Invalid photo format for Age Group {i}.",
                                 "danger"
                             )
+
                             return redirect(
-                                url_for("admin_add_winner")
+                                url_for(
+                                    "admin_add_winner"
+                                )
                             )
 
-                        result = cloudinary.uploader.upload(
-                            photo,
-                            folder=f"Gajanan-Utsav/Winners/{year}/{slug}"
+
+                        result = (
+                            cloudinary
+                            .uploader
+                            .upload(
+                                photo,
+                                folder=(
+                                    f"Gajanan-Utsav/"
+                                    f"Winners/"
+                                    f"{year}/"
+                                    f"{slug}"
+                                )
+                            )
                         )
 
-                        photo_url = result["secure_url"]
+                        photo_url = result[
+                            "secure_url"
+                        ]
 
-                    # --------------------------
-                    # Save Age Group
-                    # --------------------------
+
+                    # ==================================
+                    # ADD AGE GROUP
+                    # ==================================
 
                     if age_group or winner_name:
 
                         groups.append({
 
-                            "age_group": age_group,
+                            "age_group":
+                                age_group,
 
                             "winner": {
 
-                                "name": winner_name,
+                                "name":
+                                    winner_name,
 
-                                "age": winner_age,
+                                "age":
+                                    winner_age,
 
-                                "photo": photo_url
+                                "photo":
+                                    photo_url
 
                             }
 
                         })
 
+
                 data = {
 
-                    "id": slug,
+                    "id":
+                        slug,
 
-                    "slug": slug,
+                    "slug":
+                        slug,
 
-                    "game": game,
+                    "game":
+                        game,
 
-                    "icon": icon,
+                    "icon":
+                        icon,
 
-                    "date": date,
+                    "date":
+                        date,
 
-                    "status": "Completed",
+                    "status":
+                        "Completed",
 
-                    "type": "age_group",
+                    "type":
+                        "age_group",
 
-                    "gallery": [],
+                    "gallery":
+                        [],
 
-                    "groups": groups
+                    "groups":
+                        groups
 
                 }
 
-            else:
-
-                flash("Invalid winner type.", "danger")
-
-                return redirect(
-                    url_for("admin_add_winner")
-                )
 
             # ==========================================
-            # SAVE JSON
+            # INVALID TYPE
+            # ==========================================
+
+            else:
+
+                flash(
+                    "Invalid winner type.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for(
+                        "admin_add_winner"
+                    )
+                )
+
+
+            # ==========================================
+            # FIRESTORE DOCUMENT
+            # ==========================================
+
+            document_id = (
+                f"{year}-{slug}"
+            )
+
+            winner_ref = (
+                db
+                .collection("winners")
+                .document(document_id)
+            )
+
+
+            # ==========================================
+            # DUPLICATE CHECK
+            # ==========================================
+
+            if winner_ref.get().exists:
+
+                flash(
+                    "This winner/game already exists for this year.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for(
+                        "admin_add_winner"
+                    )
+                )
+
+
+            # ==========================================
+            # FIRESTORE DATA
+            # ==========================================
+
+            firestore_data = dict(
+                data
+            )
+
+            firestore_data[
+                "year"
+            ] = year
+
+            firestore_data[
+                "id"
+            ] = slug
+
+            firestore_data[
+                "slug"
+            ] = slug
+
+            firestore_data[
+                "created_at"
+            ] = firestore.SERVER_TIMESTAMP
+
+            firestore_data[
+                "migrated_from"
+            ] = "admin"
+
+
+            # ==========================================
+            # SAVE FIRESTORE
+            # ==========================================
+
+            winner_ref.set(
+                firestore_data
+            )
+
+
+            # ==========================================
+            # JSON BACKUP
             # ==========================================
 
             year_folder = os.path.join(
@@ -2279,10 +3089,12 @@ def admin_add_winner():
                 exist_ok=True
             )
 
+
             file_path = os.path.join(
                 year_folder,
                 f"{slug}.json"
             )
+
 
             with open(
                 file_path,
@@ -2297,20 +3109,30 @@ def admin_add_winner():
                     ensure_ascii=False
                 )
 
+
+            # ==========================================
+            # SUCCESS
+            # ==========================================
+
             flash(
-                "Winner Added Successfully.",
+                "Winner Added Successfully and saved permanently.",
                 "success"
             )
 
             return redirect(
-                url_for("admin_winners")
+                url_for(
+                    "admin_winners"
+                )
             )
+
 
         except Exception as e:
 
             import traceback
 
-            print(traceback.format_exc())
+            print(
+                traceback.format_exc()
+            )
 
             flash(
                 f"Error adding winner: {str(e)}",
@@ -2318,67 +3140,126 @@ def admin_add_winner():
             )
 
             return redirect(
-                url_for("admin_add_winner")
+                url_for(
+                    "admin_add_winner"
+                )
             )
+
 
     return render_template(
         "admin/add_winner.html"
     )
-
     
-@app.route("/admin/winners/delete/<year>/<slug>")
+# ==========================================
+# ADMIN - DELETE WINNER
+# ==========================================
+
+@app.route(
+    "/admin/winners/delete/<year>/<slug>"
+)
 def admin_delete_winner(year, slug):
 
+    # ==========================================
+    # ADMIN LOGIN CHECK
+    # ==========================================
+
     if not session.get("admin"):
-        return redirect(url_for("admin_login"))
-
-    file_path = os.path.join(
-        BASE_DIR,
-        "data",
-        "winners",
-        year,
-        f"{slug}.json"
-    )
-
-    # ==========================================
-    # CHECK FILE
-    # ==========================================
-
-    if not os.path.exists(file_path):
-
-        flash(
-            "Winner file not found.",
-            "danger"
-        )
 
         return redirect(
-            url_for("admin_winners")
+            url_for("admin_login")
         )
 
 
     # ==========================================
-    # LOAD DATA
+    # FIRESTORE DOCUMENT
     # ==========================================
 
-    try:
+    document_id = (
+        f"{year}-{slug}"
+    )
 
-        with open(
-            file_path,
-            "r",
-            encoding="utf-8"
-        ) as f:
+    winner_ref = (
+        db
+        .collection("winners")
+        .document(document_id)
+    )
 
-            game = json.load(f)
 
-    except Exception as e:
+    # ==========================================
+    # GET FIRESTORE DATA
+    # ==========================================
 
-        print(
-            "Winner JSON read error:",
-            e
+    firestore_doc = winner_ref.get()
+
+
+    # ==========================================
+    # GET DATA
+    # ==========================================
+
+    game = None
+
+
+    if firestore_doc.exists:
+
+        game = firestore_doc.to_dict()
+
+
+    # ==========================================
+    # IF FIRESTORE DATA NOT FOUND
+    # ==========================================
+
+    if not game:
+
+        # --------------------------------------
+        # FALLBACK TO JSON
+        # --------------------------------------
+
+        file_path = os.path.join(
+            BASE_DIR,
+            "data",
+            "winners",
+            str(year),
+            f"{slug}.json"
         )
+
+
+        if os.path.exists(file_path):
+
+            try:
+
+                with open(
+                    file_path,
+                    "r",
+                    encoding="utf-8"
+                ) as f:
+
+                    game = json.load(f)
+
+            except Exception as e:
+
+                print(
+                    "Winner JSON read error:",
+                    e
+                )
+
+                flash(
+                    "Unable to read winner data.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for("admin_winners")
+                )
+
+
+    # ==========================================
+    # NOTHING FOUND
+    # ==========================================
+
+    if not game:
 
         flash(
-            "Unable to read winner data.",
+            "Winner record not found.",
             "danger"
         )
 
@@ -2399,9 +3280,9 @@ def admin_delete_winner(year, slug):
         )
 
 
-        # --------------------------------------
+        # ======================================
         # RANKING
-        # --------------------------------------
+        # ======================================
 
         if winner_type == "ranking":
 
@@ -2413,6 +3294,7 @@ def admin_delete_winner(year, slug):
                 public_id = person.get(
                     "photo_public_id"
                 )
+
 
                 if public_id:
 
@@ -2436,9 +3318,9 @@ def admin_delete_winner(year, slug):
                         )
 
 
-        # --------------------------------------
+        # ======================================
         # AGE GROUP
-        # --------------------------------------
+        # ======================================
 
         elif winner_type == "age_group":
 
@@ -2452,9 +3334,11 @@ def admin_delete_winner(year, slug):
                     {}
                 )
 
+
                 public_id = winner.get(
                     "photo_public_id"
                 )
+
 
                 if public_id:
 
@@ -2478,9 +3362,9 @@ def admin_delete_winner(year, slug):
                         )
 
 
-        # --------------------------------------
+        # ======================================
         # TEAM
-        # --------------------------------------
+        # ======================================
 
         elif winner_type == "team":
 
@@ -2492,6 +3376,7 @@ def admin_delete_winner(year, slug):
                 public_id = team.get(
                     "photo_public_id"
                 )
+
 
                 if public_id:
 
@@ -2524,22 +3409,30 @@ def admin_delete_winner(year, slug):
 
 
     # ==========================================
-    # DELETE JSON
+    # DELETE FROM FIRESTORE
     # ==========================================
 
     try:
 
-        os.remove(file_path)
+        if firestore_doc.exists:
+
+            winner_ref.delete()
+
+            print(
+                "Deleted Firestore winner:",
+                document_id
+            )
+
 
     except Exception as e:
 
         print(
-            "Winner JSON delete error:",
+            "Firestore winner delete error:",
             e
         )
 
         flash(
-            "Could not delete winner record.",
+            "Could not delete winner from Firestore.",
             "danger"
         )
 
@@ -2549,11 +3442,54 @@ def admin_delete_winner(year, slug):
 
 
     # ==========================================
+    # DELETE JSON BACKUP
+    # ==========================================
+
+    file_path = os.path.join(
+        BASE_DIR,
+        "data",
+        "winners",
+        str(year),
+        f"{slug}.json"
+    )
+
+
+    if os.path.exists(file_path):
+
+        try:
+
+            os.remove(
+                file_path
+            )
+
+            print(
+                "Deleted JSON backup:",
+                file_path
+            )
+
+        except Exception as e:
+
+            print(
+                "Winner JSON delete error:",
+                e
+            )
+
+
+            # IMPORTANT:
+            # Firestore already deleted,
+            # so don't report complete failure.
+
+            print(
+                "Firestore deletion was successful."
+            )
+
+
+    # ==========================================
     # SUCCESS
     # ==========================================
 
     flash(
-        "Winner and associated photos deleted successfully.",
+        "Winner and associated record deleted successfully.",
         "success"
     )
 
