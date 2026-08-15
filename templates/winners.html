@@ -234,13 +234,12 @@ Games Winners
                             href="{{ url_for(
                                 'gallery',
                                 year=year,
-                                event=game.slug
+                                event=game.gallery_event
                             ) }}"
                             class="gallery-btn"
                         >
                             📷 View Event Photos
                         </a>
-                        
                     {% elif game.status|lower == "live" %}
 
                         <span class="gallery-btn disabled">
