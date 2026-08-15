@@ -3130,20 +3130,106 @@ def admin_add_winner():
 
             import traceback
 
+            error_text = traceback.format_exc()
+
             print(
-                traceback.format_exc()
+                "======================================"
             )
 
-            flash(
-                f"Error adding winner: {str(e)}",
-                "danger"
+            print(
+                "ADD WINNER ERROR"
             )
 
-            return redirect(
-                url_for(
-                    "admin_add_winner"
-                )
+            print(
+                error_text
             )
+
+            print(
+                "======================================"
+            )
+
+            return f"""
+            <html>
+
+            <head>
+
+                <title>Add Winner Error</title>
+
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1"
+                >
+
+                <style>
+
+                    body {{
+                        font-family: Arial, sans-serif;
+                        background: #f5f5f5;
+                        padding: 30px;
+                    }}
+
+                    .box {{
+                        max-width: 1000px;
+                        margin: auto;
+                        background: white;
+                        padding: 30px;
+                        border-radius: 16px;
+                        box-shadow:
+                            0 10px 30px
+                            rgba(0,0,0,.10);
+                    }}
+
+                    h1 {{
+                        color: #c62828;
+                    }}
+
+                    pre {{
+                        background: #111;
+                        color: #ff7777;
+                        padding: 20px;
+                        border-radius: 10px;
+                        overflow-x: auto;
+                        white-space: pre-wrap;
+                    }}
+
+                    a {{
+                        display: inline-block;
+                        margin-top: 20px;
+                        padding: 12px 20px;
+                        background: #d4af37;
+                        color: #111;
+                        text-decoration: none;
+                        border-radius: 8px;
+                        font-weight: 700;
+                    }}
+
+                </style>
+
+            </head>
+
+
+            <body>
+
+                <div class="box">
+
+                    <h1>
+                        ❌ Add Winner Error
+                    </h1>
+
+                    <pre>
+        {error_text}
+                    </pre>
+
+                    <a href="{url_for('admin_add_winner')}">
+                        ← Back to Add Winner
+                    </a>
+
+                </div>
+
+            </body>
+
+            </html>
+            """
 
 
     return render_template(
