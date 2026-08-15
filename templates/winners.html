@@ -231,16 +231,12 @@ Games Winners
                     {% if game.status|lower == "completed" %}
 
                         <a
-                            href="{{ url_for(
-                                'gallery',
-                                year=year,
-                                event=game.slug
-                            ) }}"
-                            class="gallery-btn"
-                        >
-                            📷 View Event Photos
-                        </a>
+                            href="{{ url_for('gallery', year=year, event=game.slug) }}"
+                            class="gallery-btn">
 
+                            📷 View Event Photos
+
+                        </a>
 
                     {% elif game.status|lower == "live" %}
 
