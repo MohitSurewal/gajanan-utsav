@@ -347,266 +347,171 @@ def validate_game(game, filename):
 
 
 
-# ==========================================
-# LOAD WINNERS FROM FIRESTORE
-# ==========================================
+def slugify_event(text):
+    return (
+        str(text or "")
+        .strip()
+        .lower()
+        .replace(" ", "-")
+    )
+
 
 def load_winners():
 
-    winners = {}
+    winners = defaultdict(list)
 
     try:
 
-        # --------------------------------------
-        # GET ALL WINNER DOCUMENTS
-        # --------------------------------------
-
         docs = (
-            db
-            .collection("winners")
+            db.collection("winners")
             .stream()
         )
 
-
-        # --------------------------------------
-        # READ EACH DOCUMENT
-        # --------------------------------------
-
         for doc in docs:
 
-            try:
+            game = doc.to_dict()
 
-                game = doc.to_dict()
+            if not game:
+                continue
 
-                if not game:
-                    continue
+            # ==========================================
+            # YEAR
+            # ==========================================
+
+            year = str(
+                game.get("year", "")
+            ).strip()
+
+            if not year:
+
+                # Firestore ID example:
+                # 2025-best-dancer
+
+                doc_id = doc.id
+
+                if "-" in doc_id:
+                    year = doc_id.split("-", 1)[0]
+
+            if not year:
+                continue
 
 
-                # ----------------------------------
-                # YEAR
-                # ----------------------------------
+            # ==========================================
+            # BASIC DATA
+            # ==========================================
 
-                year = str(
-                    game.get("year", "")
-                ).strip()
+            game["year"] = year
 
-                if not year:
-                    continue
+            game["doc_id"] = doc.id
 
-
-                # ----------------------------------
-                # BASIC REQUIRED FIELDS
-                # ----------------------------------
-
-                game.setdefault(
-                    "id",
-                    doc.id
+            game["slug"] = (
+                game.get("slug")
+                or doc.id.replace(
+                    f"{year}-",
+                    "",
+                    1
                 )
+            )
 
-                game.setdefault(
-                    "slug",
-                    doc.id
-                )
 
-                game.setdefault(
-                    "game",
-                    "Unknown Game"
-                )
+            # ==========================================
+            # GALLERY EVENT
+            # ==========================================
+            #
+            # Gallery me event generally game-name
+            # ka slug hai.
+            #
+            # Example:
+            # Dance Competition
+            #       ↓
+            # dance-competition
+            #
+            # Isse purane winners ke wrong gallery
+            # slug ka problem bhi fix hoga.
+            # ==========================================
 
-                game.setdefault(
-                    "icon",
-                    ""
-                )
+            game["gallery_event"] = slugify_event(
+                game.get("game")
+            )
 
-                game.setdefault(
-                    "date",
-                    ""
-                )
+            # Keep gallery field compatible
+            game["gallery"] = game["gallery_event"]
 
-                game.setdefault(
+
+            # ==========================================
+            # STATUS NORMALIZE
+            # ==========================================
+
+            status = str(
+                game.get(
                     "status",
                     "Completed"
                 )
+            ).strip().lower()
 
-                game.setdefault(
-                    "type",
-                    "ranking"
+            game["status"] = status
+
+
+            # ==========================================
+            # DATE
+            # ==========================================
+
+            game["date"] = str(
+                game.get(
+                    "date",
+                    ""
                 )
-
-                game.setdefault(
-                    "gallery",
-                    []
-                )
+            ).strip()
 
 
-                # ----------------------------------
-                # RANKING WINNERS
-                # ----------------------------------
-
-                if game.get("type") == "ranking":
-
-                    game.setdefault(
-                        "winners",
-                        []
-                    )
+            winners[year].append(game)
 
 
-                    for person in game["winners"]:
-
-                        if not isinstance(
-                            person,
-                            dict
-                        ):
-                            continue
-
-
-                        person.setdefault(
-                            "name",
-                            ""
-                        )
-
-                        person.setdefault(
-                            "photo",
-                            ""
-                        )
-
-                        person.setdefault(
-                            "position",
-                            1
-                        )
-
-
-                # ----------------------------------
-                # AGE GROUP WINNERS
-                # ----------------------------------
-
-                elif game.get("type") == "age_group":
-
-                    game.setdefault(
-                        "groups",
-                        []
-                    )
-
-
-                    for group in game["groups"]:
-
-                        if not isinstance(
-                            group,
-                            dict
-                        ):
-                            continue
-
-
-                        group.setdefault(
-                            "age_group",
-                            ""
-                        )
-
-
-                        winner = group.get(
-                            "winner"
-                        )
-
-                        if not isinstance(
-                            winner,
-                            dict
-                        ):
-
-                            group["winner"] = {
-                                "name": "",
-                                "age": "",
-                                "photo": ""
-                            }
-
-                        else:
-
-                            winner.setdefault(
-                                "name",
-                                ""
-                            )
-
-                            winner.setdefault(
-                                "age",
-                                ""
-                            )
-
-                            winner.setdefault(
-                                "photo",
-                                ""
-                            )
-
-
-                # ----------------------------------
-                # TEAM WINNERS
-                # ----------------------------------
-
-                elif game.get("type") == "team":
-
-                    game.setdefault(
-                        "teams",
-                        []
-                    )
-
-
-                # ----------------------------------
-                # CREATE YEAR
-                # ----------------------------------
-
-                if year not in winners:
-
-                    winners[year] = []
-
-
-                # ----------------------------------
-                # ADD GAME
-                # ----------------------------------
-
-                winners[year].append(
-                    game
-                )
-
-
-            except Exception as e:
-
-                print(
-                    f"[Winner Loader] "
-                    f"Document {doc.id} error: {e}"
-                )
-
-
-        # --------------------------------------
-        # SORT YEARS
-        # NEWEST FIRST
-        # --------------------------------------
-
-        winners = dict(
-            sorted(
-                winners.items(),
-                key=lambda item: item[0],
-                reverse=True
-            )
-        )
-
-
-        # --------------------------------------
-        # SORT GAMES INSIDE EACH YEAR
-        # --------------------------------------
+        # ==========================================
+        # SORT EACH YEAR
+        # ==========================================
+        #
+        # Latest date first.
+        #
+        # Example:
+        #
+        # 2025-09-10
+        # 2025-09-08
+        # 2025-09-03
+        #
+        # ==========================================
 
         for year in winners:
 
             winners[year].sort(
                 key=lambda game: (
-                    game.get(
-                        "game",
-                        ""
-                    ).lower()
-                )
+                    game.get("date", ""),
+                    game.get("created_at", "")
+                ),
+                reverse=True
             )
 
 
+        # ==========================================
+        # SORT YEARS
+        # ==========================================
+
+        winners = dict(
+            sorted(
+                winners.items(),
+                key=lambda item: int(
+                    item[0]
+                )
+                if str(item[0]).isdigit()
+                else 0,
+                reverse=True
+            )
+        )
+
+
         print(
-            f"[Winner Loader] "
-            f"Loaded {sum(len(games) for games in winners.values())} "
+            f"[Winner Loader] Loaded "
+            f"{sum(len(v) for v in winners.values())} "
             f"winner games from Firestore."
         )
 
@@ -616,9 +521,22 @@ def load_winners():
 
     except Exception as e:
 
+        import traceback
+
         print(
-            "[Winner Loader] Firestore error:",
-            e
+            "======================================"
+        )
+
+        print(
+            "WINNER FIRESTORE LOAD ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
         )
 
         return {}
@@ -1561,35 +1479,99 @@ def winners():
 
     winners_data = load_winners()
 
-    years = sorted(winners_data.keys(), reverse=True)
+    # ==========================================
+    # YEARS — LATEST FIRST
+    # ==========================================
+
+    years = sorted(
+        winners_data.keys(),
+        key=lambda x: (
+            int(x)
+            if str(x).isdigit()
+            else 0
+        ),
+        reverse=True
+    )
+
+
+    # ==========================================
+    # ALL GAMES
+    # ==========================================
+    #
+    # Already sorted by load_winners():
+    #
+    # Year:
+    #   latest → oldest
+    #
+    # Within year:
+    #   latest date → oldest date
+    #
+    # ==========================================
 
     games = []
+
     seen = set()
 
-    for year_games in winners_data.values():
+    for year in years:
 
-        for game in year_games:
+        for game in winners_data.get(
+            year,
+            []
+        ):
 
-            slug = game.get("slug")
+            slug = game.get(
+                "slug"
+            )
 
-            if slug not in seen:
+            unique_id = (
+                f"{year}-{slug}"
+            )
 
-                seen.add(slug)
+            if unique_id in seen:
+                continue
 
-                games.append({
-                    "slug": slug,
-                    "game": game.get("game")
-                })
+            seen.add(
+                unique_id
+            )
 
-    games.sort(key=lambda x: x["game"])
+            games.append({
+
+                "year":
+                    year,
+
+                "slug":
+                    slug,
+
+                "game":
+                    game.get(
+                        "game",
+                        ""
+                    ),
+
+                "date":
+                    game.get(
+                        "date",
+                        ""
+                    )
+
+            })
+
 
     return render_template(
         "winners.html",
+
         winners=winners_data,
+
         years=years,
+
         games=games,
+
         active_page="winners"
     )
+    
+    
+    
+    
 @app.route("/hall-of-fame")
 def hall_of_fame():
 
@@ -4213,31 +4195,61 @@ def home():
     # LATEST WINNERS
     # ==========================================
 
+    # ==========================================
+    # LATEST WINNER — HOME PAGE ONLY
+    # ==========================================
+
     latest_winners = []
 
-    for year in sorted(winners.keys(), reverse=True):
+    for year, year_games in winners.items():
 
-        for game in winners[year]:
+        if not year_games:
+            continue
 
-            if game["type"] == "ranking":
+        # load_winners() already sorts
+        # latest date first.
+        latest_game = year_games[0]
 
-                latest_winners.append({
-                    "year": year,
-                    "game": game["game"],
-                    "type": "ranking",
-                    "data": game["winners"]
-                })
+        latest_winners.append({
 
-            elif game["type"] == "age_group":
+            "year": year,
 
-                latest_winners.append({
-                    "year": year,
-                    "game": game["game"],
-                    "type": "age_group",
-                    "data": game["groups"]
-                })
+            "game": latest_game.get(
+                "game",
+                ""
+            ),
 
-    latest_winners = latest_winners[:6]
+            "slug": latest_game.get(
+                "slug",
+                ""
+            ),
+
+            "gallery": latest_game.get(
+                "gallery_event",
+                ""
+            ),
+
+            "type": latest_game.get(
+                "type",
+                "ranking"
+            ),
+
+            "data": (
+                latest_game.get(
+                    "winners",
+                    []
+                )
+                if latest_game.get("type") == "ranking"
+                else latest_game.get(
+                    "groups",
+                    []
+                )
+            )
+
+        })
+
+        # ONLY ONE LATEST GAME
+        break
 
 
  
