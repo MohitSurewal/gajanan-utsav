@@ -201,6 +201,10 @@
     </div>
 
 </section>
+
+{% endblock %}
+
+
 {% block scripts %}
 
 <script>
@@ -237,13 +241,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         });
 
-        empty.style.display = visible === 0 ? "block" : "none";
+        empty.style.display =
+            visible === 0 ? "block" : "none";
 
     });
 
 });
 
 </script>
-
 
 {% endblock %}
