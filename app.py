@@ -4990,12 +4990,38 @@ def page_not_found(error):
 @app.errorhandler(500)
 def internal_server_error(error):
 
-    return render_template(
-        "500.html",
-        active_page=""
-    ), 500
-    
-    
+    print("\n" + "=" * 70)
+    print("INTERNAL SERVER ERROR")
+    print("=" * 70)
+    print(error)
+    print("=" * 70 + "\n")
+
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Server Error</title>
+    </head>
+
+    <body style="
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 80px 20px;
+    ">
+
+        <h1>500 - Internal Server Error</h1>
+
+        <p>
+            Something went wrong on the server.
+        </p>
+
+        <p>
+            Please try again later.
+        </p>
+
+    </body>
+    </html>
+    """, 500
     
 if __name__ == "__main__":
     app.run()
