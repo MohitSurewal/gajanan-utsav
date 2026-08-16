@@ -21,6 +21,7 @@ import cloudinary.api
 from config import *
 from config import FIREBASE_CREDENTIALS
 from google.auth.transport.requests import Request
+from google.auth.exceptions import RefreshError
 import hashlib
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
@@ -218,53 +219,161 @@ def load_videos():
 
 def get_youtube_credentials():
 
-    doc = (
-        db.collection("settings")
+    doc_ref = (
+        db
+        .collection("settings")
         .document("youtube")
-        .get()
     )
 
+    doc = doc_ref.get()
+
+    # ==========================================
+    # YOUTUBE NOT CONNECTED
+    # ==========================================
+
     if not doc.exists:
+        print("[YouTube] Account is not connected.")
         return None
 
-    data = doc.to_dict()
+    data = doc.to_dict() or {}
 
-    credentials = Credentials(
+    refresh_token = data.get("refresh_token")
+
+    if not refresh_token:
+        print("[YouTube] Refresh token missing.")
+        return None
+
+    # ==========================================
+    # CREATE CREDENTIALS
+    # ==========================================
+
+    youtube_credentials = Credentials(
+
         token=data.get("token"),
-        refresh_token=data.get("refresh_token"),
+
+        refresh_token=refresh_token,
+
         token_uri=data.get(
             "token_uri",
             "https://oauth2.googleapis.com/token"
         ),
-        client_id=data.get("client_id"),
+
+        client_id=data.get(
+            "client_id",
+            YOUTUBE_CLIENT_ID
+        ),
+
         client_secret=YOUTUBE_CLIENT_SECRET,
-        scopes=data.get("scopes", YOUTUBE_SCOPES)
+
+        scopes=data.get(
+            "scopes",
+            YOUTUBE_SCOPES
+        )
     )
 
-    # Refresh expired access token
-    if credentials.expired and credentials.refresh_token:
+    # ==========================================
+    # REFRESH ACCESS TOKEN
+    # ==========================================
 
-        credentials.refresh(Request())
+    if youtube_credentials.expired:
 
-        db.collection("settings").document("youtube").update({
-            "token": credentials.token
-        })
+        try:
 
-    return credentials
+            print(
+                "[YouTube] Access token expired. "
+                "Refreshing..."
+            )
+
+            youtube_credentials.refresh(
+                Request()
+            )
+
+            # Save new access token
+            doc_ref.update({
+
+                "token":
+                    youtube_credentials.token
+
+            })
+
+            print(
+                "[YouTube] Access token refreshed successfully."
+            )
+
+        except RefreshError as e:
+
+            print(
+                "[YouTube] Refresh token is invalid "
+                "or revoked."
+            )
+
+            print(
+                "[YouTube] RefreshError:",
+                str(e)
+            )
+
+            # Mark connection as invalid
+            try:
+
+                doc_ref.update({
+
+                    "connection_status":
+                        "reauthorization_required"
+
+                })
+
+            except Exception:
+                pass
+
+            return None
+
+        except Exception as e:
+
+            print(
+                "[YouTube] Token refresh failed:",
+                str(e)
+            )
+
+            return None
+
+    return youtube_credentials
 
 
 def get_youtube_service():
 
-    credentials = get_youtube_credentials()
+    try:
 
-    if not credentials:
+        youtube_credentials = (
+            get_youtube_credentials()
+        )
+
+        if not youtube_credentials:
+
+            print(
+                "[YouTube] No valid credentials."
+            )
+
+            return None
+
+        youtube = build(
+            "youtube",
+            "v3",
+            credentials=youtube_credentials
+        )
+
+        return youtube
+
+    except Exception as e:
+
+        print(
+            "[YouTube] Service creation failed:",
+            str(e)
+        )
+
         return None
-
-    return build(
-        "youtube",
-        "v3",
-        credentials=credentials
-    )
+    
+    
+    
 
 def calculate_file_hash(file_path):
 
@@ -1279,17 +1388,68 @@ def youtube_oauth_callback():
     credentials = flow.credentials
 
     # Save YouTube credentials in Firestore
+    # ==========================================
+    # CHECK REFRESH TOKEN
+    # ==========================================
+
+    if not credentials.refresh_token:
+
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>YouTube Connection Failed</title>
+        </head>
+
+        <body style="
+            font-family: Arial;
+            text-align: center;
+            padding: 80px;
+        ">
+
+            <h1 style="color:#c62828;">
+                ❌ YouTube Connection Failed
+            </h1>
+
+            <p>
+                Google did not provide a refresh token.
+            </p>
+
+            <p>
+                Please try connecting YouTube again.
+            </p>
+
+        </body>
+        </html>
+        """, 400
+
+
+    # ==========================================
+    # SAVE FRESH YOUTUBE CREDENTIALS
+    # ==========================================
+
     db.collection("settings").document("youtube").set({
 
-        "token": credentials.token,
+        "token":
+            credentials.token,
 
-        "refresh_token": credentials.refresh_token,
+        "refresh_token":
+            credentials.refresh_token,
 
-        "token_uri": credentials.token_uri,
+        "token_uri":
+            credentials.token_uri,
 
-        "client_id": credentials.client_id,
+        "client_id":
+            credentials.client_id,
 
-        "scopes": credentials.scopes
+        "scopes":
+            credentials.scopes,
+
+        "connection_status":
+            "connected",
+
+        "updated_at":
+            firestore.SERVER_TIMESTAMP
 
     })
 
