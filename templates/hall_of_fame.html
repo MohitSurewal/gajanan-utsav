@@ -903,89 +903,56 @@
 
 </section>
 
+{% endblock %}
+
 
 {% block scripts %}
 
 <script>
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
+document.addEventListener("DOMContentLoaded", function () {
 
-        const search =
-            document.getElementById("hofSearch");
+    const search = document.getElementById("hallSearch");
 
-        const players =
-            document.querySelectorAll(".hof-player");
+    const cards = document.querySelectorAll(".hall-card");
 
+    const empty = document.getElementById("hallNoResults");
 
-        /* ==============================================
-           SEARCH
-        ============================================== */
+    if (!search) {
+        return;
+    }
 
-        if (search) {
+    search.addEventListener("input", function () {
 
-            search.addEventListener(
-                "input",
-                function () {
+        const value = this.value.toLowerCase().trim();
 
-                    const value =
-                        this.value
-                            .toLowerCase()
-                            .trim();
+        let visible = 0;
 
-                    players.forEach(
-                        function (player) {
+        cards.forEach(card => {
 
-                            const name =
-                                player.dataset.name;
+            const text = card.dataset.search || "";
 
-                            if (
-                                name.includes(value)
-                            ) {
+            if (text.includes(value)) {
 
-                                player.style.display =
-                                    "grid";
+                card.style.display = "";
 
-                            } else {
+                visible++;
 
-                                player.style.display =
-                                    "none";
+            } else {
 
-                            }
-
-                        }
-                    );
-
-                }
-            );
-
-        }
-
-
-        /* ==============================================
-           CLICK PLAYER → SHOW GAMES
-        ============================================== */
-
-        players.forEach(
-            function (player) {
-
-                player.addEventListener(
-                    "click",
-                    function () {
-
-                        player.classList.toggle(
-                            "expanded"
-                        );
-
-                    }
-                );
+                card.style.display = "none";
 
             }
-        );
 
-    }
-);
+        });
+
+        if (empty) {
+            empty.style.display = visible === 0 ? "block" : "none";
+        }
+
+    });
+
+});
 
 </script>
 
