@@ -651,101 +651,497 @@ def load_winners():
         return {}
 
 
+# ============================================================
+# HALL OF FAME CALCULATOR
+# ============================================================
+
 def load_hall_of_fame():
 
     winners_data = load_winners()
 
+    # ========================================================
+    # FIND CURRENT YEAR
+    # ========================================================
+
+    valid_years = []
+
+    for year in winners_data.keys():
+
+        try:
+            valid_years.append(int(year))
+
+        except (ValueError, TypeError):
+            continue
+
+    if not valid_years:
+        return {
+            "year": None,
+            "players": [],
+            "eligible_players": [],
+            "champion": None,
+            "is_tie": False,
+            "prize_awarded": False
+        }
+
+    current_year = str(
+        max(valid_years)
+    )
+
+
+    # ========================================================
+    # PLAYER DATA
+    # ========================================================
+
     players = {}
 
-    for year, games in winners_data.items():
 
-        for game in games:
+    # ========================================================
+    # HELPER
+    # ========================================================
 
-            game_name = game["game"]
+    def get_player(name):
 
-            # Ranking Games
-            if game["type"] == "ranking":
+        clean_name = str(
+            name or ""
+        ).strip()
 
-                for person in game.get("winners", []):
+        if not clean_name:
+            return None
 
-                    name = person["name"].strip()
+        # Same person with different capitalization
+        # will be treated as same player.
+        player_key = clean_name.casefold()
 
-                    if name not in players:
+        if player_key not in players:
 
-                        players[name] = {
-                            "name": name,
-                            "gold": 0,
-                            "silver": 0,
-                            "bronze": 0,
-                            "total": 0,
-                            "awards": []
-                        }
+            players[player_key] = {
 
-                    if person["position"] == 1:
-                        players[name]["gold"] += 1
+                "name":
+                    clean_name,
 
-                    elif person["position"] == 2:
-                        players[name]["silver"] += 1
+                "total_wins":
+                    0,
 
-                    elif person["position"] == 3:
-                        players[name]["bronze"] += 1
+                "first_place":
+                    0,
 
-                    players[name]["total"] += 1
+                "second_place":
+                    0,
 
-                    players[name]["awards"].append({
+                "third_place":
+                    0,
 
-                        "year": year,
-                        "game": game_name,
-                        "position": person["position"]
+                "games":
+                    []
 
-                    })
+            }
 
-            # Age Group Games
+        return players[player_key]
 
-            elif game["type"] == "age_group":
 
-                for group in game.get("groups", []):
+    # ========================================================
+    # CURRENT YEAR GAMES ONLY
+    # ========================================================
 
-                    winner = group["winner"]
+    current_year_games = winners_data.get(
+        current_year,
+        []
+    )
 
-                    name = winner["name"].strip()
 
-                    if name not in players:
+    # ========================================================
+    # PROCESS EVERY GAME
+    # ========================================================
 
-                        players[name] = {
-                            "name": name,
-                            "gold": 0,
-                            "silver": 0,
-                            "bronze": 0,
-                            "total": 0,
-                            "awards": []
-                        }
+    for game in current_year_games:
 
-                    players[name]["gold"] += 1
-                    players[name]["total"] += 1
+        game_type = str(
+            game.get(
+                "type",
+                "ranking"
+            )
+        ).strip().lower()
 
-                    players[name]["awards"].append({
+        game_name = str(
+            game.get(
+                "game",
+                "Game"
+            )
+        ).strip()
 
-                        "year": year,
-                        "game": f'{game_name} ({group["age_group"]})',
-                        "position": 1
 
-                    })
+        # ====================================================
+        # RANKING GAME
+        # ====================================================
 
-    hall = list(players.values())
+        if game_type == "ranking":
+
+            for person in game.get(
+                "winners",
+                []
+            ):
+
+                name = str(
+                    person.get(
+                        "name",
+                        ""
+                    )
+                ).strip()
+
+                if not name:
+                    continue
+
+
+                player = get_player(name)
+
+                if not player:
+                    continue
+
+
+                # Every listed winner gets ONE WIN.
+                player["total_wins"] += 1
+
+
+                # Position statistics
+                try:
+
+                    position = int(
+                        person.get(
+                            "position",
+                            0
+                        )
+                    )
+
+                except (
+                    ValueError,
+                    TypeError
+                ):
+
+                    position = 0
+
+
+                if position == 1:
+
+                    player["first_place"] += 1
+
+                elif position == 2:
+
+                    player["second_place"] += 1
+
+                elif position == 3:
+
+                    player["third_place"] += 1
+
+
+                # Save game history
+                player["games"].append({
+
+                    "game":
+                        game_name,
+
+                    "position":
+                        position,
+
+                    "age_group":
+                        "",
+
+                    "year":
+                        current_year
+
+                })
+
+
+        # ====================================================
+        # AGE GROUP GAME
+        # ====================================================
+
+        elif game_type == "age_group":
+
+            for group in game.get(
+                "groups",
+                []
+            ):
+
+                winner = group.get(
+                    "winner",
+                    {}
+                )
+
+                name = str(
+                    winner.get(
+                        "name",
+                        ""
+                    )
+                ).strip()
+
+                if not name:
+                    continue
+
+
+                player = get_player(name)
+
+                if not player:
+                    continue
+
+
+                # Every age-group winner gets ONE WIN.
+                player["total_wins"] += 1
+
+                player["first_place"] += 1
+
+
+                age_group = str(
+                    group.get(
+                        "age_group",
+                        ""
+                    )
+                ).strip()
+
+
+                player["games"].append({
+
+                    "game":
+                        game_name,
+
+                    "position":
+                        1,
+
+                    "age_group":
+                        age_group,
+
+                    "year":
+                        current_year
+
+                })
+
+
+        # ====================================================
+        # TEAM GAME
+        # ====================================================
+
+        elif game_type == "team":
+
+            for team in game.get(
+                "teams",
+                []
+            ):
+
+                team_name = str(
+                    team.get(
+                        "team",
+                        ""
+                    )
+                ).strip()
+
+                if not team_name:
+                    continue
+
+
+                # Teams are currently not treated as
+                # individual Hall of Fame players.
+                #
+                # We keep this branch ready for future
+                # team-based Hall of Fame support.
+                continue
+
+
+    # ========================================================
+    # CONVERT TO LIST
+    # ========================================================
+
+    hall = list(
+        players.values()
+    )
+
+
+    # ========================================================
+    # SORT
+    # ========================================================
+    #
+    # Primary:
+    #   Total wins
+    #
+    # Secondary:
+    #   First-place wins
+    #
+    # Third:
+    #   Second-place wins
+    #
+    # Fourth:
+    #   Third-place wins
+    #
+    # Name only keeps ordering stable.
+    # ========================================================
 
     hall.sort(
 
-        key=lambda x: (
-            -x["gold"],
-            -x["silver"],
-            -x["bronze"],
-            x["name"]
+        key=lambda player: (
+
+            -player["total_wins"],
+
+            -player["first_place"],
+
+            -player["second_place"],
+
+            -player["third_place"],
+
+            player["name"].casefold()
+
         )
 
     )
 
-    return hall
+
+    # ========================================================
+    # MINIMUM 2 WINS
+    # ========================================================
+
+    eligible_players = [
+
+        player
+
+        for player in hall
+
+        if player["total_wins"] >= 2
+
+    ]
+
+
+    # ========================================================
+    # FIND HIGHEST WIN COUNT
+    # ========================================================
+
+    champion = None
+
+    is_tie = False
+
+    prize_awarded = False
+
+
+    if eligible_players:
+
+        highest_wins = eligible_players[0][
+            "total_wins"
+        ]
+
+
+        # All players having same highest score
+        top_players = [
+
+            player
+
+            for player in eligible_players
+
+            if player["total_wins"] == highest_wins
+
+        ]
+
+
+        # ====================================================
+        # ONE CHAMPION ONLY
+        # ====================================================
+
+        if len(top_players) == 1:
+
+            champion = top_players[0]
+
+            prize_awarded = True
+
+            is_tie = False
+
+        else:
+
+            # Tie = NO PRIZE
+            champion = None
+
+            prize_awarded = False
+
+            is_tie = True
+
+
+    # ========================================================
+    # ADD RANKING + GAP
+    # ========================================================
+
+    if eligible_players:
+
+        highest_wins = eligible_players[0][
+            "total_wins"
+        ]
+
+    else:
+
+        highest_wins = 0
+
+
+    for index, player in enumerate(
+        hall,
+        start=1
+    ):
+
+        player["rank"] = index
+
+        player["wins_behind"] = max(
+            0,
+            highest_wins
+            - player["total_wins"]
+        )
+
+        player["eligible_for_prize"] = (
+            player["total_wins"] >= 2
+        )
+
+
+    # ========================================================
+    # MARK TIED TOP PLAYERS
+    # ========================================================
+
+    if is_tie and eligible_players:
+
+        highest_wins = eligible_players[0][
+            "total_wins"
+        ]
+
+        for player in hall:
+
+            player["is_tied_for_first"] = (
+                player["total_wins"]
+                == highest_wins
+                and player["total_wins"] >= 2
+            )
+
+    else:
+
+        for player in hall:
+
+            player["is_tied_for_first"] = False
+
+
+    # ========================================================
+    # FINAL RESULT
+    # ========================================================
+
+    return {
+
+        "year":
+            current_year,
+
+        "players":
+            hall,
+
+        "eligible_players":
+            eligible_players,
+
+        "champion":
+            champion,
+
+        "is_tie":
+            is_tie,
+
+        "prize_awarded":
+            prize_awarded
+
+    }
 
 
 
@@ -1737,15 +2133,11 @@ def hall_of_fame():
 
     hall = load_hall_of_fame()
 
-    top_three = hall[:3]
-
     return render_template(
 
         "hall_of_fame.html",
 
         hall_of_fame=hall,
-
-        top_three=top_three,
 
         active_page="hall_of_fame"
 
