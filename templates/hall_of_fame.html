@@ -4,249 +4,988 @@
 
 {% block content %}
 
-<section class="page-header">
+<style>
 
-    <div class="container">
+/* =========================================================
+   HALL OF FAME
+========================================================= */
 
-        <h1>🏆 Hall of Fame</h1>
+.hof-page {
+    padding: 55px 20px 90px;
+    background:
+        radial-gradient(circle at top, rgba(235, 196, 65, 0.12), transparent 35%),
+        #f8f8f8;
+    min-height: 80vh;
+}
 
-        <p>
-            Honouring participants who have consistently excelled across
-            different competitions over the years.
-        </p>
+.hof-container {
+    max-width: 1200px;
+    margin: auto;
+}
 
-    </div>
 
-</section>
+/* =========================================================
+   HEADER
+========================================================= */
 
-<section class="hall-search-section">
+.hof-header {
+    text-align: center;
+    margin-bottom: 45px;
+}
 
-    <div class="container">
+.hof-trophy {
+    font-size: 70px;
+    margin-bottom: 8px;
+}
 
-        <div class="hall-search-box">
+.hof-header h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: clamp(42px, 6vw, 72px);
+    color: #b88900;
+    letter-spacing: 2px;
+}
+
+.hof-header p {
+    margin: 12px auto 0;
+    max-width: 700px;
+    font-size: 17px;
+    color: #666;
+}
+
+
+/* =========================================================
+   YEAR BADGE
+========================================================= */
+
+.hof-year {
+    display: inline-flex;
+    margin-top: 20px;
+    padding: 9px 25px;
+    border-radius: 30px;
+    background: linear-gradient(135deg, #d9ae27, #f5d86b);
+    color: #171717;
+    font-weight: 800;
+    box-shadow: 0 8px 20px rgba(201, 160, 35, 0.20);
+}
+
+
+/* =========================================================
+   CHAMPION
+========================================================= */
+
+.hof-champion {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        135deg,
+        #fff9df,
+        #ffffff 55%,
+        #fff4c2
+    );
+
+    border: 2px solid #e2bc3c;
+    border-radius: 30px;
+
+    padding: 45px 30px;
+
+    text-align: center;
+
+    box-shadow:
+        0 20px 50px rgba(0,0,0,0.10);
+
+    margin-bottom: 45px;
+}
+
+.hof-champion::before {
+    content: "🏆";
+    position: absolute;
+    font-size: 180px;
+    opacity: 0.05;
+    right: -20px;
+    top: -45px;
+}
+
+.hof-champion-label {
+    display: inline-block;
+
+    padding: 8px 20px;
+
+    border-radius: 30px;
+
+    background: #171717;
+    color: #f5d86b;
+
+    font-size: 13px;
+    font-weight: 900;
+
+    letter-spacing: 1.5px;
+
+    margin-bottom: 18px;
+}
+
+.hof-champion h2 {
+    margin: 0;
+
+    font-family: Georgia, serif;
+
+    font-size: clamp(34px, 5vw, 58px);
+
+    color: #171717;
+}
+
+.hof-wins {
+    margin-top: 10px;
+
+    font-size: 25px;
+
+    font-weight: 900;
+
+    color: #b88900;
+}
+
+.hof-prize {
+    margin-top: 22px;
+
+    display: inline-flex;
+
+    align-items: center;
+    gap: 10px;
+
+    padding: 13px 25px;
+
+    border-radius: 30px;
+
+    background: linear-gradient(
+        135deg,
+        #d7a91f,
+        #f5d86b
+    );
+
+    font-weight: 900;
+
+    box-shadow:
+        0 8px 20px rgba(201,160,35,0.25);
+}
+
+
+/* =========================================================
+   TIE
+========================================================= */
+
+.hof-tie {
+    background: linear-gradient(
+        135deg,
+        #fff1d6,
+        #ffffff
+    );
+
+    border: 2px solid #e4a12a;
+
+    border-radius: 25px;
+
+    padding: 30px;
+
+    text-align: center;
+
+    margin-bottom: 45px;
+}
+
+.hof-tie h2 {
+    margin: 0 0 10px;
+
+    color: #b35d00;
+
+    font-family: Georgia, serif;
+}
+
+.hof-tie p {
+    margin: 7px 0;
+
+    color: #555;
+}
+
+.hof-no-prize {
+    display: inline-block;
+
+    margin-top: 12px;
+
+    padding: 10px 20px;
+
+    border-radius: 25px;
+
+    background: #222;
+
+    color: white;
+
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   SECTION TITLE
+========================================================= */
+
+.hof-section-title {
+    text-align: center;
+
+    margin-bottom: 25px;
+}
+
+.hof-section-title h2 {
+    margin: 0;
+
+    font-family: Georgia, serif;
+
+    font-size: 34px;
+
+    color: #222;
+}
+
+.hof-section-title p {
+    color: #777;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.hof-search {
+    margin-bottom: 30px;
+}
+
+.hof-search input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 17px 22px;
+
+    border-radius: 16px;
+
+    border: 1px solid #ead48b;
+
+    background: white;
+
+    font-size: 16px;
+
+    outline: none;
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,0.05);
+}
+
+.hof-search input:focus {
+    border-color: #d6ad2e;
+}
+
+
+/* =========================================================
+   LEADERBOARD
+========================================================= */
+
+.hof-leaderboard {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.hof-player {
+    display: grid;
+
+    grid-template-columns:
+        80px
+        1fr
+        150px
+        160px;
+
+    align-items: center;
+
+    gap: 20px;
+
+    padding: 20px 25px;
+
+    background: white;
+
+    border-radius: 20px;
+
+    border: 1px solid #eee;
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,0.05);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.hof-player:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 15px 35px rgba(0,0,0,0.09);
+}
+
+
+/* rank */
+
+.hof-rank {
+    width: 55px;
+    height: 55px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #f5f1e2;
+
+    font-size: 20px;
+
+    font-weight: 900;
+}
+
+.hof-player:nth-child(1) .hof-rank {
+    background: linear-gradient(135deg, #f4c542, #ffe88a);
+}
+
+.hof-player:nth-child(2) .hof-rank {
+    background: linear-gradient(135deg, #d5d5d5, #f4f4f4);
+}
+
+.hof-player:nth-child(3) .hof-rank {
+    background: linear-gradient(135deg, #cd8b52, #f0c29b);
+}
+
+
+/* name */
+
+.hof-player-name h3 {
+    margin: 0;
+
+    font-size: 22px;
+
+    color: #222;
+}
+
+.hof-player-name span {
+    display: block;
+
+    margin-top: 5px;
+
+    font-size: 13px;
+
+    color: #777;
+}
+
+
+/* wins */
+
+.hof-player-wins {
+    text-align: center;
+}
+
+.hof-player-wins strong {
+    display: block;
+
+    font-size: 30px;
+
+    color: #bd900f;
+}
+
+.hof-player-wins span {
+    font-size: 12px;
+
+    color: #777;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+}
+
+
+/* gap */
+
+.hof-gap {
+    text-align: center;
+
+    font-weight: 800;
+
+    color: #666;
+}
+
+.hof-gap.champion {
+    color: #b88900;
+}
+
+.hof-gap.ineligible {
+    color: #999;
+}
+
+
+/* =========================================================
+   GAME HISTORY
+========================================================= */
+
+.hof-games {
+    margin-top: 30px;
+
+    padding-top: 25px;
+
+    border-top: 1px solid #eee;
+
+    display: none;
+}
+
+.hof-player.expanded .hof-games {
+    display: block;
+}
+
+.hof-games-title {
+    font-weight: 900;
+
+    margin-bottom: 12px;
+}
+
+.hof-game-item {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 10px 0;
+
+    border-bottom: 1px solid #f0f0f0;
+
+    font-size: 14px;
+}
+
+.hof-game-item:last-child {
+    border-bottom: none;
+}
+
+.hof-game-position {
+    font-weight: 800;
+
+    color: #b88900;
+}
+
+
+/* =========================================================
+   ELIGIBILITY
+========================================================= */
+
+.hof-status {
+    display: inline-block;
+
+    margin-top: 7px;
+
+    padding: 4px 10px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+.hof-status.eligible {
+    background: #e4f6e8;
+
+    color: #21863b;
+}
+
+.hof-status.ineligible {
+    background: #f1f1f1;
+
+    color: #777;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.hof-empty {
+    text-align: center;
+
+    padding: 60px 20px;
+
+    background: white;
+
+    border-radius: 25px;
+
+    color: #777;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 850px) {
+
+    .hof-player {
+
+        grid-template-columns:
+            60px
+            1fr
+            100px;
+
+    }
+
+    .hof-gap {
+        grid-column: 2 / -1;
+
+        text-align: left;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .hof-page {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .hof-player {
+
+        grid-template-columns:
+            55px
+            1fr;
+
+        gap: 14px;
+
+        padding: 18px;
+    }
+
+    .hof-player-wins {
+        text-align: left;
+
+        grid-column: 2;
+    }
+
+    .hof-gap {
+        grid-column: 2;
+    }
+
+    .hof-trophy {
+        font-size: 55px;
+    }
+
+}
+
+</style>
+
+
+<section class="hof-page">
+
+    <div class="hof-container">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================= -->
+
+        <div class="hof-header">
+
+            <div class="hof-trophy">
+                🏆
+            </div>
+
+            <h1>Hall of Fame</h1>
+
+            <p>
+                The ultimate competition leaderboard.
+                Every victory counts.
+            </p>
+
+            {% if hall_of_fame.year %}
+
+                <div class="hof-year">
+                    {{ hall_of_fame.year }}
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- =================================================
+             CHAMPION / TIE
+        ================================================= -->
+
+        {% if hall_of_fame.is_tie %}
+
+            <div class="hof-tie">
+
+                <h2>
+                    ⚔️ Championship Tie
+                </h2>
+
+                <p>
+                    Multiple participants have the highest
+                    number of victories.
+                </p>
+
+                <p>
+                    The championship is tied, therefore
+                    <strong>no prize is awarded.</strong>
+                </p>
+
+                <div class="hof-no-prize">
+                    🎁 Prize Not Awarded
+                </div>
+
+            </div>
+
+        {% elif hall_of_fame.champion %}
+
+            <div class="hof-champion">
+
+                <div class="hof-champion-label">
+                    👑 HALL OF FAME CHAMPION
+                </div>
+
+                <h2>
+                    {{ hall_of_fame.champion.name }}
+                </h2>
+
+                <div class="hof-wins">
+                    {{ hall_of_fame.champion.total_wins }}
+                    Wins
+                </div>
+
+                <div class="hof-prize">
+                    🎁 Prize Winner
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="hof-tie">
+
+                <h2>
+                    🏆 Hall of Fame
+                </h2>
+
+                <p>
+                    At least 2 victories are required
+                    to become prize eligible.
+                </p>
+
+                <div class="hof-no-prize">
+                    No Champion Yet
+                </div>
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             SEARCH
+        ================================================= -->
+
+        <div class="hof-search">
 
             <input
                 type="text"
-                id="hallSearch"
-                placeholder="Search participant..."
+                id="hofSearch"
+                placeholder="🔍 Search participant..."
             >
 
         </div>
 
-    </div>
 
-</section>
+        <!-- =================================================
+             LEADERBOARD TITLE
+        ================================================= -->
 
-<section class="top-champions">
+        <div class="hof-section-title">
 
-    <div class="container">
-
-        <h2>🏆 Top Champions</h2>
-
-        <div class="champion-grid">
-
-            {% for person in top_three %}
-
-            <div class="champion-card rank-{{ loop.index }}">
-
-                <div class="champion-rank">
-
-                    {% if loop.index == 1 %}
-                        🥇
-                    {% elif loop.index == 2 %}
-                        🥈
-                    {% else %}
-                        🥉
-                    {% endif %}
-
-                </div>
-
-                <h3>{{ person.name }}</h3>
-
-                <p>{{ person.total }} Awards</p>
-
-                <div class="champion-medals">
-
-                    🥇 {{ person.gold }}
-
-                    🥈 {{ person.silver }}
-
-                    🥉 {{ person.bronze }}
-
-                </div>
-
-            </div>
-
-            {% endfor %}
-
-        </div>
-
-    </div>
-
-</section>
-
-<section class="hall-of-fame">
-
-    <div class="container">
-
-        <div class="hall-grid">
-
-            {% for person in hall_of_fame %}
-
-            <div
-                class="hall-card"
-                data-search="{{ person.name|lower }}"
-            >
-
-                <div class="hall-card-header">
-
-                    <div class="hall-avatar">
-
-                        🏆
-
-                    </div>
-
-                    <div class="hall-info">
-
-                        <h3>{{ person.name }}</h3>
-
-                        <span>{{ person.total }} Total Award{{ 's' if person.total != 1 else '' }}</span>
-
-                    </div>
-
-                </div>
-
-                <div class="hall-medals">
-
-                    <div class="medal gold">
-
-                        <span>🥇</span>
-
-                        <strong>{{ person.gold }}</strong>
-
-                        <small>Gold</small>
-
-                    </div>
-
-                    <div class="medal silver">
-
-                        <span>🥈</span>
-
-                        <strong>{{ person.silver }}</strong>
-
-                        <small>Silver</small>
-
-                    </div>
-
-                    <div class="medal bronze">
-
-                        <span>🥉</span>
-
-                        <strong>{{ person.bronze }}</strong>
-
-                        <small>Bronze</small>
-
-                    </div>
-
-                </div>
-
-                <div class="hall-history">
-
-                    <h4>Award History</h4>
-
-                    <ul>
-
-                        {% for award in person.awards %}
-
-                        <li>
-
-                            {% if award.position == 1 %}
-                                🥇
-                            {% elif award.position == 2 %}
-                                🥈
-                            {% elif award.position == 3 %}
-                                🥉
-                            {% endif %}
-
-                            {{ award.game }}
-
-                            <span>({{ award.year }})</span>
-
-                        </li>
-
-                        {% endfor %}
-
-                    </ul>
-
-                </div>
-
-            </div>
-
-            {% endfor %}
-
-        </div>
-
-        <div class="hall-no-results" id="hallNoResults">
-
-            <i>🏆</i>
-
-            <h3>No Participant Found</h3>
+            <h2>
+                🏁 Competition Leaderboard
+            </h2>
 
             <p>
-                Try searching with another participant name.
+                Current year victories
             </p>
 
         </div>
 
+
+        <!-- =================================================
+             LEADERBOARD
+        ================================================= -->
+
+        {% if hall_of_fame.players %}
+
+            <div
+                class="hof-leaderboard"
+                id="hofLeaderboard"
+            >
+
+                {% for person in hall_of_fame.players %}
+
+                    <div
+                        class="hof-player"
+                        data-name="{{ person.name|lower }}"
+                    >
+
+                        <!-- RANK -->
+
+                        <div class="hof-rank">
+
+                            {% if loop.index == 1 %}
+                                🥇
+                            {% elif loop.index == 2 %}
+                                🥈
+                            {% elif loop.index == 3 %}
+                                🥉
+                            {% else %}
+                                #{{ loop.index }}
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- PLAYER -->
+
+                        <div class="hof-player-name">
+
+                            <h3>
+                                {{ person.name }}
+                            </h3>
+
+                            {% if person.eligible_for_prize %}
+
+                                <span class="hof-status eligible">
+                                    ✓ Prize Eligible
+                                </span>
+
+                            {% else %}
+
+                                <span class="hof-status ineligible">
+                                    Needs {{ 2 - person.total_wins }}
+                                    more win{{ 's' if (2 - person.total_wins) != 1 else '' }}
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- WINS -->
+
+                        <div class="hof-player-wins">
+
+                            <strong>
+                                {{ person.total_wins }}
+                            </strong>
+
+                            <span>
+                                Win{{ 's' if person.total_wins != 1 else '' }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- GAP -->
+
+                        <div
+                            class="
+                                hof-gap
+                                {% if person.wins_behind == 0 %}
+                                    champion
+                                {% elif not person.eligible_for_prize %}
+                                    ineligible
+                                {% endif %}
+                            "
+                        >
+
+                            {% if person.wins_behind == 0 %}
+
+                                🏆 Leading
+
+                            {% elif person.eligible_for_prize %}
+
+                                {{ person.wins_behind }}
+                                win{{ 's' if person.wins_behind != 1 else '' }}
+                                behind
+
+                            {% else %}
+
+                                {{ 2 - person.total_wins }}
+                                more needed
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- GAME HISTORY -->
+
+                        <div class="hof-games">
+
+                            <div class="hof-games-title">
+                                🎮 Won Games
+                            </div>
+
+                            {% for game in person.games %}
+
+                                <div class="hof-game-item">
+
+                                    <span>
+                                        {{ game.game }}
+
+                                        {% if game.age_group %}
+                                            — {{ game.age_group }}
+                                        {% endif %}
+                                    </span>
+
+                                    <span class="hof-game-position">
+
+                                        {% if game.position == 1 %}
+                                            🥇 1st
+                                        {% elif game.position == 2 %}
+                                            🥈 2nd
+                                        {% elif game.position == 3 %}
+                                            🥉 3rd
+                                        {% else %}
+                                            Winner
+                                        {% endif %}
+
+                                    </span>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="hof-empty">
+
+                <div style="font-size:55px;">
+                    🏆
+                </div>
+
+                <h2>
+                    No Hall of Fame Data Yet
+                </h2>
+
+                <p>
+                    Winners will appear here automatically
+                    as competitions are completed.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
     </div>
 
 </section>
-
-{% endblock %}
 
 
 {% block scripts %}
 
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    const search = document.getElementById("hallSearch");
+        const search =
+            document.getElementById("hofSearch");
 
-    const cards = document.querySelectorAll(".hall-card");
+        const players =
+            document.querySelectorAll(".hof-player");
 
-    const empty = document.getElementById("hallNoResults");
 
-    search.addEventListener("input", function () {
+        /* ==============================================
+           SEARCH
+        ============================================== */
 
-        const value = this.value.toLowerCase().trim();
+        if (search) {
 
-        let visible = 0;
+            search.addEventListener(
+                "input",
+                function () {
 
-        cards.forEach(card => {
+                    const value =
+                        this.value
+                            .toLowerCase()
+                            .trim();
 
-            const text = card.dataset.search;
+                    players.forEach(
+                        function (player) {
 
-            if (text.includes(value)) {
+                            const name =
+                                player.dataset.name;
 
-                card.style.display = "";
+                            if (
+                                name.includes(value)
+                            ) {
 
-                visible++;
+                                player.style.display =
+                                    "grid";
 
-            } else {
+                            } else {
 
-                card.style.display = "none";
+                                player.style.display =
+                                    "none";
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* ==============================================
+           CLICK PLAYER → SHOW GAMES
+        ============================================== */
+
+        players.forEach(
+            function (player) {
+
+                player.addEventListener(
+                    "click",
+                    function () {
+
+                        player.classList.toggle(
+                            "expanded"
+                        );
+
+                    }
+                );
 
             }
+        );
 
-        });
-
-        empty.style.display =
-            visible === 0 ? "block" : "none";
-
-    });
-
-});
+    }
+);
 
 </script>
 
