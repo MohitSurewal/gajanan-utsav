@@ -12,9 +12,15 @@
 
 .hof-page {
     padding: 55px 20px 90px;
+
     background:
-        radial-gradient(circle at top, rgba(235, 196, 65, 0.12), transparent 35%),
+        radial-gradient(
+            circle at top,
+            rgba(235, 196, 65, 0.12),
+            transparent 35%
+        ),
         #f8f8f8;
+
     min-height: 80vh;
 }
 
@@ -40,16 +46,23 @@
 
 .hof-header h1 {
     margin: 0;
+
     font-family: Georgia, serif;
+
     font-size: clamp(42px, 6vw, 72px);
+
     color: #b88900;
+
     letter-spacing: 2px;
 }
 
 .hof-header p {
     margin: 12px auto 0;
+
     max-width: 700px;
+
     font-size: 17px;
+
     color: #666;
 }
 
@@ -60,13 +73,26 @@
 
 .hof-year {
     display: inline-flex;
+
     margin-top: 20px;
+
     padding: 9px 25px;
+
     border-radius: 30px;
-    background: linear-gradient(135deg, #d9ae27, #f5d86b);
+
+    background:
+        linear-gradient(
+            135deg,
+            #d9ae27,
+            #f5d86b
+        );
+
     color: #171717;
+
     font-weight: 800;
-    box-shadow: 0 8px 20px rgba(201, 160, 35, 0.20);
+
+    box-shadow:
+        0 8px 20px rgba(201, 160, 35, 0.20);
 }
 
 
@@ -76,15 +102,19 @@
 
 .hof-champion {
     position: relative;
+
     overflow: hidden;
-    background: linear-gradient(
-        135deg,
-        #fff9df,
-        #ffffff 55%,
-        #fff4c2
-    );
+
+    background:
+        linear-gradient(
+            135deg,
+            #fff9df,
+            #ffffff 55%,
+            #fff4c2
+        );
 
     border: 2px solid #e2bc3c;
+
     border-radius: 30px;
 
     padding: 45px 30px;
@@ -99,14 +129,75 @@
 
 .hof-champion::before {
     content: "🏆";
+
     position: absolute;
+
     font-size: 180px;
+
     opacity: 0.05;
+
     right: -20px;
+
     top: -45px;
+
+    pointer-events: none;
 }
 
+
+/* =========================================================
+   CHAMPION PHOTO
+========================================================= */
+
+.hof-champion-photo {
+    position: relative;
+
+    z-index: 2;
+
+    width: 150px;
+    height: 150px;
+
+    object-fit: cover;
+
+    display: block;
+
+    margin: 0 auto 22px;
+
+    border-radius: 50%;
+
+    border: 6px solid #d9ae27;
+
+    background: #fff;
+
+    box-shadow:
+        0 12px 35px rgba(184, 137, 0, 0.25);
+}
+
+.hof-champion-default {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            #f5d86b,
+            #d7a91f
+        );
+
+    font-size: 65px;
+}
+
+
+/* =========================================================
+   CHAMPION LABEL
+========================================================= */
+
 .hof-champion-label {
+    position: relative;
+
+    z-index: 2;
+
     display: inline-block;
 
     padding: 8px 20px;
@@ -114,9 +205,11 @@
     border-radius: 30px;
 
     background: #171717;
+
     color: #f5d86b;
 
     font-size: 13px;
+
     font-weight: 900;
 
     letter-spacing: 1.5px;
@@ -125,6 +218,10 @@
 }
 
 .hof-champion h2 {
+    position: relative;
+
+    z-index: 2;
+
     margin: 0;
 
     font-family: Georgia, serif;
@@ -135,6 +232,10 @@
 }
 
 .hof-wins {
+    position: relative;
+
+    z-index: 2;
+
     margin-top: 10px;
 
     font-size: 25px;
@@ -145,22 +246,28 @@
 }
 
 .hof-prize {
+    position: relative;
+
+    z-index: 2;
+
     margin-top: 22px;
 
     display: inline-flex;
 
     align-items: center;
+
     gap: 10px;
 
     padding: 13px 25px;
 
     border-radius: 30px;
 
-    background: linear-gradient(
-        135deg,
-        #d7a91f,
-        #f5d86b
-    );
+    background:
+        linear-gradient(
+            135deg,
+            #d7a91f,
+            #f5d86b
+        );
 
     font-weight: 900;
 
@@ -174,11 +281,12 @@
 ========================================================= */
 
 .hof-tie {
-    background: linear-gradient(
-        135deg,
-        #fff1d6,
-        #ffffff
-    );
+    background:
+        linear-gradient(
+            135deg,
+            #fff1d6,
+            #ffffff
+        );
 
     border: 2px solid #e4a12a;
 
@@ -287,7 +395,9 @@
 
 .hof-leaderboard {
     display: flex;
+
     flex-direction: column;
+
     gap: 14px;
 }
 
@@ -328,7 +438,9 @@
 }
 
 
-/* rank */
+/* =========================================================
+   RANK
+========================================================= */
 
 .hof-rank {
     width: 55px;
@@ -349,19 +461,94 @@
 }
 
 .hof-player:nth-child(1) .hof-rank {
-    background: linear-gradient(135deg, #f4c542, #ffe88a);
+    background:
+        linear-gradient(
+            135deg,
+            #f4c542,
+            #ffe88a
+        );
 }
 
 .hof-player:nth-child(2) .hof-rank {
-    background: linear-gradient(135deg, #d5d5d5, #f4f4f4);
+    background:
+        linear-gradient(
+            135deg,
+            #d5d5d5,
+            #f4f4f4
+        );
 }
 
 .hof-player:nth-child(3) .hof-rank {
-    background: linear-gradient(135deg, #cd8b52, #f0c29b);
+    background:
+        linear-gradient(
+            135deg,
+            #cd8b52,
+            #f0c29b
+        );
 }
 
 
-/* name */
+/* =========================================================
+   PLAYER PROFILE
+========================================================= */
+
+.hof-player-profile {
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    min-width: 0;
+}
+
+
+/* =========================================================
+   PLAYER PHOTO
+========================================================= */
+
+.hof-player-photo {
+    width: 68px;
+    height: 68px;
+
+    min-width: 68px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    border: 3px solid #d9ae27;
+
+    background: white;
+
+    box-shadow:
+        0 6px 18px rgba(0,0,0,0.12);
+}
+
+.hof-player-default {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            #f5f1e2,
+            #ffffff
+        );
+
+    font-size: 30px;
+}
+
+
+/* =========================================================
+   PLAYER NAME
+========================================================= */
+
+.hof-player-name {
+    min-width: 0;
+}
 
 .hof-player-name h3 {
     margin: 0;
@@ -369,6 +556,8 @@
     font-size: 22px;
 
     color: #222;
+
+    word-break: break-word;
 }
 
 .hof-player-name span {
@@ -382,7 +571,9 @@
 }
 
 
-/* wins */
+/* =========================================================
+   WINS
+========================================================= */
 
 .hof-player-wins {
     text-align: center;
@@ -407,7 +598,9 @@
 }
 
 
-/* gap */
+/* =========================================================
+   GAP
+========================================================= */
 
 .hof-gap {
     text-align: center;
@@ -423,25 +616,6 @@
 
 .hof-gap.ineligible {
     color: #999;
-}
-
-
-/* =========================================================
-   GAME HISTORY
-========================================================= */
-
-.hof-games {
-    margin-top: 30px;
-
-    padding-top: 25px;
-
-    border-top: 1px solid #eee;
-
-    display: none;
-}
-
-.hof-player.expanded .hof-games {
-    display: block;
 }
 
 
@@ -494,7 +668,7 @@
 
 
 /* =========================================================
-   RESPONSIVE
+   RESPONSIVE - TABLET
 ========================================================= */
 
 @media (max-width: 850px) {
@@ -517,11 +691,35 @@
 }
 
 
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
+
 @media (max-width: 600px) {
 
     .hof-page {
         padding-left: 14px;
         padding-right: 14px;
+    }
+
+    .hof-header {
+        margin-bottom: 30px;
+    }
+
+    .hof-trophy {
+        font-size: 55px;
+    }
+
+    .hof-champion {
+        padding: 35px 20px;
+        border-radius: 24px;
+    }
+
+    .hof-champion-photo {
+        width: 120px;
+        height: 120px;
+
+        border-width: 5px;
     }
 
     .hof-player {
@@ -535,18 +733,39 @@
         padding: 18px;
     }
 
+    .hof-player-profile {
+        gap: 12px;
+    }
+
+    .hof-player-photo {
+        width: 58px;
+        height: 58px;
+
+        min-width: 58px;
+    }
+
+    .hof-player-name h3 {
+        font-size: 19px;
+    }
+
     .hof-player-wins {
+
         text-align: left;
 
         grid-column: 2;
+
     }
 
     .hof-gap {
+
         grid-column: 2;
+
+        text-align: left;
+
     }
 
-    .hof-trophy {
-        font-size: 55px;
+    .hof-section-title h2 {
+        font-size: 28px;
     }
 
 }
@@ -569,7 +788,9 @@
                 🏆
             </div>
 
-            <h1>Hall of Fame</h1>
+            <h1>
+                Hall of Fame
+            </h1>
 
             <p>
                 The ultimate competition leaderboard.
@@ -588,6 +809,10 @@
         ================================================= -->
 
         {% if tie_for_first %}
+
+            <!-- ============================
+                 TIE
+            ============================ -->
 
             <div class="hof-tie">
 
@@ -614,15 +839,46 @@
 
         {% elif champion %}
 
+            <!-- ============================
+                 CHAMPION
+            ============================ -->
+
             <div class="hof-champion">
 
                 <div class="hof-champion-label">
                     👑 HALL OF FAME CHAMPION
                 </div>
 
+
+                <!-- CHAMPION PHOTO -->
+
+                {% if champion.photo %}
+
+                    <img
+                        src="{{ champion.photo }}"
+                        alt="{{ champion.name }}"
+                        class="hof-champion-photo"
+                        loading="lazy"
+                    >
+
+                {% else %}
+
+                    <div
+                        class="
+                            hof-champion-photo
+                            hof-champion-default
+                        "
+                    >
+                        🏆
+                    </div>
+
+                {% endif %}
+
+
                 <h2>
                     {{ champion.name }}
                 </h2>
+
 
                 <div class="hof-wins">
 
@@ -655,6 +911,10 @@
 
 
         {% else %}
+
+            <!-- ============================
+                 NO CHAMPION
+            ============================ -->
 
             <div class="hof-tie">
 
@@ -728,7 +988,9 @@
                     >
 
 
-                        <!-- RANK -->
+                        <!-- ============================
+                             RANK
+                        ============================ -->
 
                         <div class="hof-rank">
 
@@ -753,40 +1015,91 @@
                         </div>
 
 
-                        <!-- PLAYER -->
+                        <!-- ============================
+                             PLAYER + PHOTO
+                        ============================ -->
 
                         <div class="hof-player-name">
 
-                            <h3>
-                                {{ person.name }}
-                            </h3>
+                            <div class="hof-player-profile">
 
 
-                            {% if person.eligible %}
+                                <!-- PLAYER PHOTO -->
 
-                                <span class="hof-status eligible">
-                                    ✓ Prize Eligible
-                                </span>
+                                {% if person.photo %}
 
-                            {% else %}
+                                    <img
+                                        src="{{ person.photo }}"
+                                        alt="{{ person.name }}"
+                                        class="hof-player-photo"
+                                        loading="lazy"
+                                    >
 
-                                {% set remaining =
-                                    2 - person.victories %}
+                                {% else %}
 
-                                <span class="hof-status ineligible">
+                                    <div
+                                        class="
+                                            hof-player-photo
+                                            hof-player-default
+                                        "
+                                    >
+                                        👤
+                                    </div>
 
-                                    Needs
-                                    {{ remaining }}
-                                    more win{% if remaining != 1 %}s{% endif %}
+                                {% endif %}
 
-                                </span>
 
-                            {% endif %}
+                                <!-- NAME + STATUS -->
+
+                                <div>
+
+                                    <h3>
+                                        {{ person.name }}
+                                    </h3>
+
+
+                                    {% if person.eligible %}
+
+                                        <span
+                                            class="
+                                                hof-status
+                                                eligible
+                                            "
+                                        >
+                                            ✓ Prize Eligible
+                                        </span>
+
+                                    {% else %}
+
+                                        {% set remaining =
+                                            2 - person.victories
+                                        %}
+
+                                        <span
+                                            class="
+                                                hof-status
+                                                ineligible
+                                            "
+                                        >
+
+                                            Needs
+                                            {{ remaining }}
+                                            more win{% if remaining != 1 %}s{% endif %}
+
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
 
                         </div>
 
 
-                        <!-- WINS -->
+                        <!-- ============================
+                             WINS
+                        ============================ -->
 
                         <div class="hof-player-wins">
 
@@ -797,9 +1110,13 @@
                             <span>
 
                                 {% if person.victories == 1 %}
+
                                     Victory
+
                                 {% else %}
+
                                     Victories
+
                                 {% endif %}
 
                             </span>
@@ -807,7 +1124,9 @@
                         </div>
 
 
-                        <!-- GAP -->
+                        <!-- ============================
+                             GAP
+                        ============================ -->
 
                         <div
                             class="
@@ -827,10 +1146,12 @@
                             {% else %}
 
                                 {% set leader_wins =
-                                    hall_of_fame[0].victories %}
+                                    hall_of_fame[0].victories
+                                %}
 
                                 {% set gap =
-                                    leader_wins - person.victories %}
+                                    leader_wins - person.victories
+                                %}
 
                                 {% if gap > 0 %}
 
@@ -848,6 +1169,7 @@
 
                         </div>
 
+
                     </div>
 
                 {% endfor %}
@@ -855,7 +1177,9 @@
             </div>
 
 
-            <!-- NO SEARCH RESULT -->
+            <!-- =================================================
+                 NO SEARCH RESULT
+            ================================================= -->
 
             <div
                 class="hof-empty"
@@ -880,6 +1204,10 @@
 
         {% else %}
 
+            <!-- =================================================
+                 NO DATA
+            ================================================= -->
+
             <div class="hof-empty">
 
                 <div style="font-size:55px;">
@@ -903,6 +1231,7 @@
     </div>
 
 </section>
+
 
 {% endblock %}
 
@@ -949,9 +1278,7 @@ document.addEventListener(
                             card.dataset.name || "";
 
 
-                        if (
-                            name.includes(value)
-                        ) {
+                        if (name.includes(value)) {
 
                             card.style.display = "";
 
