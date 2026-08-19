@@ -31,7 +31,7 @@ import tempfile
 from google.auth.transport.requests import Request
 import secrets
 import string
-
+from datetime import datetime
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024
@@ -655,334 +655,212 @@ def load_winners():
 # HALL OF FAME CALCULATOR
 # ============================================================
 
+# ============================================================
+# HALL OF FAME / CURRENT YEAR LEADERBOARD
+# ============================================================
+
 def load_hall_of_fame():
 
     winners_data = load_winners()
 
-    # =========================================================
-    # FIND CURRENT / LATEST YEAR
-    # =========================================================
+    # --------------------------------------------------------
+    # CURRENT YEAR
+    # --------------------------------------------------------
 
-    if not winners_data:
-        return {
-            "year": None,
-            "players": [],
-            "champion": None,
-            "is_tie": False,
-            "tie_players": [],
-            "highest_wins": 0
-        }
+    current_year = str(datetime.now().year)
 
-    valid_years = []
-
-    for year in winners_data.keys():
-        try:
-            valid_years.append(int(year))
-        except (ValueError, TypeError):
-            continue
-
-    if not valid_years:
-        return {
-            "year": None,
-            "players": [],
-            "champion": None,
-            "is_tie": False,
-            "tie_players": [],
-            "highest_wins": 0
-        }
-
-    current_year = max(valid_years)
-
-    games = winners_data.get(str(current_year), [])
-
-    if not games:
-        games = winners_data.get(current_year, [])
-
-    # =========================================================
-    # PLAYER DATA
-    # =========================================================
-
-    players = {}
-
-    def get_player(name):
-
-        name = (name or "").strip()
-
-        if not name:
-            return None
-
-        key = " ".join(name.lower().split())
-
-        if key not in players:
-
-            players[key] = {
-                "name": name,
-                "wins": 0,
-                "gold": 0,
-                "silver": 0,
-                "bronze": 0,
-                "total": 0,
-                "awards": []
-            }
-
-        return players[key]
-
-    # =========================================================
-    # PROCESS CURRENT YEAR GAMES ONLY
-    # =========================================================
-
-    for game in games:
-
-        game_type = game.get("type", "ranking")
-
-        game_name = game.get(
-            "game",
-            "Competition"
-        )
-
-        # =====================================================
-        # RANKING GAME
-        # =====================================================
-
-        if game_type == "ranking":
-
-            for person in game.get("winners", []):
-
-                name = person.get(
-                    "name",
-                    ""
-                ).strip()
-
-                if not name:
-                    continue
-
-                player = get_player(name)
-
-                position = person.get(
-                    "position",
-                    1
-                )
-
-                try:
-                    position = int(position)
-                except (ValueError, TypeError):
-                    position = 1
-
-                # ONE GAME WIN = ONE WIN
-                player["wins"] += 1
-                player["total"] += 1
-
-                # Medal information
-                if position == 1:
-                    player["gold"] += 1
-
-                elif position == 2:
-                    player["silver"] += 1
-
-                elif position == 3:
-                    player["bronze"] += 1
-
-                player["awards"].append({
-                    "year": current_year,
-                    "game": game_name,
-                    "position": position
-                })
-
-        # =====================================================
-        # AGE GROUP GAME
-        # =====================================================
-
-        elif game_type == "age_group":
-
-            for group in game.get(
-                "groups",
-                []
-            ):
-
-                winner = group.get(
-                    "winner",
-                    {}
-                )
-
-                name = winner.get(
-                    "name",
-                    ""
-                ).strip()
-
-                if not name:
-                    continue
-
-                player = get_player(name)
-
-                # ONE AGE GROUP WIN = ONE WIN
-                player["wins"] += 1
-                player["total"] += 1
-
-                # Winner of age group
-                player["gold"] += 1
-
-                age_group = group.get(
-                    "age_group",
-                    ""
-                ).strip()
-
-                display_game = game_name
-
-                if age_group:
-                    display_game = (
-                        f"{game_name} ({age_group})"
-                    )
-
-                player["awards"].append({
-                    "year": current_year,
-                    "game": display_game,
-                    "position": 1
-                })
-
-        # =====================================================
-        # TEAM GAME
-        # =====================================================
-
-        elif game_type == "team":
-
-            for team in game.get(
-                "teams",
-                []
-            ):
-
-                name = (
-                    team.get("name")
-                    or team.get("team")
-                    or ""
-                ).strip()
-
-                if not name:
-                    continue
-
-                player = get_player(name)
-
-                # ONE TEAM WIN = ONE WIN
-                player["wins"] += 1
-                player["total"] += 1
-                player["gold"] += 1
-
-                player["awards"].append({
-                    "year": current_year,
-                    "game": game_name,
-                    "position": 1
-                })
-
-    # =========================================================
-    # CONVERT TO LIST
-    # =========================================================
-
-    player_list = list(
-        players.values()
-    )
-
-    # =========================================================
-    # SORT
-    # MOST WINS FIRST
-    # =========================================================
-
-    player_list.sort(
-        key=lambda person: (
-            -person["wins"],
-            -person["gold"],
-            -person["silver"],
-            -person["bronze"],
-            person["name"].lower()
-        )
-    )
-
-    # =========================================================
-    # NO PLAYERS
-    # =========================================================
-
-    if not player_list:
-
+    # Current year ka data nahi hai
+    if current_year not in winners_data:
         return {
             "year": current_year,
             "players": [],
             "champion": None,
-            "is_tie": False,
-            "tie_players": [],
-            "highest_wins": 0
+            "prize_winner": None,
+            "tie_for_first": False,
+            "has_data": False
         }
 
-    # =========================================================
-    # HIGHEST NUMBER OF WINS
-    # =========================================================
+    current_games = winners_data[current_year]
 
-    highest_wins = player_list[0]["wins"]
+    # --------------------------------------------------------
+    # PLAYER VICTORY COUNT
+    # --------------------------------------------------------
 
-    # =========================================================
-    # FIND ALL PLAYERS WITH HIGHEST WINS
-    # =========================================================
+    players = {}
 
-    tie_players = [
-        person
-        for person in player_list
-        if person["wins"] == highest_wins
-    ]
+    for game in current_games:
 
-    is_tie = len(tie_players) > 1
+        game_name = str(
+            game.get("game", "Competition")
+        ).strip()
 
-    # =========================================================
-    # CHAMPION RULE
+        game_type = str(
+            game.get("type", "")
+        ).strip().lower()
+
+        # ====================================================
+        # RANKING COMPETITION
+        # ====================================================
+
+        if game_type == "ranking":
+
+            winners = game.get("winners", [])
+
+            for person in winners:
+
+                position = person.get("position")
+
+                # Sirf 1st position = victory
+                if position != 1:
+                    continue
+
+                name = str(
+                    person.get("name", "")
+                ).strip()
+
+                if not name:
+                    continue
+
+                if name not in players:
+
+                    players[name] = {
+                        "name": name,
+                        "victories": 0,
+                        "competitions": []
+                    }
+
+                # ------------------------------------------------
+                # IMPORTANT:
+                # Ek competition = maximum 1 victory
+                # ------------------------------------------------
+
+                if game_name not in players[name]["competitions"]:
+
+                    players[name]["victories"] += 1
+
+                    players[name]["competitions"].append(
+                        game_name
+                    )
+
+        # ====================================================
+        # AGE GROUP COMPETITION
+        # ====================================================
+
+        elif game_type == "age_group":
+
+            groups = game.get("groups", [])
+
+            # Same player agar multiple age groups me winner hai,
+            # to same competition me sirf 1 victory count hogi.
+
+            winners_in_this_competition = set()
+
+            for group in groups:
+
+                winner = group.get("winner", {})
+
+                name = str(
+                    winner.get("name", "")
+                ).strip()
+
+                if not name:
+                    continue
+
+                winners_in_this_competition.add(name)
+
+            for name in winners_in_this_competition:
+
+                if name not in players:
+
+                    players[name] = {
+                        "name": name,
+                        "victories": 0,
+                        "competitions": []
+                    }
+
+                if game_name not in players[name]["competitions"]:
+
+                    players[name]["victories"] += 1
+
+                    players[name]["competitions"].append(
+                        game_name
+                    )
+
+    # --------------------------------------------------------
+    # SORT LEADERBOARD
+    # --------------------------------------------------------
+
+    leaderboard = list(players.values())
+
+    leaderboard.sort(
+        key=lambda x: (
+            -x["victories"],
+            x["name"].lower()
+        )
+    )
+
+    # --------------------------------------------------------
+    # PRIZE ELIGIBILITY
     #
-    # Minimum 2 wins
-    # AND
-    # No tie
-    # =========================================================
+    # Minimum 2 victories required
+    # --------------------------------------------------------
+
+    for player in leaderboard:
+
+        player["eligible"] = (
+            player["victories"] >= 2
+        )
+
+    # --------------------------------------------------------
+    # FIND #1
+    # --------------------------------------------------------
 
     champion = None
+    prize_winner = None
+    tie_for_first = False
 
-    if (
-        highest_wins >= 2
-        and not is_tie
-    ):
+    if leaderboard:
 
-        champion = player_list[0]
+        highest_victories = leaderboard[0]["victories"]
 
-    # =========================================================
-    # RANK + GAP + PRIZE ELIGIBILITY
-    # =========================================================
+        # Highest score wale sab players
+        first_place_players = [
+            player
+            for player in leaderboard
+            if player["victories"] == highest_victories
+        ]
 
-    for index, person in enumerate(
-        player_list,
-        start=1
-    ):
+        # ----------------------------------------------------
+        # Tie for #1
+        # ----------------------------------------------------
 
-        person["rank"] = index
+        if len(first_place_players) > 1:
 
-        person["wins_behind"] = (
-            highest_wins
-            - person["wins"]
-        )
+            tie_for_first = True
 
-        person["eligible_for_prize"] = (
-            person["wins"] >= 2
-            and index == 1
-            and not is_tie
-        )
+        else:
 
-    # =========================================================
-    # FINAL RESULT
-    # =========================================================
+            champion = first_place_players[0]
+
+            # ------------------------------------------------
+            # Prize tabhi milega jab minimum 2 victories ho
+            # ------------------------------------------------
+
+            if champion["victories"] >= 2:
+
+                prize_winner = champion
+
+    # --------------------------------------------------------
+    # RETURN DATA
+    # --------------------------------------------------------
 
     return {
         "year": current_year,
-
-        "players": player_list,
-
+        "players": leaderboard,
         "champion": champion,
-
-        "is_tie": is_tie,
-
-        "tie_players": tie_players,
-
-        "highest_wins": highest_wins
+        "prize_winner": prize_winner,
+        "tie_for_first": tie_for_first,
+        "has_data": bool(leaderboard)
     }
 
 # WINNERS - MIGRATE JSON DATA TO FIRESTORE
@@ -1970,30 +1848,32 @@ def hall_of_fame():
 
     hall = load_hall_of_fame()
 
-    players = hall.get("players", [])
-
-    top_three = players[:3]
-
     return render_template(
         "hall_of_fame.html",
 
-        hall_of_fame=players,
+        # Complete leaderboard
+        hall_of_fame=hall["players"],
 
-        top_three=top_three,
+        # Top 3 players
+        top_three=hall["players"][:3],
 
-        current_year=hall.get("year"),
+        # Champion
+        champion=hall["champion"],
 
-        champion=hall.get("champion"),
+        # Prize winner
+        prize_winner=hall["prize_winner"],
 
-        is_tie=hall.get("is_tie", False),
+        # Tie status
+        tie_for_first=hall["tie_for_first"],
 
-        tie_players=hall.get("tie_players", []),
+        # Current year
+        current_year=hall["year"],
 
-        highest_wins=hall.get("highest_wins", 0),
+        # Data available or not
+        has_data=hall["has_data"],
 
         active_page="hall_of_fame"
     )
-    
 
     
 @app.route("/admin/login", methods=["GET", "POST"])
