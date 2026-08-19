@@ -595,3 +595,112 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
+
+/* =========================================================
+   HALL OF FAME PRIZE POPUP
+========================================================= */
+
+const prizeButton =
+    document.getElementById("openPrizePopup");
+
+const prizePopup =
+    document.getElementById("hofPrizePopup");
+
+const closePrizePopup =
+    document.getElementById("closePrizePopup");
+
+
+if (prizeButton && prizePopup) {
+
+    prizeButton.addEventListener(
+        "click",
+        function () {
+
+            prizePopup.classList.add("active");
+
+            prizePopup.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+            document.body.style.overflow =
+                "hidden";
+        }
+    );
+
+}
+
+
+if (closePrizePopup && prizePopup) {
+
+    closePrizePopup.addEventListener(
+        "click",
+        function () {
+
+            prizePopup.classList.remove("active");
+
+            prizePopup.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            document.body.style.overflow =
+                "";
+        }
+    );
+
+}
+
+
+if (prizePopup) {
+
+    prizePopup.addEventListener(
+        "click",
+        function (event) {
+
+            if (event.target === prizePopup) {
+
+                prizePopup.classList.remove(
+                    "active"
+                );
+
+                prizePopup.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+
+                document.body.style.overflow =
+                    "";
+            }
+
+        }
+    );
+
+}
+
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            event.key === "Escape" &&
+            prizePopup &&
+            prizePopup.classList.contains("active")
+        ) {
+
+            prizePopup.classList.remove(
+                "active"
+            );
+
+            prizePopup.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            document.body.style.overflow =
+                "";
+        }
+
+    }
+);
