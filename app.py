@@ -1970,12 +1970,29 @@ def hall_of_fame():
 
     hall = load_hall_of_fame()
 
+    players = hall.get("players", [])
+
+    top_three = players[:3]
+
     return render_template(
         "hall_of_fame.html",
-        hall_of_fame=hall,
+
+        hall_of_fame=players,
+
+        top_three=top_three,
+
+        current_year=hall.get("year"),
+
+        champion=hall.get("champion"),
+
+        is_tie=hall.get("is_tie", False),
+
+        tie_players=hall.get("tie_players", []),
+
+        highest_wins=hall.get("highest_wins", 0),
+
         active_page="hall_of_fame"
     )
-    
     
 
     
