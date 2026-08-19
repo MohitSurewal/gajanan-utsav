@@ -721,13 +721,34 @@ def load_hall_of_fame():
                 if not name:
                     continue
 
+                # ------------------------------------------------
+                # Winner photo
+                # ------------------------------------------------
+
+                photo = str(
+                    person.get("photo", "")
+                ).strip()
+
+                # ------------------------------------------------
+                # Create player
+                # ------------------------------------------------
+
                 if name not in players:
 
                     players[name] = {
                         "name": name,
                         "victories": 0,
-                        "competitions": []
+                        "competitions": [],
+                        "photo": photo
                     }
+
+                # ------------------------------------------------
+                # Agar pehle photo nahi thi aur ab mil gayi
+                # ------------------------------------------------
+
+                elif not players[name].get("photo") and photo:
+
+                    players[name]["photo"] = photo
 
                 # ------------------------------------------------
                 # IMPORTANT:
@@ -750,10 +771,10 @@ def load_hall_of_fame():
 
             groups = game.get("groups", [])
 
-            # Same player agar multiple age groups me winner hai,
-            # to same competition me sirf 1 victory count hogi.
+            # Same competition me same player agar multiple
+            # age groups me winner hai to sirf 1 victory count hogi.
 
-            winners_in_this_competition = set()
+            winners_in_this_competition = {}
 
             for group in groups:
 
@@ -766,17 +787,45 @@ def load_hall_of_fame():
                 if not name:
                     continue
 
-                winners_in_this_competition.add(name)
+                photo = str(
+                    winner.get("photo", "")
+                ).strip()
 
-            for name in winners_in_this_competition:
+                # Same player ko ek competition me ek hi baar rakho
+                if name not in winners_in_this_competition:
+
+                    winners_in_this_competition[name] = photo
+
+                elif not winners_in_this_competition[name] and photo:
+
+                    winners_in_this_competition[name] = photo
+
+            # ------------------------------------------------
+            # Add age-group winners
+            # ------------------------------------------------
+
+            for name, photo in winners_in_this_competition.items():
 
                 if name not in players:
 
                     players[name] = {
                         "name": name,
                         "victories": 0,
-                        "competitions": []
+                        "competitions": [],
+                        "photo": photo
                     }
+
+                # ------------------------------------------------
+                # Agar pehle photo nahi thi aur ab mil gayi
+                # ------------------------------------------------
+
+                elif not players[name].get("photo") and photo:
+
+                    players[name]["photo"] = photo
+
+                # ------------------------------------------------
+                # Count only once per competition
+                # ------------------------------------------------
 
                 if game_name not in players[name]["competitions"]:
 
@@ -812,6 +861,22 @@ def load_hall_of_fame():
         )
 
     # --------------------------------------------------------
+    # WINS BEHIND
+    # --------------------------------------------------------
+
+    highest_victories = (
+        leaderboard[0]["victories"]
+        if leaderboard
+        else 0
+    )
+
+    for player in leaderboard:
+
+        player["wins_behind"] = (
+            highest_victories - player["victories"]
+        )
+
+    # --------------------------------------------------------
     # FIND #1
     # --------------------------------------------------------
 
@@ -820,8 +885,6 @@ def load_hall_of_fame():
     tie_for_first = False
 
     if leaderboard:
-
-        highest_victories = leaderboard[0]["victories"]
 
         # Highest score wale sab players
         first_place_players = [
