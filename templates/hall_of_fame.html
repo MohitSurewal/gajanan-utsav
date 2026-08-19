@@ -1015,10 +1015,25 @@
 
                 <br><br>
 
-                The final Hall of Fame prize winner
-                will be confirmed after the
-                <strong>Dance Competition</strong>,
-                which is the final competition of the year.
+                {% if dance_completed %}
+
+                    <strong>
+                        🏆 Final Hall of Fame Result
+                    </strong>
+
+                    <br><br>
+
+                    The Dance Competition has been completed.
+                    The Hall of Fame result is now final.
+
+                {% else %}
+
+                    The final Hall of Fame prize winner
+                    will be confirmed after the
+                    <strong>Dance Competition</strong>,
+                    which is the final competition of the year.
+
+                {% endif %}
 
             </div>
 
