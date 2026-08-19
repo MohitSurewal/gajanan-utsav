@@ -895,11 +895,16 @@
 
                 {% if prize_winner %}
 
-                    <div class="hof-prize">
+                    <button
+                        type="button"
+                        class="hof-prize"
+                        id="openPrizePopup"
+                    >
                         🎁 Prize Winner
-                    </div>
+                    </button>
 
                 {% else %}
+
 
                     <div class="hof-no-prize">
                         ⏳ Not Prize Eligible Yet
@@ -934,6 +939,123 @@
             </div>
 
         {% endif %}
+
+        <!-- =========================================================
+     HALL OF FAME PRIZE POPUP
+========================================================= -->
+
+<div
+    class="hof-popup-overlay"
+    id="hofPrizePopup"
+    aria-hidden="true"
+>
+
+    <div class="hof-popup">
+
+        <button
+            type="button"
+            class="hof-popup-close"
+            id="closePrizePopup"
+            aria-label="Close"
+        >
+            ×
+        </button>
+
+
+        <div class="hof-popup-trophy">
+            🏆
+        </div>
+
+
+        <div class="hof-popup-title">
+            HALL OF FAME PRIZE
+        </div>
+
+
+        {% if prize_winner %}
+
+            {% if prize_winner.photo %}
+
+                <img
+                    src="{{ prize_winner.photo }}"
+                    alt="{{ prize_winner.name }}"
+                    class="hof-popup-photo"
+                >
+
+            {% else %}
+
+                <div class="hof-popup-photo hof-popup-default">
+                    🏆
+                </div>
+
+            {% endif %}
+
+
+            <h2>
+                {{ prize_winner.name }}
+            </h2>
+
+
+            <div class="hof-popup-wins">
+                {{ prize_winner.victories }}
+                Victories
+            </div>
+
+
+            <div class="hof-popup-message">
+
+                🎉 Congratulations!
+
+                <br><br>
+
+                <strong>
+                    {{ prize_winner.name }}
+                </strong>
+                is currently the Hall of Fame leader.
+
+                <br><br>
+
+                The final Hall of Fame prize winner
+                will be confirmed after the
+                <strong>Dance Competition</strong>,
+                which is the final competition of the year.
+
+            </div>
+
+
+        {% else %}
+
+            <div class="hof-popup-default">
+                🏆
+            </div>
+
+            <h2>
+                Prize Winner Not Decided
+            </h2>
+
+            <div class="hof-popup-message">
+
+                The Hall of Fame prize winner will be
+                decided after the final
+                <strong>Dance Competition</strong>.
+
+                <br><br>
+
+                Keep competing and collecting victories!
+
+            </div>
+
+        {% endif %}
+
+
+        <div class="hof-popup-note">
+            🎁 Hall of Fame Prize
+        </div>
+
+    </div>
+
+</div>
+
 
 
         <!-- =================================================
