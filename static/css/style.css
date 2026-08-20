@@ -4593,6 +4593,78 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
 }
 
 
+/* =========================================================
+   HALL OF FAME YEAR SELECTOR
+========================================================= */
+
+.hof-year-selector {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    margin-top: 18px;
+}
+
+.hof-year-selector label {
+    font-size: 14px;
+
+    font-weight: 700;
+
+    color: #777;
+}
+
+.hof-year-selector select {
+    padding: 9px 35px 9px 15px;
+
+    border-radius: 25px;
+
+    border: 1px solid #d9ae27;
+
+    background: #fff;
+
+    color: #222;
+
+    font-family: 'Poppins', sans-serif;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    outline: none;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 15px rgba(201,160,35,.12);
+}
+
+.hof-year-selector select:focus {
+    border-color: #b88900;
+
+    box-shadow:
+        0 0 0 3px rgba(201,160,35,.12);
+}
+
+
+@media (max-width: 600px) {
+
+    .hof-year-selector {
+        flex-direction: column;
+
+        gap: 7px;
+    }
+
+    .hof-year-selector select {
+        width: 160px;
+
+        text-align: center;
+    }
+}
+
+
 /*==================================================
     TOP CHAMPIONS
 ==================================================*/
