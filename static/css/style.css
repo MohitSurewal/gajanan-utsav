@@ -5646,3 +5646,65 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
     }
 
 }
+
+
+.hof-prize-details {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    margin-top: 20px;
+
+    padding: 16px;
+
+    text-align: left;
+
+    border-radius: 18px;
+
+    background: rgba(255,255,255,.8);
+
+    border: 1px solid #ead48b;
+}
+
+.hof-prize-detail-icon {
+
+    width: 48px;
+    height: 48px;
+
+    min-width: 48px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #d7a91f,
+            #f5d86b
+        );
+
+    font-size: 25px;
+}
+
+.hof-prize-details strong {
+    color: #b88900;
+    font-size: 16px;
+}
+
+.hof-prize-details p {
+
+    margin: 4px 0 0;
+
+    color: #666;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
