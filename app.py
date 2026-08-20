@@ -1034,141 +1034,884 @@ def calculate_hall_of_fame_for_year(winners_data, year):
 # HALL OF FAME / CURRENT YEAR LEADERBOARD
 # ============================================================
 
-def load_hall_of_fame():
+def load_hall_of_fame(selected_year=None):
 
-    # --------------------------------------------------------
+    # ========================================================
     # LOAD ALL WINNER DATA
-    # --------------------------------------------------------
+    # ========================================================
 
     winners_data = load_winners()
 
-    # --------------------------------------------------------
-    # CURRENT YEAR
-    # --------------------------------------------------------
+    # ========================================================
+    # SELECTED YEAR
+    #
+    # /hall-of-fame
+    #       -> current year
+    #
+    # /hall-of-fame?year=2026
+    #       -> 2026
+    #
+    # /hall-of-fame?year=2027
+    #       -> 2027
+    # ========================================================
 
-    current_year = str(
-        datetime.now().year
-    )
+    if selected_year is None:
 
-    # --------------------------------------------------------
-    # CURRENT YEAR HALL OF FAME
-    # --------------------------------------------------------
-
-    current_hall = calculate_hall_of_fame_for_year(
-        winners_data,
-        current_year
-    )
-
-    # --------------------------------------------------------
-    # PREVIOUS YEAR CHAMPIONS
-    # --------------------------------------------------------
-
-    previous_champions = []
-
-    for year in winners_data.keys():
-
-        year = str(year)
-
-        # Current year ko archive mein mat dalo
-        if year == current_year:
-            continue
-
-        hall = calculate_hall_of_fame_for_year(
-            winners_data,
-            year
+        selected_year = str(
+            datetime.now().year
         )
 
-        champion = hall.get("champion")
+    selected_year = str(
+        selected_year
+    ).strip()
 
-        # ----------------------------------------------------
-        # Previous year ka champion tabhi archive hoga jab:
-        #
-        # 1. Champion exist karta ho
-        # 2. Minimum 2 victories ho
-        # 3. Tie na ho
-        # ----------------------------------------------------
+    # Agar galat year diya gaya ho
+    if not selected_year.isdigit():
 
-        if (
-            champion
-            and champion.get("victories", 0) >= 2
-            and not hall.get("tie_for_first", False)
-        ):
+        selected_year = str(
+            datetime.now().year
+        )
 
-            previous_champions.append({
 
-                "year": year,
+    # ========================================================
+    # AVAILABLE YEARS
+    #
+    # Firestore ke saare years
+    # +
+    # current year hamesha available rahega
+    # ========================================================
 
-                "name": champion.get(
-                    "name",
-                    ""
-                ),
+    available_years = {
+        str(year)
+        for year in winners_data.keys()
+        if str(year).isdigit()
+    }
 
-                "victories": champion.get(
-                    "victories",
-                    0
-                ),
+    # Current year ko forcefully add karo
+    # chahe abhi uska winner data na ho
 
-                "photo": champion.get(
-                    "photo",
-                    ""
-                )
-            })
+    available_years.add(
+        str(datetime.now().year)
+    )
 
-    # --------------------------------------------------------
-    # SORT PREVIOUS YEARS
-    # --------------------------------------------------------
+    # Latest year first
 
-    previous_champions.sort(
-        key=lambda x: (
-            int(x["year"])
-            if str(x["year"]).isdigit()
-            else 0
-        ),
+    available_years = sorted(
+        available_years,
+        key=lambda x: int(x),
         reverse=True
     )
 
-    # --------------------------------------------------------
-    # RETURN
-    # --------------------------------------------------------
+
+    # ========================================================
+    # SELECTED YEAR DATA
+    # ========================================================
+
+    current_games = winners_data.get(
+        selected_year,
+        []
+    )
+
+
+    # ========================================================
+    # DANCE COMPETITION STATUS
+    # ========================================================
+
+    dance_completed = False
+
+    for game in current_games:
+
+        game_name = str(
+            game.get(
+                "game",
+                ""
+            )
+        ).strip().lower()
+
+        if "dance" in game_name:
+
+            dance_completed = True
+
+            break
+
+
+    # ========================================================
+    # PLAYER VICTORY COUNT
+    # ========================================================
+
+    players = {}
+
+
+    # ========================================================
+    # HELPER
+    # PLAYER PHOTO
+    # ========================================================
+
+    def get_photo(data):
+
+        if not isinstance(data, dict):
+
+            return ""
+
+        return (
+            data.get("photo")
+            or data.get("image")
+            or data.get("photo_url")
+            or data.get("image_url")
+            or data.get("profile_photo")
+            or data.get("profile_image")
+            or ""
+        )
+
+
+    # ========================================================
+    # PROCESS ALL COMPETITIONS
+    # ========================================================
+
+    for game in current_games:
+
+        game_name = str(
+            game.get(
+                "game",
+                "Competition"
+            )
+        ).strip()
+
+        game_type = str(
+            game.get(
+                "type",
+                ""
+            )
+        ).strip().lower()
+
+
+        # ====================================================
+        # RANKING COMPETITION
+        # ====================================================
+
+        if game_type == "ranking":
+
+            winners = game.get(
+                "winners",
+                []
+            )
+
+            # ------------------------------------------------
+            # IMPORTANT:
+            #
+            # Kisi bhi position par winner hona
+            # = 1 victory
+            #
+            # 1st
+            # 2nd
+            # 3rd
+            # etc.
+            #
+            # Lekin same competition mein same player
+            # maximum 1 victory count hoga.
+            # ------------------------------------------------
+
+            winners_in_this_competition = set()
+
+
+            for person in winners:
+
+                if not isinstance(
+                    person,
+                    dict
+                ):
+                    continue
+
+
+                name = str(
+                    person.get(
+                        "name",
+                        ""
+                    )
+                ).strip()
+
+
+                if not name:
+
+                    continue
+
+
+                # Same player ko
+                # same competition mein
+                # sirf ek baar count karenge
+
+                winners_in_this_competition.add(
+                    name
+                )
+
+
+                # ------------------------------------------------
+                # PHOTO
+                # ------------------------------------------------
+
+                photo = get_photo(
+                    person
+                )
+
+
+                # ------------------------------------------------
+                # CREATE PLAYER
+                # ------------------------------------------------
+
+                if name not in players:
+
+                    players[name] = {
+
+                        "name": name,
+
+                        "victories": 0,
+
+                        "competitions": [],
+
+                        "photo": photo
+
+                    }
+
+
+                # ------------------------------------------------
+                # PHOTO MISSING HAI TO UPDATE
+                # ------------------------------------------------
+
+                elif (
+                    not players[name].get("photo")
+                    and photo
+                ):
+
+                    players[name]["photo"] = photo
+
+
+            # ------------------------------------------------
+            # COUNT ONE VICTORY PER COMPETITION
+            # ------------------------------------------------
+
+            for name in winners_in_this_competition:
+
+                if name not in players:
+
+                    continue
+
+
+                if game_name not in players[name]["competitions"]:
+
+                    players[name]["victories"] += 1
+
+                    players[name]["competitions"].append(
+                        game_name
+                    )
+
+
+        # ====================================================
+        # AGE GROUP COMPETITION
+        # ====================================================
+
+        elif game_type == "age_group":
+
+            groups = game.get(
+                "groups",
+                []
+            )
+
+
+            # ------------------------------------------------
+            # Same competition mein agar same player
+            # multiple age groups jeet raha hai,
+            # tab bhi sirf 1 victory.
+            # ------------------------------------------------
+
+            winners_in_this_competition = {}
+
+
+            for group in groups:
+
+                if not isinstance(
+                    group,
+                    dict
+                ):
+
+                    continue
+
+
+                winner = group.get(
+                    "winner",
+                    {}
+                )
+
+
+                if not isinstance(
+                    winner,
+                    dict
+                ):
+
+                    continue
+
+
+                name = str(
+                    winner.get(
+                        "name",
+                        ""
+                    )
+                ).strip()
+
+
+                if not name:
+
+                    continue
+
+
+                photo = get_photo(
+                    winner
+                )
+
+
+                winners_in_this_competition[name] = photo
+
+
+            # ------------------------------------------------
+            # ADD PLAYERS
+            # ------------------------------------------------
+
+            for name, photo in winners_in_this_competition.items():
+
+                if name not in players:
+
+                    players[name] = {
+
+                        "name": name,
+
+                        "victories": 0,
+
+                        "competitions": [],
+
+                        "photo": photo
+
+                    }
+
+
+                # ------------------------------------------------
+                # PHOTO UPDATE
+                # ------------------------------------------------
+
+                elif (
+                    not players[name].get("photo")
+                    and photo
+                ):
+
+                    players[name]["photo"] = photo
+
+
+                # ------------------------------------------------
+                # ONE COMPETITION = ONE VICTORY
+                # ------------------------------------------------
+
+                if game_name not in players[name]["competitions"]:
+
+                    players[name]["victories"] += 1
+
+                    players[name]["competitions"].append(
+                        game_name
+                    )
+
+
+    # ========================================================
+    # SORT LEADERBOARD
+    # ========================================================
+
+    leaderboard = list(
+        players.values()
+    )
+
+
+    leaderboard.sort(
+        key=lambda x: (
+            -x["victories"],
+            x["name"].lower()
+        )
+    )
+
+
+    # ========================================================
+    # PRIZE ELIGIBILITY
+    #
+    # Minimum 2 victories
+    # ========================================================
+
+    for player in leaderboard:
+
+        player["eligible"] = (
+            player["victories"] >= 2
+        )
+
+
+    # ========================================================
+    # FIND CHAMPION
+    # ========================================================
+
+    champion = None
+
+    prize_winner = None
+
+    tie_for_first = False
+
+
+    if leaderboard:
+
+        highest_victories = (
+            leaderboard[0]["victories"]
+        )
+
+
+        # ----------------------------------------------------
+        # ALL PLAYERS WITH HIGHEST VICTORIES
+        # ----------------------------------------------------
+
+        first_place_players = [
+
+            player
+
+            for player in leaderboard
+
+            if player["victories"] == highest_victories
+
+        ]
+
+
+        # ----------------------------------------------------
+        # TIE FOR FIRST
+        # ----------------------------------------------------
+
+        if len(first_place_players) > 1:
+
+            tie_for_first = True
+
+            champion = None
+
+            prize_winner = None
+
+
+        else:
+
+            champion = first_place_players[0]
+
+
+            # ------------------------------------------------
+            # PRIZE ELIGIBILITY
+            #
+            # Minimum 2 victories
+            # ------------------------------------------------
+
+            if champion["victories"] >= 2:
+
+                prize_winner = champion
+
+
+    # ========================================================
+    # PREVIOUS YEAR CHAMPIONS
+    # ========================================================
+
+    previous_champions = []
+
+
+    for year in winners_data.keys():
+
+        year = str(
+            year
+        )
+
+
+        # Selected year ko previous list mein nahi dikhana
+
+        if year == selected_year:
+
+            continue
+
+
+        # ----------------------------------------------------
+        # Us year ka complete Hall of Fame calculate karo
+        # ----------------------------------------------------
+
+        year_games = winners_data.get(
+            year,
+            []
+        )
+
+
+        if not year_games:
+
+            continue
+
+
+        year_players = {}
+
+
+        # ====================================================
+        # PROCESS PREVIOUS YEAR
+        # ====================================================
+
+        for game in year_games:
+
+            game_name = str(
+                game.get(
+                    "game",
+                    "Competition"
+                )
+            ).strip()
+
+            game_type = str(
+                game.get(
+                    "type",
+                    ""
+                )
+            ).strip().lower()
+
+
+            # ------------------------------------------------
+            # RANKING
+            # ------------------------------------------------
+
+            if game_type == "ranking":
+
+                winners = game.get(
+                    "winners",
+                    []
+                )
+
+
+                winners_in_this_competition = set()
+
+
+                for person in winners:
+
+                    if not isinstance(
+                        person,
+                        dict
+                    ):
+
+                        continue
+
+
+                    name = str(
+                        person.get(
+                            "name",
+                            ""
+                        )
+                    ).strip()
+
+
+                    if not name:
+
+                        continue
+
+
+                    winners_in_this_competition.add(
+                        name
+                    )
+
+
+                    photo = get_photo(
+                        person
+                    )
+
+
+                    if name not in year_players:
+
+                        year_players[name] = {
+
+                            "name": name,
+
+                            "victories": 0,
+
+                            "competitions": [],
+
+                            "photo": photo
+
+                        }
+
+
+                    elif (
+                        not year_players[name].get("photo")
+                        and photo
+                    ):
+
+                        year_players[name]["photo"] = photo
+
+
+                for name in winners_in_this_competition:
+
+                    if (
+                        game_name
+                        not in year_players[name]["competitions"]
+                    ):
+
+                        year_players[name]["victories"] += 1
+
+                        year_players[name]["competitions"].append(
+                            game_name
+                        )
+
+
+            # ------------------------------------------------
+            # AGE GROUP
+            # ------------------------------------------------
+
+            elif game_type == "age_group":
+
+                groups = game.get(
+                    "groups",
+                    []
+                )
+
+
+                winners_in_this_competition = {}
+
+
+                for group in groups:
+
+                    if not isinstance(
+                        group,
+                        dict
+                    ):
+
+                        continue
+
+
+                    winner = group.get(
+                        "winner",
+                        {}
+                    )
+
+
+                    if not isinstance(
+                        winner,
+                        dict
+                    ):
+
+                        continue
+
+
+                    name = str(
+                        winner.get(
+                            "name",
+                            ""
+                        )
+                    ).strip()
+
+
+                    if not name:
+
+                        continue
+
+
+                    photo = get_photo(
+                        winner
+                    )
+
+
+                    winners_in_this_competition[name] = photo
+
+
+                for name, photo in winners_in_this_competition.items():
+
+                    if name not in year_players:
+
+                        year_players[name] = {
+
+                            "name": name,
+
+                            "victories": 0,
+
+                            "competitions": [],
+
+                            "photo": photo
+
+                        }
+
+
+                    elif (
+                        not year_players[name].get("photo")
+                        and photo
+                    ):
+
+                        year_players[name]["photo"] = photo
+
+
+                    if (
+                        game_name
+                        not in year_players[name]["competitions"]
+                    ):
+
+                        year_players[name]["victories"] += 1
+
+                        year_players[name]["competitions"].append(
+                            game_name
+                        )
+
+
+        # ====================================================
+        # SORT PREVIOUS YEAR
+        # ====================================================
+
+        year_leaderboard = list(
+            year_players.values()
+        )
+
+
+        year_leaderboard.sort(
+            key=lambda x: (
+                -x["victories"],
+                x["name"].lower()
+            )
+        )
+
+
+        if not year_leaderboard:
+
+            continue
+
+
+        # ====================================================
+        # PREVIOUS YEAR CHAMPION
+        # ====================================================
+
+        highest_victories = (
+            year_leaderboard[0]["victories"]
+        )
+
+
+        first_place_players = [
+
+            player
+
+            for player in year_leaderboard
+
+            if player["victories"] == highest_victories
+
+        ]
+
+
+        # Tie hone par previous champion nahi hoga
+
+        if len(first_place_players) != 1:
+
+            continue
+
+
+        previous_champion = (
+            first_place_players[0]
+        )
+
+
+        # Minimum 2 victories required
+
+        if previous_champion["victories"] < 2:
+
+            continue
+
+
+        previous_champions.append({
+
+            "year": year,
+
+            "name": previous_champion.get(
+                "name",
+                ""
+            ),
+
+            "victories": previous_champion.get(
+                "victories",
+                0
+            ),
+
+            "photo": previous_champion.get(
+                "photo",
+                ""
+            )
+
+        })
+
+
+    # ========================================================
+    # SORT PREVIOUS CHAMPIONS
+    # LATEST YEAR FIRST
+    # ========================================================
+
+    previous_champions.sort(
+
+        key=lambda x: (
+
+            int(
+                x["year"]
+            )
+
+            if str(
+                x["year"]
+            ).isdigit()
+
+            else 0
+
+        ),
+
+        reverse=True
+
+    )
+
+
+    # ========================================================
+    # RETURN COMPLETE HALL OF FAME DATA
+    # ========================================================
 
     return {
 
-        # Current year
-        "year": current_hall.get(
-            "year",
-            current_year
+        # Selected year
+
+        "year": selected_year,
+
+
+        # Selected year players
+
+        "players": leaderboard,
+
+
+        # Selected year champion
+
+        "champion": champion,
+
+
+        # Selected year prize winner
+
+        "prize_winner": prize_winner,
+
+
+        # Tie status
+
+        "tie_for_first": tie_for_first,
+
+
+        # Data available or not
+
+        "has_data": bool(
+            leaderboard
         ),
 
-        "players": current_hall.get(
-            "players",
-            []
-        ),
 
-        "champion": current_hall.get(
-            "champion"
-        ),
+        # Dance status
 
-        "prize_winner": current_hall.get(
-            "prize_winner"
-        ),
+        "dance_completed": dance_completed,
 
-        "tie_for_first": current_hall.get(
-            "tie_for_first",
-            False
-        ),
 
-        "has_data": current_hall.get(
-            "has_data",
-            False
-        ),
+        # Previous champions
 
-        "dance_completed": current_hall.get(
-            "dance_completed",
-            False
-        ),
+        "previous_champions": previous_champions,
 
-        # Previous year champions
-        "previous_champions": previous_champions
+
+        # Available years for dropdown
+
+        "available_years": available_years
+
     }
 # WINNERS - MIGRATE JSON DATA TO FIRESTORE
 # ============================================================
@@ -2153,13 +2896,43 @@ def winners():
 @app.route("/hall-of-fame")
 def hall_of_fame():
 
-    hall = load_hall_of_fame()
+    # ------------------------------------------------
+    # SELECTED YEAR
+    # ------------------------------------------------
+    #
+    # Example:
+    # /hall-of-fame
+    #        -> current year
+    #
+    # /hall-of-fame?year=2026
+    #        -> 2026 Hall of Fame
+    #
+    # /hall-of-fame?year=2027
+    #        -> 2027 Hall of Fame
+    # ------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    )
+
+    # ------------------------------------------------
+    # LOAD YEAR-WISE HALL OF FAME
+    # ------------------------------------------------
+
+    hall = load_hall_of_fame(
+        selected_year
+    )
+
+    # ------------------------------------------------
+    # RENDER
+    # ------------------------------------------------
 
     return render_template(
         "hall_of_fame.html",
 
         # ------------------------------------------------
-        # CURRENT YEAR
+        # SELECTED YEAR DATA
         # ------------------------------------------------
 
         hall_of_fame=hall.get(
@@ -2186,7 +2959,8 @@ def hall_of_fame():
         ),
 
         current_year=hall.get(
-            "year"
+            "year",
+            selected_year
         ),
 
         has_data=hall.get(
@@ -2200,7 +2974,7 @@ def hall_of_fame():
         ),
 
         # ------------------------------------------------
-        # PREVIOUS YEARS
+        # PREVIOUS YEAR CHAMPIONS
         # ------------------------------------------------
 
         previous_champions=hall.get(
@@ -2208,10 +2982,17 @@ def hall_of_fame():
             []
         ),
 
+        # ------------------------------------------------
+        # AVAILABLE YEARS
+        # ------------------------------------------------
+
+        available_years=hall.get(
+            "available_years",
+            []
+        ),
+
         active_page="hall_of_fame"
     )
-    
-    
     
     
     

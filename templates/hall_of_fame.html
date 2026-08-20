@@ -32,7 +32,39 @@
                 {{ current_year }} CHAMPIONSHIP
             </div>
 
-        </div>
+            {% if available_years %}
+
+                <div class="hof-year-selector">
+
+                    <label for="hofYear">
+                        Hall of Fame Year
+                    </label>
+
+                    <select
+                        id="hofYear"
+                        onchange="changeHallYear(this.value)"
+                    >
+
+                        {% for year in available_years %}
+
+                            <option
+                                value="{{ year }}"
+                                {% if year|string == current_year|string %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ year }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+            {% endif %}
+
+                </div>
 
 
         <!-- =========================================================
@@ -331,10 +363,10 @@
 
                             <br><br>
 
-                            At Ganpati Bhandara After Aarti On
+                            At Ganpati Bhandara
 
                             <strong>
-                                24 Sep 2026, 8:00 PM
+                                After Aarti
                             </strong>
 
                         {% else %}
@@ -838,7 +870,23 @@
 
 <script>
 
-document.addEventListener(
+    /* =====================================================
+       HALL OF FAME YEAR SELECTOR
+    ===================================================== */
+
+    function changeHallYear(year) {
+
+        if (!year) {
+            return;
+        }
+
+        window.location.href =
+            "/hall-of-fame?year=" +
+            encodeURIComponent(year);
+    }
+
+
+    document.addEventListener(
     "DOMContentLoaded",
     function () {
 
