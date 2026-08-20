@@ -651,44 +651,37 @@ def load_winners():
         return {}
 
 
-# ============================================================
-# HALL OF FAME CALCULATOR
-# ============================================================
-
-# ============================================================
-# HALL OF FAME / CURRENT YEAR LEADERBOARD
-# ============================================================
-
-def load_hall_of_fame():
-
-    winners_data = load_winners()
+def calculate_hall_of_fame_for_year(winners_data, year):
 
     # --------------------------------------------------------
-    # CURRENT YEAR
+    # YEAR DATA
     # --------------------------------------------------------
 
-    current_year = str(datetime.now().year)
+    year = str(year)
+
+    current_games = winners_data.get(
+        year,
+        []
+    )
 
     # --------------------------------------------------------
-    # CURRENT YEAR DATA NAHI HAI
+    # NO DATA
     # --------------------------------------------------------
 
-    if current_year not in winners_data:
+    if not current_games:
 
         return {
-            "year": current_year,
+            "year": year,
             "players": [],
             "champion": None,
             "prize_winner": None,
             "tie_for_first": False,
-            "has_data": False,
-            "dance_completed": False
+            "dance_completed": False,
+            "has_data": False
         }
 
-    current_games = winners_data[current_year]
-
     # --------------------------------------------------------
-    # DANCE COMPETITION STATUS
+    # DANCE STATUS
     # --------------------------------------------------------
 
     dance_completed = False
@@ -699,20 +692,35 @@ def load_hall_of_fame():
             game.get("game", "")
         ).strip().lower()
 
+        status = str(
+            game.get(
+                "status",
+                ""
+            )
+        ).strip().lower()
+
         if "dance" in game_name:
 
-            dance_completed = True
+            if status in {
+                "completed",
+                "complete",
+                "finished",
+                "final",
+                "closed"
+            }:
+
+                dance_completed = True
+
             break
 
     # --------------------------------------------------------
-    # PLAYER VICTORY COUNT
+    # PLAYERS
     # --------------------------------------------------------
 
     players = {}
 
     # --------------------------------------------------------
-    # HELPER FUNCTION
-    # PLAYER PHOTO NIKAALNE KE LIYE
+    # PHOTO HELPER
     # --------------------------------------------------------
 
     def get_photo(data):
@@ -730,89 +738,105 @@ def load_hall_of_fame():
             or ""
         )
 
-    # --------------------------------------------------------
-    # PROCESS ALL COMPETITIONS
-    # --------------------------------------------------------
+    # ========================================================
+    # PROCESS GAMES
+    # ========================================================
 
     for game in current_games:
 
         game_name = str(
-            game.get("game", "Competition")
+            game.get(
+                "game",
+                "Competition"
+            )
         ).strip()
 
         game_type = str(
-            game.get("type", "")
+            game.get(
+                "type",
+                ""
+            )
         ).strip().lower()
 
         # ====================================================
-        # RANKING COMPETITION
+        # RANKING
         # ====================================================
 
         if game_type == "ranking":
 
-            winners = game.get("winners", [])
+            winners = game.get(
+                "winners",
+                []
+            )
 
-            # ------------------------------------------------
-            # IMPORTANT
-            #
-            # Ab 1st / 2nd / 3rd sab count honge.
-            #
-            # Kisi bhi position par winner hona
-            # = 1 victory
-            #
-            # Lekin ek competition mein same player
-            # maximum 1 victory lega.
-            # ------------------------------------------------
-
-            winners_in_this_competition = set()
+            winners_in_this_game = {}
 
             for person in winners:
 
-                if not isinstance(person, dict):
+                if not isinstance(
+                    person,
+                    dict
+                ):
                     continue
 
                 name = str(
-                    person.get("name", "")
+                    person.get(
+                        "name",
+                        ""
+                    )
                 ).strip()
 
                 if not name:
                     continue
 
-                # Same player ko same competition mein
-                # dobara count nahi karna
-                winners_in_this_competition.add(name)
+                photo = get_photo(
+                    person
+                )
 
-                photo = get_photo(person)
+                # Same participant ke multiple
+                # ranking entries ko ek hi game mein
+                # ek victory maana jayega.
 
-                # ------------------------------------------------
-                # PLAYER CREATE
-                # ------------------------------------------------
+                if name not in winners_in_this_game:
+
+                    winners_in_this_game[name] = photo
+
+                elif (
+                    not winners_in_this_game[name]
+                    and photo
+                ):
+
+                    winners_in_this_game[name] = photo
+
+            # ------------------------------------------------
+            # ADD ONE VICTORY
+            # ------------------------------------------------
+
+            for name, photo in winners_in_this_game.items():
 
                 if name not in players:
 
                     players[name] = {
+
                         "name": name,
+
                         "victories": 0,
+
                         "competitions": [],
+
                         "photo": photo
                     }
 
-                # ------------------------------------------------
-                # PHOTO MISSING HAI TO UPDATE KARO
-                # ------------------------------------------------
-
-                elif not players[name].get("photo") and photo:
+                elif (
+                    not players[name].get(
+                        "photo"
+                    )
+                    and photo
+                ):
 
                     players[name]["photo"] = photo
 
-            # ------------------------------------------------
-            # ONE COMPETITION = ONE VICTORY
-            # ------------------------------------------------
-
-            for name in winners_in_this_competition:
-
-                if name not in players:
-                    continue
+                # One game = maximum one victory
 
                 if game_name not in players[name]["competitions"]:
 
@@ -823,71 +847,89 @@ def load_hall_of_fame():
                     )
 
         # ====================================================
-        # AGE GROUP COMPETITION
+        # AGE GROUP
         # ====================================================
 
         elif game_type == "age_group":
 
-            groups = game.get("groups", [])
+            groups = game.get(
+                "groups",
+                []
+            )
 
-            # ------------------------------------------------
-            # Same competition mein same player
-            # multiple age groups jeet sakta hai.
-            #
-            # Lekin Hall of Fame mein usko
-            # maximum 1 victory milegi.
-            # ------------------------------------------------
-
-            winners_in_this_competition = {}
+            winners_in_this_game = {}
 
             for group in groups:
 
-                if not isinstance(group, dict):
+                if not isinstance(
+                    group,
+                    dict
+                ):
                     continue
 
-                winner = group.get("winner", {})
+                winner = group.get(
+                    "winner",
+                    {}
+                )
 
-                if not isinstance(winner, dict):
+                if not isinstance(
+                    winner,
+                    dict
+                ):
                     continue
 
                 name = str(
-                    winner.get("name", "")
+                    winner.get(
+                        "name",
+                        ""
+                    )
                 ).strip()
 
                 if not name:
                     continue
 
-                photo = get_photo(winner)
+                photo = get_photo(
+                    winner
+                )
 
-                # Player + photo save
-                winners_in_this_competition[name] = photo
+                if name not in winners_in_this_game:
+
+                    winners_in_this_game[name] = photo
+
+                elif (
+                    not winners_in_this_game[name]
+                    and photo
+                ):
+
+                    winners_in_this_game[name] = photo
 
             # ------------------------------------------------
-            # ADD PLAYERS
+            # ADD ONE VICTORY
             # ------------------------------------------------
 
-            for name, photo in winners_in_this_competition.items():
+            for name, photo in winners_in_this_game.items():
 
                 if name not in players:
 
                     players[name] = {
+
                         "name": name,
+
                         "victories": 0,
+
                         "competitions": [],
+
                         "photo": photo
                     }
 
-                # ------------------------------------------------
-                # PHOTO UPDATE
-                # ------------------------------------------------
-
-                elif not players[name].get("photo") and photo:
+                elif (
+                    not players[name].get(
+                        "photo"
+                    )
+                    and photo
+                ):
 
                     players[name]["photo"] = photo
-
-                # ------------------------------------------------
-                # ONE COMPETITION = ONE VICTORY
-                # ------------------------------------------------
 
                 if game_name not in players[name]["competitions"]:
 
@@ -898,10 +940,12 @@ def load_hall_of_fame():
                     )
 
     # --------------------------------------------------------
-    # SORT LEADERBOARD
+    # SORT
     # --------------------------------------------------------
 
-    leaderboard = list(players.values())
+    leaderboard = list(
+        players.values()
+    )
 
     leaderboard.sort(
         key=lambda x: (
@@ -911,9 +955,7 @@ def load_hall_of_fame():
     )
 
     # --------------------------------------------------------
-    # PRIZE ELIGIBILITY
-    #
-    # Minimum 2 victories
+    # ELIGIBILITY
     # --------------------------------------------------------
 
     for player in leaderboard:
@@ -923,60 +965,56 @@ def load_hall_of_fame():
         )
 
     # --------------------------------------------------------
-    # FIND HIGHEST VICTORY COUNT
+    # CHAMPION
     # --------------------------------------------------------
 
     champion = None
+
     prize_winner = None
+
     tie_for_first = False
 
     if leaderboard:
 
-        highest_victories = leaderboard[0]["victories"]
-
-        # ----------------------------------------------------
-        # ALL PLAYERS WITH HIGHEST SCORE
-        # ----------------------------------------------------
+        highest_victories = (
+            leaderboard[0]["victories"]
+        )
 
         first_place_players = [
+
             player
+
             for player in leaderboard
-            if player["victories"] == highest_victories
+
+            if player["victories"]
+            == highest_victories
+
         ]
 
         # ----------------------------------------------------
-        # TIE FOR FIRST
+        # TIE
         # ----------------------------------------------------
 
         if len(first_place_players) > 1:
 
             tie_for_first = True
 
-            # Tie hone par champion/prize winner nahi
-            champion = None
-            prize_winner = None
-
         else:
 
             champion = first_place_players[0]
 
-            # ------------------------------------------------
-            # PRIZE WINNER
-            #
-            # Minimum 2 victories required
-            # ------------------------------------------------
-
+            # Minimum 2 victories
             if champion["victories"] >= 2:
 
                 prize_winner = champion
 
     # --------------------------------------------------------
-    # RETURN COMPLETE HALL OF FAME DATA
+    # RETURN
     # --------------------------------------------------------
 
     return {
 
-        "year": current_year,
+        "year": year,
 
         "players": leaderboard,
 
@@ -986,11 +1024,152 @@ def load_hall_of_fame():
 
         "tie_for_first": tie_for_first,
 
-        "has_data": bool(leaderboard),
+        "dance_completed": dance_completed,
 
-        "dance_completed": dance_completed
+        "has_data": bool(
+            leaderboard
+        )
     }
+# ============================================================
+# HALL OF FAME / CURRENT YEAR LEADERBOARD
+# ============================================================
 
+def load_hall_of_fame():
+
+    # --------------------------------------------------------
+    # LOAD ALL WINNER DATA
+    # --------------------------------------------------------
+
+    winners_data = load_winners()
+
+    # --------------------------------------------------------
+    # CURRENT YEAR
+    # --------------------------------------------------------
+
+    current_year = str(
+        datetime.now().year
+    )
+
+    # --------------------------------------------------------
+    # CURRENT YEAR HALL OF FAME
+    # --------------------------------------------------------
+
+    current_hall = calculate_hall_of_fame_for_year(
+        winners_data,
+        current_year
+    )
+
+    # --------------------------------------------------------
+    # PREVIOUS YEAR CHAMPIONS
+    # --------------------------------------------------------
+
+    previous_champions = []
+
+    for year in winners_data.keys():
+
+        year = str(year)
+
+        # Current year ko archive mein mat dalo
+        if year == current_year:
+            continue
+
+        hall = calculate_hall_of_fame_for_year(
+            winners_data,
+            year
+        )
+
+        champion = hall.get("champion")
+
+        # ----------------------------------------------------
+        # Previous year ka champion tabhi archive hoga jab:
+        #
+        # 1. Champion exist karta ho
+        # 2. Minimum 2 victories ho
+        # 3. Tie na ho
+        # ----------------------------------------------------
+
+        if (
+            champion
+            and champion.get("victories", 0) >= 2
+            and not hall.get("tie_for_first", False)
+        ):
+
+            previous_champions.append({
+
+                "year": year,
+
+                "name": champion.get(
+                    "name",
+                    ""
+                ),
+
+                "victories": champion.get(
+                    "victories",
+                    0
+                ),
+
+                "photo": champion.get(
+                    "photo",
+                    ""
+                )
+            })
+
+    # --------------------------------------------------------
+    # SORT PREVIOUS YEARS
+    # --------------------------------------------------------
+
+    previous_champions.sort(
+        key=lambda x: (
+            int(x["year"])
+            if str(x["year"]).isdigit()
+            else 0
+        ),
+        reverse=True
+    )
+
+    # --------------------------------------------------------
+    # RETURN
+    # --------------------------------------------------------
+
+    return {
+
+        # Current year
+        "year": current_hall.get(
+            "year",
+            current_year
+        ),
+
+        "players": current_hall.get(
+            "players",
+            []
+        ),
+
+        "champion": current_hall.get(
+            "champion"
+        ),
+
+        "prize_winner": current_hall.get(
+            "prize_winner"
+        ),
+
+        "tie_for_first": current_hall.get(
+            "tie_for_first",
+            False
+        ),
+
+        "has_data": current_hall.get(
+            "has_data",
+            False
+        ),
+
+        "dance_completed": current_hall.get(
+            "dance_completed",
+            False
+        ),
+
+        # Previous year champions
+        "previous_champions": previous_champions
+    }
 # WINNERS - MIGRATE JSON DATA TO FIRESTORE
 # ============================================================
 
@@ -1974,46 +2153,65 @@ def winners():
 @app.route("/hall-of-fame")
 def hall_of_fame():
 
-    # --------------------------------------------------------
-    # LOAD HALL OF FAME DATA
-    # --------------------------------------------------------
-
     hall = load_hall_of_fame()
-
-    # --------------------------------------------------------
-    # RENDER PAGE
-    # --------------------------------------------------------
 
     return render_template(
         "hall_of_fame.html",
 
-        # Complete leaderboard
-        hall_of_fame=hall["players"],
+        # ------------------------------------------------
+        # CURRENT YEAR
+        # ------------------------------------------------
 
-        # Top 3 players
-        top_three=hall["players"][:3],
+        hall_of_fame=hall.get(
+            "players",
+            []
+        ),
 
-        # Champion
-        champion=hall["champion"],
+        top_three=hall.get(
+            "players",
+            []
+        )[:3],
 
-        # Prize winner
-        prize_winner=hall["prize_winner"],
+        champion=hall.get(
+            "champion"
+        ),
 
-        # Tie status
-        tie_for_first=hall["tie_for_first"],
+        prize_winner=hall.get(
+            "prize_winner"
+        ),
 
-        # Current year
-        current_year=hall["year"],
+        tie_for_first=hall.get(
+            "tie_for_first",
+            False
+        ),
 
-        # Data available or not
-        has_data=hall["has_data"],
+        current_year=hall.get(
+            "year"
+        ),
 
-        # Dance competition completed or not
-        dance_completed=hall["dance_completed"],
+        has_data=hall.get(
+            "has_data",
+            False
+        ),
 
-        # Active navigation page
+        dance_completed=hall.get(
+            "dance_completed",
+            False
+        ),
+
+        # ------------------------------------------------
+        # PREVIOUS YEARS
+        # ------------------------------------------------
+
+        previous_champions=hall.get(
+            "previous_champions",
+            []
+        ),
+
         active_page="hall_of_fame"
     )
+    
+    
     
     
     
