@@ -864,3 +864,77 @@ padding:8px 10px;
 
 }
 
+
+/* =========================================================
+   HALL OF FAME — PREVIOUS CHAMPIONS RESPONSIVE
+========================================================= */
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 850px) {
+
+    .hof-previous-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .hof-previous-card {
+        padding: 25px 18px;
+    }
+
+    .hof-previous-photo {
+        width: 95px;
+        height: 95px;
+    }
+
+    .hof-previous-name {
+        font-size: 22px;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .hof-previous-section {
+        margin-top: 45px;
+        padding-top: 35px;
+    }
+
+    .hof-previous-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .hof-previous-card {
+        padding: 25px 18px;
+        border-radius: 20px;
+    }
+
+    .hof-previous-photo {
+        width: 95px;
+        height: 95px;
+        margin-bottom: 15px;
+    }
+
+    .hof-previous-name {
+        font-size: 23px;
+    }
+
+    .hof-previous-wins {
+        font-size: 16px;
+    }
+
+    .hof-previous-label {
+        font-size: 10px;
+        padding: 6px 12px;
+    }
+
+}
