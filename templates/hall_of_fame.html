@@ -2,16 +2,16 @@
 
 {% block title %}Hall of Fame | Gajanan Utsav Samiti{% endblock %}
 
+
 {% block content %}
 
 <section class="hof-page">
 
     <div class="hof-container">
 
-
-        <!-- =================================================
+        <!-- =========================================================
              HEADER
-        ================================================= -->
+        ========================================================= -->
 
         <div class="hof-header">
 
@@ -35,9 +35,9 @@
         </div>
 
 
-        <!-- =================================================
+        <!-- =========================================================
              CHAMPION / TIE / NO CHAMPION
-        ================================================= -->
+        ========================================================= -->
 
         {% if tie_for_first %}
 
@@ -81,7 +81,9 @@
                 </div>
 
 
-                <!-- CHAMPION PHOTO -->
+                <!-- ============================
+                     CHAMPION PHOTO
+                ============================ -->
 
                 {% if champion.photo %}
 
@@ -106,14 +108,18 @@
                 {% endif %}
 
 
-                <!-- CHAMPION NAME -->
+                <!-- ============================
+                     CHAMPION NAME
+                ============================ -->
 
                 <h2>
                     {{ champion.name }}
                 </h2>
 
 
-                <!-- VICTORIES -->
+                <!-- ============================
+                     VICTORIES
+                ============================ -->
 
                 <div class="hof-wins">
 
@@ -128,7 +134,9 @@
                 </div>
 
 
-                <!-- PRIZE -->
+                <!-- ============================
+                     PRIZE BUTTON
+                ============================ -->
 
                 {% if prize_winner %}
 
@@ -190,6 +198,9 @@
 
             <div class="hof-popup">
 
+
+                <!-- CLOSE BUTTON -->
+
                 <button
                     type="button"
                     class="hof-popup-close"
@@ -200,10 +211,14 @@
                 </button>
 
 
+                <!-- TROPHY -->
+
                 <div class="hof-popup-trophy">
                     🏆
                 </div>
 
+
+                <!-- TITLE -->
 
                 <div class="hof-popup-title">
                     HALL OF FAME PRIZE
@@ -213,7 +228,9 @@
                 {% if prize_winner %}
 
 
-                    <!-- WINNER PHOTO -->
+                    <!-- ============================
+                         WINNER PHOTO
+                    ============================ -->
 
                     {% if prize_winner.photo %}
 
@@ -238,14 +255,18 @@
                     {% endif %}
 
 
-                    <!-- WINNER NAME -->
+                    <!-- ============================
+                         WINNER NAME
+                    ============================ -->
 
                     <h2>
                         {{ prize_winner.name }}
                     </h2>
 
 
-                    <!-- WINNER VICTORIES -->
+                    <!-- ============================
+                         WINNER VICTORIES
+                    ============================ -->
 
                     <div class="hof-popup-wins">
 
@@ -260,7 +281,9 @@
                     </div>
 
 
-                    <!-- POPUP MESSAGE -->
+                    <!-- ============================
+                         POPUP MESSAGE
+                    ============================ -->
 
                     <div class="hof-popup-message">
 
@@ -309,6 +332,7 @@
                             <br><br>
 
                             At Ganpati Visarjan
+
                             <strong>
                                 25 Sep 2026, 6:00 PM
                             </strong>
@@ -329,7 +353,9 @@
                 {% else %}
 
 
-                    <!-- NO PRIZE WINNER -->
+                    <!-- ============================
+                         NO PRIZE WINNER
+                    ============================ -->
 
                     <div class="hof-popup-default">
                         🏆
@@ -355,7 +381,9 @@
                 {% endif %}
 
 
-                <!-- PRIZE INFORMATION -->
+                <!-- ============================
+                     PRIZE INFORMATION
+                ============================ -->
 
                 <div class="hof-prize-details">
 
@@ -379,15 +407,16 @@
 
                 </div>
 
+
             </div>
 
         </div>
 
 
 
-        <!-- =================================================
+        <!-- =========================================================
              SEARCH
-        ================================================= -->
+        ========================================================= -->
 
         <div class="hof-search">
 
@@ -402,9 +431,9 @@
 
 
 
-        <!-- =================================================
+        <!-- =========================================================
              LEADERBOARD TITLE
-        ================================================= -->
+        ========================================================= -->
 
         <div class="hof-section-title">
 
@@ -420,9 +449,9 @@
 
 
 
-        <!-- =================================================
+        <!-- =========================================================
              LEADERBOARD
-        ================================================= -->
+        ========================================================= -->
 
         {% if hall_of_fame %}
 
@@ -757,6 +786,7 @@
                             <div class="hof-previous-wins">
 
                                 🏆
+
                                 {{ previous.victories }}
 
                                 {% if previous.victories == 1 %}
@@ -796,7 +826,15 @@
 
 
 
-{% block scripts %}
+<!-- =========================================================
+     JAVASCRIPT
+     
+     IMPORTANT:
+     base.html mein block ka naam extra_js hai.
+     Isliye yahan extra_js hi use karna hai.
+========================================================= -->
+
+{% block extra_js %}
 
 <script>
 
@@ -804,67 +842,82 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
+
+        /* =====================================================
+           PARTICIPANT SEARCH
+        ===================================================== */
+
         const search =
-            document.getElementById("hofSearch");
+            document.getElementById(
+                "hofSearch"
+            );
 
         const cards =
-            document.querySelectorAll(".hof-player");
+            document.querySelectorAll(
+                ".hof-player"
+            );
 
         const empty =
-            document.getElementById("hofNoResults");
+            document.getElementById(
+                "hofNoResults"
+            );
 
 
-        if (!search) {
-            return;
-        }
+        if (search) {
+
+            search.addEventListener(
+                "input",
+                function () {
+
+                    const value =
+                        this.value
+                            .toLowerCase()
+                            .trim();
+
+                    let visible = 0;
 
 
-        search.addEventListener(
-            "input",
-            function () {
+                    cards.forEach(
+                        function (card) {
 
-                const value =
-                    this.value
-                        .toLowerCase()
-                        .trim();
-
-                let visible = 0;
+                            const name =
+                                card.dataset.name || "";
 
 
-                cards.forEach(
-                    function (card) {
+                            if (
+                                name.includes(value)
+                            ) {
 
-                        const name =
-                            card.dataset.name || "";
+                                card.style.display =
+                                    "";
 
+                                visible++;
 
-                        if (name.includes(value)) {
+                            } else {
 
-                            card.style.display = "";
+                                card.style.display =
+                                    "none";
 
-                            visible++;
-
-                        } else {
-
-                            card.style.display = "none";
+                            }
 
                         }
+                    );
+
+
+                    if (empty) {
+
+                        empty.style.display =
+                            visible === 0
+                                ? "block"
+                                : "none";
 
                     }
-                );
-
-
-                if (empty) {
-
-                    empty.style.display =
-                        visible === 0
-                            ? "block"
-                            : "none";
 
                 }
+            );
 
-            }
-        );
+        }
+
 
 
         /* =====================================================
@@ -886,6 +939,11 @@ document.addEventListener(
                 "hofPrizePopup"
             );
 
+
+
+        /* =====================================================
+           OPEN POPUP
+        ===================================================== */
 
         if (
             openPrizePopup &&
@@ -915,6 +973,11 @@ document.addEventListener(
         }
 
 
+
+        /* =====================================================
+           CLOSE POPUP BUTTON
+        ===================================================== */
+
         if (
             closePrizePopup &&
             prizePopup
@@ -943,7 +1006,10 @@ document.addEventListener(
         }
 
 
-        /* Close popup by clicking outside */
+
+        /* =====================================================
+           CLOSE BY CLICKING OUTSIDE
+        ===================================================== */
 
         if (prizePopup) {
 
@@ -977,7 +1043,10 @@ document.addEventListener(
         }
 
 
-        /* Close popup with ESC */
+
+        /* =====================================================
+           CLOSE WITH ESCAPE
+        ===================================================== */
 
         document.addEventListener(
             "keydown",
