@@ -4,775 +4,6 @@
 
 {% block content %}
 
-<style>
-
-/* =========================================================
-   HALL OF FAME
-========================================================= */
-
-.hof-page {
-    padding: 55px 20px 90px;
-
-    background:
-        radial-gradient(
-            circle at top,
-            rgba(235, 196, 65, 0.12),
-            transparent 35%
-        ),
-        #f8f8f8;
-
-    min-height: 80vh;
-}
-
-.hof-container {
-    max-width: 1200px;
-    margin: auto;
-}
-
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-.hof-header {
-    text-align: center;
-    margin-bottom: 45px;
-}
-
-.hof-trophy {
-    font-size: 70px;
-    margin-bottom: 8px;
-}
-
-.hof-header h1 {
-    margin: 0;
-
-    font-family: Georgia, serif;
-
-    font-size: clamp(42px, 6vw, 72px);
-
-    color: #b88900;
-
-    letter-spacing: 2px;
-}
-
-.hof-header p {
-    margin: 12px auto 0;
-
-    max-width: 700px;
-
-    font-size: 17px;
-
-    color: #666;
-}
-
-
-/* =========================================================
-   YEAR BADGE
-========================================================= */
-
-.hof-year {
-    display: inline-flex;
-
-    margin-top: 20px;
-
-    padding: 9px 25px;
-
-    border-radius: 30px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #d9ae27,
-            #f5d86b
-        );
-
-    color: #171717;
-
-    font-weight: 800;
-
-    box-shadow:
-        0 8px 20px rgba(201, 160, 35, 0.20);
-}
-
-
-/* =========================================================
-   CHAMPION
-========================================================= */
-
-.hof-champion {
-    position: relative;
-
-    overflow: hidden;
-
-    background:
-        linear-gradient(
-            135deg,
-            #fff9df,
-            #ffffff 55%,
-            #fff4c2
-        );
-
-    border: 2px solid #e2bc3c;
-
-    border-radius: 30px;
-
-    padding: 45px 30px;
-
-    text-align: center;
-
-    box-shadow:
-        0 20px 50px rgba(0,0,0,0.10);
-
-    margin-bottom: 45px;
-}
-
-.hof-champion::before {
-    content: "🏆";
-
-    position: absolute;
-
-    font-size: 180px;
-
-    opacity: 0.05;
-
-    right: -20px;
-
-    top: -45px;
-
-    pointer-events: none;
-}
-
-
-/* =========================================================
-   CHAMPION PHOTO
-========================================================= */
-
-.hof-champion-photo {
-    position: relative;
-
-    z-index: 2;
-
-    width: 150px;
-    height: 150px;
-
-    object-fit: cover;
-
-    display: block;
-
-    margin: 0 auto 22px;
-
-    border-radius: 50%;
-
-    border: 6px solid #d9ae27;
-
-    background: #fff;
-
-    box-shadow:
-        0 12px 35px rgba(184, 137, 0, 0.25);
-}
-
-.hof-champion-default {
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    background:
-        linear-gradient(
-            135deg,
-            #f5d86b,
-            #d7a91f
-        );
-
-    font-size: 65px;
-}
-
-
-/* =========================================================
-   CHAMPION LABEL
-========================================================= */
-
-.hof-champion-label {
-    position: relative;
-
-    z-index: 2;
-
-    display: inline-block;
-
-    padding: 8px 20px;
-
-    border-radius: 30px;
-
-    background: #171717;
-
-    color: #f5d86b;
-
-    font-size: 13px;
-
-    font-weight: 900;
-
-    letter-spacing: 1.5px;
-
-    margin-bottom: 18px;
-}
-
-.hof-champion h2 {
-    position: relative;
-
-    z-index: 2;
-
-    margin: 0;
-
-    font-family: Georgia, serif;
-
-    font-size: clamp(34px, 5vw, 58px);
-
-    color: #171717;
-}
-
-.hof-wins {
-    position: relative;
-
-    z-index: 2;
-
-    margin-top: 10px;
-
-    font-size: 25px;
-
-    font-weight: 900;
-
-    color: #b88900;
-}
-
-.hof-prize {
-    position: relative;
-
-    z-index: 2;
-
-    margin-top: 22px;
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    padding: 13px 25px;
-
-    border-radius: 30px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #d7a91f,
-            #f5d86b
-        );
-
-    font-weight: 900;
-
-    box-shadow:
-        0 8px 20px rgba(201,160,35,0.25);
-}
-
-
-/* =========================================================
-   TIE
-========================================================= */
-
-.hof-tie {
-    background:
-        linear-gradient(
-            135deg,
-            #fff1d6,
-            #ffffff
-        );
-
-    border: 2px solid #e4a12a;
-
-    border-radius: 25px;
-
-    padding: 30px;
-
-    text-align: center;
-
-    margin-bottom: 45px;
-}
-
-.hof-tie h2 {
-    margin: 0 0 10px;
-
-    color: #b35d00;
-
-    font-family: Georgia, serif;
-}
-
-.hof-tie p {
-    margin: 7px 0;
-
-    color: #555;
-}
-
-.hof-no-prize {
-    display: inline-block;
-
-    margin-top: 12px;
-
-    padding: 10px 20px;
-
-    border-radius: 25px;
-
-    background: #222;
-
-    color: white;
-
-    font-weight: 800;
-}
-
-
-/* =========================================================
-   SECTION TITLE
-========================================================= */
-
-.hof-section-title {
-    text-align: center;
-
-    margin-bottom: 25px;
-}
-
-.hof-section-title h2 {
-    margin: 0;
-
-    font-family: Georgia, serif;
-
-    font-size: 34px;
-
-    color: #222;
-}
-
-.hof-section-title p {
-    color: #777;
-}
-
-
-/* =========================================================
-   SEARCH
-========================================================= */
-
-.hof-search {
-    margin-bottom: 30px;
-}
-
-.hof-search input {
-    width: 100%;
-
-    box-sizing: border-box;
-
-    padding: 17px 22px;
-
-    border-radius: 16px;
-
-    border: 1px solid #ead48b;
-
-    background: white;
-
-    font-size: 16px;
-
-    outline: none;
-
-    box-shadow:
-        0 8px 25px rgba(0,0,0,0.05);
-}
-
-.hof-search input:focus {
-    border-color: #d6ad2e;
-}
-
-
-/* =========================================================
-   LEADERBOARD
-========================================================= */
-
-.hof-leaderboard {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 14px;
-}
-
-.hof-player {
-    display: grid;
-
-    grid-template-columns:
-        80px
-        1fr
-        150px
-        160px;
-
-    align-items: center;
-
-    gap: 20px;
-
-    padding: 20px 25px;
-
-    background: white;
-
-    border-radius: 20px;
-
-    border: 1px solid #eee;
-
-    box-shadow:
-        0 8px 25px rgba(0,0,0,0.05);
-
-    transition:
-        transform .2s ease,
-        box-shadow .2s ease;
-}
-
-.hof-player:hover {
-    transform: translateY(-3px);
-
-    box-shadow:
-        0 15px 35px rgba(0,0,0,0.09);
-}
-
-
-/* =========================================================
-   RANK
-========================================================= */
-
-.hof-rank {
-    width: 55px;
-    height: 55px;
-
-    border-radius: 50%;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    background: #f5f1e2;
-
-    font-size: 20px;
-
-    font-weight: 900;
-}
-
-.hof-player:nth-child(1) .hof-rank {
-    background:
-        linear-gradient(
-            135deg,
-            #f4c542,
-            #ffe88a
-        );
-}
-
-.hof-player:nth-child(2) .hof-rank {
-    background:
-        linear-gradient(
-            135deg,
-            #d5d5d5,
-            #f4f4f4
-        );
-}
-
-.hof-player:nth-child(3) .hof-rank {
-    background:
-        linear-gradient(
-            135deg,
-            #cd8b52,
-            #f0c29b
-        );
-}
-
-
-/* =========================================================
-   PLAYER PROFILE
-========================================================= */
-
-.hof-player-profile {
-    display: flex;
-
-    align-items: center;
-
-    gap: 16px;
-
-    min-width: 0;
-}
-
-
-/* =========================================================
-   PLAYER PHOTO
-========================================================= */
-
-.hof-player-photo {
-    width: 68px;
-    height: 68px;
-
-    min-width: 68px;
-
-    object-fit: cover;
-
-    border-radius: 50%;
-
-    border: 3px solid #d9ae27;
-
-    background: white;
-
-    box-shadow:
-        0 6px 18px rgba(0,0,0,0.12);
-}
-
-.hof-player-default {
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    background:
-        linear-gradient(
-            135deg,
-            #f5f1e2,
-            #ffffff
-        );
-
-    font-size: 30px;
-}
-
-
-/* =========================================================
-   PLAYER NAME
-========================================================= */
-
-.hof-player-name {
-    min-width: 0;
-}
-
-.hof-player-name h3 {
-    margin: 0;
-
-    font-size: 22px;
-
-    color: #222;
-
-    word-break: break-word;
-}
-
-.hof-player-name span {
-    display: block;
-
-    margin-top: 5px;
-
-    font-size: 13px;
-
-    color: #777;
-}
-
-
-/* =========================================================
-   WINS
-========================================================= */
-
-.hof-player-wins {
-    text-align: center;
-}
-
-.hof-player-wins strong {
-    display: block;
-
-    font-size: 30px;
-
-    color: #bd900f;
-}
-
-.hof-player-wins span {
-    font-size: 12px;
-
-    color: #777;
-
-    text-transform: uppercase;
-
-    letter-spacing: 1px;
-}
-
-
-/* =========================================================
-   GAP
-========================================================= */
-
-.hof-gap {
-    text-align: center;
-
-    font-weight: 800;
-
-    color: #666;
-}
-
-.hof-gap.champion {
-    color: #b88900;
-}
-
-.hof-gap.ineligible {
-    color: #999;
-}
-
-
-/* =========================================================
-   ELIGIBILITY
-========================================================= */
-
-.hof-status {
-    display: inline-block;
-
-    margin-top: 7px;
-
-    padding: 4px 10px;
-
-    border-radius: 20px;
-
-    font-size: 11px;
-
-    font-weight: 800;
-}
-
-.hof-status.eligible {
-    background: #e4f6e8;
-
-    color: #21863b;
-}
-
-.hof-status.ineligible {
-    background: #f1f1f1;
-
-    color: #777;
-}
-
-
-/* =========================================================
-   EMPTY
-========================================================= */
-
-.hof-empty {
-    text-align: center;
-
-    padding: 60px 20px;
-
-    background: white;
-
-    border-radius: 25px;
-
-    color: #777;
-}
-
-
-/* =========================================================
-   RESPONSIVE - TABLET
-========================================================= */
-
-@media (max-width: 850px) {
-
-    .hof-player {
-
-        grid-template-columns:
-            60px
-            1fr
-            100px;
-
-    }
-
-    .hof-gap {
-        grid-column: 2 / -1;
-
-        text-align: left;
-    }
-
-}
-
-
-/* =========================================================
-   RESPONSIVE - MOBILE
-========================================================= */
-
-@media (max-width: 600px) {
-
-    .hof-page {
-        padding-left: 14px;
-        padding-right: 14px;
-    }
-
-    .hof-header {
-        margin-bottom: 30px;
-    }
-
-    .hof-trophy {
-        font-size: 55px;
-    }
-
-    .hof-champion {
-        padding: 35px 20px;
-        border-radius: 24px;
-    }
-
-    .hof-champion-photo {
-        width: 120px;
-        height: 120px;
-
-        border-width: 5px;
-    }
-
-    .hof-player {
-
-        grid-template-columns:
-            55px
-            1fr;
-
-        gap: 14px;
-
-        padding: 18px;
-    }
-
-    .hof-player-profile {
-        gap: 12px;
-    }
-
-    .hof-player-photo {
-        width: 58px;
-        height: 58px;
-
-        min-width: 58px;
-    }
-
-    .hof-player-name h3 {
-        font-size: 19px;
-    }
-
-    .hof-player-wins {
-
-        text-align: left;
-
-        grid-column: 2;
-
-    }
-
-    .hof-gap {
-
-        grid-column: 2;
-
-        text-align: left;
-
-    }
-
-    .hof-section-title h2 {
-        font-size: 28px;
-    }
-
-}
-
-</style>
-
-
 <section class="hof-page">
 
     <div class="hof-container">
@@ -875,10 +106,14 @@
                 {% endif %}
 
 
+                <!-- CHAMPION NAME -->
+
                 <h2>
                     {{ champion.name }}
                 </h2>
 
+
+                <!-- VICTORIES -->
 
                 <div class="hof-wins">
 
@@ -893,6 +128,8 @@
                 </div>
 
 
+                <!-- PRIZE -->
+
                 {% if prize_winner %}
 
                     <button
@@ -904,7 +141,6 @@
                     </button>
 
                 {% else %}
-
 
                     <div class="hof-no-prize">
                         ⏳ Not Prize Eligible Yet
@@ -940,156 +176,212 @@
 
         {% endif %}
 
+
+
         <!-- =========================================================
-     HALL OF FAME PRIZE POPUP
-========================================================= -->
+             HALL OF FAME PRIZE POPUP
+        ========================================================= -->
 
-<div
-    class="hof-popup-overlay"
-    id="hofPrizePopup"
-    aria-hidden="true"
->
-
-    <div class="hof-popup">
-
-        <button
-            type="button"
-            class="hof-popup-close"
-            id="closePrizePopup"
-            aria-label="Close"
+        <div
+            class="hof-popup-overlay"
+            id="hofPrizePopup"
+            aria-hidden="true"
         >
-            ×
-        </button>
 
+            <div class="hof-popup">
 
-        <div class="hof-popup-trophy">
-            🏆
-        </div>
-
-
-        <div class="hof-popup-title">
-            HALL OF FAME PRIZE
-        </div>
-
-
-        {% if prize_winner %}
-
-            {% if prize_winner.photo %}
-
-                <img
-                    src="{{ prize_winner.photo }}"
-                    alt="{{ prize_winner.name }}"
-                    class="hof-popup-photo"
+                <button
+                    type="button"
+                    class="hof-popup-close"
+                    id="closePrizePopup"
+                    aria-label="Close"
                 >
+                    ×
+                </button>
 
-            {% else %}
 
-                <div class="hof-popup-photo hof-popup-default">
+                <div class="hof-popup-trophy">
                     🏆
                 </div>
 
-            {% endif %}
+
+                <div class="hof-popup-title">
+                    HALL OF FAME PRIZE
+                </div>
 
 
-            <h2>
-                {{ prize_winner.name }}
-            </h2>
+                {% if prize_winner %}
 
 
-            <div class="hof-popup-wins">
-                {{ prize_winner.victories }}
-                Victories
-            </div>
+                    <!-- WINNER PHOTO -->
+
+                    {% if prize_winner.photo %}
+
+                        <img
+                            src="{{ prize_winner.photo }}"
+                            alt="{{ prize_winner.name }}"
+                            class="hof-popup-photo"
+                            loading="lazy"
+                        >
+
+                    {% else %}
+
+                        <div
+                            class="
+                                hof-popup-photo
+                                hof-popup-default
+                            "
+                        >
+                            🏆
+                        </div>
+
+                    {% endif %}
 
 
-            <div class="hof-popup-message">
+                    <!-- WINNER NAME -->
 
-                🎉 Congratulations!
+                    <h2>
+                        {{ prize_winner.name }}
+                    </h2>
 
-                <br><br>
 
-                <strong>
-                    {{ prize_winner.name }}
-                </strong>
-                is currently the Hall of Fame leader.
+                    <!-- WINNER VICTORIES -->
 
-                <br><br>
+                    <div class="hof-popup-wins">
 
-                {% if dance_completed %}
+                        {{ prize_winner.victories }}
 
-                    <strong>
-                        🏆 Final Hall of Fame Result
-                    </strong>
+                        {% if prize_winner.victories == 1 %}
+                            Victory
+                        {% else %}
+                            Victories
+                        {% endif %}
 
-                    <br><br>
+                    </div>
 
-                    The Dance Competition has been completed.
-                    The Hall of Fame result is now final.
-                    <strong>
-                        Prize winner confirmed!
-                    </strong>
-                    <strong>
-                        Winner: {{ prize_winner.name }} will be awarded the Hall of Fame prize.
-                        At Ganpati Visarjan 25sep.2026 6.pm
-                    </strong>
+
+                    <!-- POPUP MESSAGE -->
+
+                    <div class="hof-popup-message">
+
+                        🎉 Congratulations!
+
+                        <br><br>
+
+                        <strong>
+                            {{ prize_winner.name }}
+                        </strong>
+
+                        is currently the Hall of Fame leader.
+
+                        <br><br>
+
+
+                        {% if dance_completed %}
+
+                            <strong>
+                                🏆 Final Hall of Fame Result
+                            </strong>
+
+                            <br><br>
+
+                            The Dance Competition has been
+                            completed.
+
+                            <br><br>
+
+                            The Hall of Fame result is now final.
+
+                            <br><br>
+
+                            <strong>
+                                Prize winner confirmed!
+                            </strong>
+
+                            <br><br>
+
+                            <strong>
+                                Winner:
+                                {{ prize_winner.name }}
+                                will be awarded the Hall of Fame prize.
+                            </strong>
+
+                            <br><br>
+
+                            At Ganpati Visarjan
+                            <strong>
+                                25 Sep 2026, 6:00 PM
+                            </strong>
+
+                        {% else %}
+
+                            The final Hall of Fame prize winner
+                            will be confirmed after the
+                            <strong>Dance Competition</strong>,
+                            which is the final competition of
+                            the year.
+
+                        {% endif %}
+
+                    </div>
+
 
                 {% else %}
 
-                    The final Hall of Fame prize winner
-                    will be confirmed after the
-                    <strong>Dance Competition</strong>,
-                    which is the final competition of the year.
+
+                    <!-- NO PRIZE WINNER -->
+
+                    <div class="hof-popup-default">
+                        🏆
+                    </div>
+
+                    <h2>
+                        Prize Winner Not Decided
+                    </h2>
+
+                    <div class="hof-popup-message">
+
+                        The Hall of Fame prize winner will be
+                        decided after the final
+                        <strong>Dance Competition</strong>.
+
+                        <br><br>
+
+                        Keep competing and collecting victories!
+
+                    </div>
+
 
                 {% endif %}
 
-            </div>
 
+                <!-- PRIZE INFORMATION -->
 
-        {% else %}
+                <div class="hof-prize-details">
 
-            <div class="hof-popup-default">
-                🏆
-            </div>
+                    <div class="hof-prize-detail-icon">
+                        🎁
+                    </div>
 
-            <h2>
-                Prize Winner Not Decided
-            </h2>
+                    <div>
 
-            <div class="hof-popup-message">
+                        <strong>
+                            Hall of Fame Prize
+                        </strong>
 
-                The Hall of Fame prize winner will be
-                decided after the final
-                <strong>Dance Competition</strong>.
+                        <p>
+                            This year's Hall of Fame Prize is
+                            awarded to the final champion after
+                            the Dance Competition.
+                        </p>
 
-                <br><br>
+                    </div>
 
-                Keep competing and collecting victories!
+                </div>
 
-            </div>
-
-        {% endif %}
-
-
-       <div class="hof-prize-details">
-
-            <div class="hof-prize-detail-icon">
-                🎁
-            </div>
-
-            <div>
-                <strong>Hall of Fame Prize</strong>
-
-                <p>
-                    This year's Hall of Fame Prize is awarded to
-                    the final champion after the Dance Competition.
-                </p>
             </div>
 
         </div>
-
-    </div>
-
-</div>
 
 
 
@@ -1109,6 +401,7 @@
         </div>
 
 
+
         <!-- =================================================
              LEADERBOARD TITLE
         ================================================= -->
@@ -1124,6 +417,7 @@
             </p>
 
         </div>
+
 
 
         <!-- =================================================
@@ -1170,6 +464,7 @@
                             {% endif %}
 
                         </div>
+
 
 
                         <!-- ============================
@@ -1254,6 +549,7 @@
                         </div>
 
 
+
                         <!-- ============================
                              WINS
                         ============================ -->
@@ -1279,6 +575,7 @@
                             </span>
 
                         </div>
+
 
 
                         <!-- ============================
@@ -1334,6 +631,7 @@
             </div>
 
 
+
             <!-- =================================================
                  NO SEARCH RESULT
             ================================================= -->
@@ -1361,6 +659,7 @@
 
         {% else %}
 
+
             <!-- =================================================
                  NO DATA
             ================================================= -->
@@ -1385,12 +684,116 @@
         {% endif %}
 
 
+
+        <!-- =========================================================
+             PREVIOUS HALL OF FAME CHAMPIONS
+        ========================================================= -->
+
+        {% if previous_champions %}
+
+            <section class="hof-previous-section">
+
+                <div class="hof-section-title">
+
+                    <h2>
+                        🏆 Previous Hall of Fame Champions
+                    </h2>
+
+                    <p>
+                        Champions from previous years
+                    </p>
+
+                </div>
+
+
+                <div class="hof-previous-grid">
+
+                    {% for previous in previous_champions %}
+
+                        <div class="hof-previous-card">
+
+
+                            <!-- YEAR -->
+
+                            <div class="hof-previous-year">
+                                {{ previous.year }}
+                            </div>
+
+
+                            <!-- PHOTO -->
+
+                            {% if previous.photo %}
+
+                                <img
+                                    src="{{ previous.photo }}"
+                                    alt="{{ previous.name }}"
+                                    class="hof-previous-photo"
+                                    loading="lazy"
+                                >
+
+                            {% else %}
+
+                                <div
+                                    class="
+                                        hof-previous-photo
+                                        hof-previous-default
+                                    "
+                                >
+                                    🏆
+                                </div>
+
+                            {% endif %}
+
+
+                            <!-- NAME -->
+
+                            <div class="hof-previous-name">
+                                {{ previous.name }}
+                            </div>
+
+
+                            <!-- VICTORIES -->
+
+                            <div class="hof-previous-wins">
+
+                                🏆
+                                {{ previous.victories }}
+
+                                {% if previous.victories == 1 %}
+                                    Victory
+                                {% else %}
+                                    Victories
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- LABEL -->
+
+                            <div class="hof-previous-label">
+
+                                👑 Hall of Fame Champion
+
+                            </div>
+
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+        {% endif %}
+
+
     </div>
 
 </section>
 
-
 {% endblock %}
+
 
 
 {% block scripts %}
@@ -1457,6 +860,146 @@ document.addEventListener(
                         visible === 0
                             ? "block"
                             : "none";
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           PRIZE POPUP
+        ===================================================== */
+
+        const openPrizePopup =
+            document.getElementById(
+                "openPrizePopup"
+            );
+
+        const closePrizePopup =
+            document.getElementById(
+                "closePrizePopup"
+            );
+
+        const prizePopup =
+            document.getElementById(
+                "hofPrizePopup"
+            );
+
+
+        if (
+            openPrizePopup &&
+            prizePopup
+        ) {
+
+            openPrizePopup.addEventListener(
+                "click",
+                function () {
+
+                    prizePopup.classList.add(
+                        "active"
+                    );
+
+                    prizePopup.setAttribute(
+                        "aria-hidden",
+                        "false"
+                    );
+
+                    document.body.classList.add(
+                        "hof-popup-open"
+                    );
+
+                }
+            );
+
+        }
+
+
+        if (
+            closePrizePopup &&
+            prizePopup
+        ) {
+
+            closePrizePopup.addEventListener(
+                "click",
+                function () {
+
+                    prizePopup.classList.remove(
+                        "active"
+                    );
+
+                    prizePopup.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    document.body.classList.remove(
+                        "hof-popup-open"
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* Close popup by clicking outside */
+
+        if (prizePopup) {
+
+            prizePopup.addEventListener(
+                "click",
+                function (event) {
+
+                    if (
+                        event.target ===
+                        prizePopup
+                    ) {
+
+                        prizePopup.classList.remove(
+                            "active"
+                        );
+
+                        prizePopup.setAttribute(
+                            "aria-hidden",
+                            "true"
+                        );
+
+                        document.body.classList.remove(
+                            "hof-popup-open"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* Close popup with ESC */
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Escape" &&
+                    prizePopup
+                ) {
+
+                    prizePopup.classList.remove(
+                        "active"
+                    );
+
+                    prizePopup.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    document.body.classList.remove(
+                        "hof-popup-open"
+                    );
 
                 }
 
