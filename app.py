@@ -1034,7 +1034,7 @@ def calculate_hall_of_fame_for_year(winners_data, year):
 # HALL OF FAME / CURRENT YEAR LEADERBOARD
 # ============================================================
 
-def load_hall_of_fame():
+def load_hall_of_fame(selected_year=None):
 
     # --------------------------------------------------------
     # LOAD ALL WINNER DATA
@@ -1043,45 +1043,95 @@ def load_hall_of_fame():
     winners_data = load_winners()
 
     # --------------------------------------------------------
-    # CURRENT YEAR
+    # SELECTED YEAR
+    #
+    # Agar URL me year diya hai:
+    #
+    # /hall-of-fame?year=2026
+    #
+    # to 2026 use hoga.
+    #
+    # Agar year nahi diya:
+    #
+    # /hall-of-fame
+    #
+    # to current year automatically use hoga.
     # --------------------------------------------------------
 
-    current_year = str(
-        datetime.now().year
+    if selected_year is None:
+
+        selected_year = str(
+            datetime.now().year
+        )
+
+    selected_year = str(
+        selected_year
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # AVAILABLE YEARS
+    # --------------------------------------------------------
+
+    available_years = sorted(
+        [
+            str(year)
+            for year in winners_data.keys()
+            if str(year).isdigit()
+        ],
+        key=lambda x: int(x),
+        reverse=True
     )
 
+
     # --------------------------------------------------------
-    # CURRENT YEAR HALL OF FAME
+    # CURRENT / SELECTED YEAR HALL OF FAME
     # --------------------------------------------------------
 
-    current_hall = calculate_hall_of_fame_for_year(
+    selected_hall = calculate_hall_of_fame_for_year(
         winners_data,
-        current_year
+        selected_year
     )
+
 
     # --------------------------------------------------------
     # PREVIOUS YEAR CHAMPIONS
+    #
+    # Current selected year ko archive me nahi dikhayenge.
+    # Sirf doosre years ke final champions.
     # --------------------------------------------------------
 
     previous_champions = []
 
+
     for year in winners_data.keys():
 
-        year = str(year)
+        year = str(
+            year
+        )
 
-        # Current year ko archive mein mat dalo
-        if year == current_year:
+
+        # Selected year ko archive me mat dalo
+
+        if year == selected_year:
             continue
+
+
+        # Us year ka complete Hall of Fame calculate karo
 
         hall = calculate_hall_of_fame_for_year(
             winners_data,
             year
         )
 
-        champion = hall.get("champion")
+
+        champion = hall.get(
+            "champion"
+        )
+
 
         # ----------------------------------------------------
-        # Previous year ka champion tabhi archive hoga jab:
+        # Archive me champion tabhi jayega jab:
         #
         # 1. Champion exist karta ho
         # 2. Minimum 2 victories ho
@@ -1090,8 +1140,14 @@ def load_hall_of_fame():
 
         if (
             champion
-            and champion.get("victories", 0) >= 2
-            and not hall.get("tie_for_first", False)
+            and champion.get(
+                "victories",
+                0
+            ) >= 2
+            and not hall.get(
+                "tie_for_first",
+                False
+            )
         ):
 
             previous_champions.append({
@@ -1112,20 +1168,33 @@ def load_hall_of_fame():
                     "photo",
                     ""
                 )
+
             })
 
+
     # --------------------------------------------------------
-    # SORT PREVIOUS YEARS
+    # SORT PREVIOUS CHAMPIONS
+    # Latest year first
     # --------------------------------------------------------
 
     previous_champions.sort(
+
         key=lambda x: (
-            int(x["year"])
-            if str(x["year"]).isdigit()
+
+            int(
+                x["year"]
+            )
+            if str(
+                x["year"]
+            ).isdigit()
+
             else 0
+
         ),
+
         reverse=True
     )
+
 
     # --------------------------------------------------------
     # RETURN
@@ -1133,42 +1202,69 @@ def load_hall_of_fame():
 
     return {
 
-        # Current year
-        "year": current_hall.get(
+        # Selected year
+
+        "year": selected_hall.get(
             "year",
-            current_year
+            selected_year
         ),
 
-        "players": current_hall.get(
+
+        # Selected year leaderboard
+
+        "players": selected_hall.get(
             "players",
             []
         ),
 
-        "champion": current_hall.get(
+
+        # Selected year champion
+
+        "champion": selected_hall.get(
             "champion"
         ),
 
-        "prize_winner": current_hall.get(
+
+        # Selected year prize winner
+
+        "prize_winner": selected_hall.get(
             "prize_winner"
         ),
 
-        "tie_for_first": current_hall.get(
+
+        # Selected year tie
+
+        "tie_for_first": selected_hall.get(
             "tie_for_first",
             False
         ),
 
-        "has_data": current_hall.get(
+
+        # Selected year data status
+
+        "has_data": selected_hall.get(
             "has_data",
             False
         ),
 
-        "dance_completed": current_hall.get(
+
+        # Selected year dance status
+
+        "dance_completed": selected_hall.get(
             "dance_completed",
             False
         ),
 
+
         # Previous year champions
-        "previous_champions": previous_champions
+
+        "previous_champions": previous_champions,
+
+
+        # All years available
+
+        "available_years": available_years
+
     }
 # WINNERS - MIGRATE JSON DATA TO FIRESTORE
 # ============================================================
@@ -2153,13 +2249,43 @@ def winners():
 @app.route("/hall-of-fame")
 def hall_of_fame():
 
-    hall = load_hall_of_fame()
+    # ------------------------------------------------
+    # SELECTED YEAR
+    # ------------------------------------------------
+    #
+    # Example:
+    # /hall-of-fame
+    #        -> current year
+    #
+    # /hall-of-fame?year=2026
+    #        -> 2026 Hall of Fame
+    #
+    # /hall-of-fame?year=2027
+    #        -> 2027 Hall of Fame
+    # ------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    )
+
+    # ------------------------------------------------
+    # LOAD YEAR-WISE HALL OF FAME
+    # ------------------------------------------------
+
+    hall = load_hall_of_fame(
+        selected_year
+    )
+
+    # ------------------------------------------------
+    # RENDER
+    # ------------------------------------------------
 
     return render_template(
         "hall_of_fame.html",
 
         # ------------------------------------------------
-        # CURRENT YEAR
+        # SELECTED YEAR DATA
         # ------------------------------------------------
 
         hall_of_fame=hall.get(
@@ -2186,7 +2312,8 @@ def hall_of_fame():
         ),
 
         current_year=hall.get(
-            "year"
+            "year",
+            selected_year
         ),
 
         has_data=hall.get(
@@ -2200,7 +2327,7 @@ def hall_of_fame():
         ),
 
         # ------------------------------------------------
-        # PREVIOUS YEARS
+        # PREVIOUS YEAR CHAMPIONS
         # ------------------------------------------------
 
         previous_champions=hall.get(
@@ -2208,10 +2335,17 @@ def hall_of_fame():
             []
         ),
 
+        # ------------------------------------------------
+        # AVAILABLE YEARS
+        # ------------------------------------------------
+
+        available_years=hall.get(
+            "available_years",
+            []
+        ),
+
         active_page="hall_of_fame"
     )
-    
-    
     
     
     
