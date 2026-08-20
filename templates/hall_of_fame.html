@@ -2,248 +2,1082 @@
 
 {% block title %}Hall of Fame | Gajanan Utsav Samiti{% endblock %}
 
+
 {% block content %}
 
-<section class="page-header">
+<section class="hof-page">
 
-    <div class="container">
+    <div class="hof-container">
 
-        <h1>🏆 Hall of Fame</h1>
+        <!-- =========================================================
+             HEADER
+        ========================================================= -->
 
-        <p>
-            Honouring participants who have consistently excelled across
-            different competitions over the years.
-        </p>
+        <div class="hof-header">
 
-    </div>
+            <div class="hof-trophy">
+                🏆
+            </div>
 
-</section>
+            <h1>
+                Hall of Fame
+            </h1>
 
-<section class="hall-search-section">
+            <p>
+                The ultimate competition leaderboard.
+                Every victory counts.
+            </p>
 
-    <div class="container">
-
-        <div class="hall-search-box">
-
-            <input
-                type="text"
-                id="hallSearch"
-                placeholder="Search participant..."
-            >
+            <div class="hof-year">
+                {{ current_year }} CHAMPIONSHIP
+            </div>
 
         </div>
 
-    </div>
 
-</section>
+        <!-- =========================================================
+             CHAMPION / TIE / NO CHAMPION
+        ========================================================= -->
 
-<section class="top-champions">
+        {% if tie_for_first %}
 
-    <div class="container">
+            <!-- ============================
+                 TIE
+            ============================ -->
 
-        <h2>🏆 Top Champions</h2>
+            <div class="hof-tie">
 
-        <div class="champion-grid">
+                <h2>
+                    ⚔️ Championship Tie
+                </h2>
 
-            {% for person in top_three %}
+                <p>
+                    Multiple participants are tied for
+                    the highest number of victories.
+                </p>
 
-            <div class="champion-card rank-{{ loop.index }}">
+                <p>
+                    Therefore,
+                    <strong>no prize is awarded.</strong>
+                </p>
 
-                <div class="champion-rank">
+                <div class="hof-no-prize">
+                    🎁 Prize Not Awarded
+                </div>
 
-                    {% if loop.index == 1 %}
-                        🥇
-                    {% elif loop.index == 2 %}
-                        🥈
+            </div>
+
+
+        {% elif champion %}
+
+            <!-- ============================
+                 CHAMPION
+            ============================ -->
+
+            <div class="hof-champion">
+
+                <div class="hof-champion-label">
+                    👑 HALL OF FAME CHAMPION
+                </div>
+
+
+                <!-- ============================
+                     CHAMPION PHOTO
+                ============================ -->
+
+                {% if champion.photo %}
+
+                    <img
+                        src="{{ champion.photo }}"
+                        alt="{{ champion.name }}"
+                        class="hof-champion-photo"
+                        loading="lazy"
+                    >
+
+                {% else %}
+
+                    <div
+                        class="
+                            hof-champion-photo
+                            hof-champion-default
+                        "
+                    >
+                        🏆
+                    </div>
+
+                {% endif %}
+
+
+                <!-- ============================
+                     CHAMPION NAME
+                ============================ -->
+
+                <h2>
+                    {{ champion.name }}
+                </h2>
+
+
+                <!-- ============================
+                     VICTORIES
+                ============================ -->
+
+                <div class="hof-wins">
+
+                    {{ champion.victories }}
+
+                    {% if champion.victories == 1 %}
+                        Victory
                     {% else %}
-                        🥉
+                        Victories
                     {% endif %}
 
                 </div>
 
-                <h3>{{ person.name }}</h3>
 
-                <p>{{ person.total }} Awards</p>
+                <!-- ============================
+                     PRIZE BUTTON
+                ============================ -->
 
-                <div class="champion-medals">
+                {% if prize_winner %}
 
-                    🥇 {{ person.gold }}
+                    <button
+                        type="button"
+                        class="hof-prize"
+                        id="openPrizePopup"
+                    >
+                        🎁 Prize Winner
+                    </button>
 
-                    🥈 {{ person.silver }}
+                {% else %}
 
-                    🥉 {{ person.bronze }}
+                    <div class="hof-no-prize">
+                        ⏳ Not Prize Eligible Yet
+                    </div>
 
+                {% endif %}
+
+            </div>
+
+
+        {% else %}
+
+            <!-- ============================
+                 NO CHAMPION
+            ============================ -->
+
+            <div class="hof-tie">
+
+                <h2>
+                    🏆 Hall of Fame
+                </h2>
+
+                <p>
+                    At least 2 victories are required
+                    to become prize eligible.
+                </p>
+
+                <div class="hof-no-prize">
+                    No Champion Yet
                 </div>
 
             </div>
 
-            {% endfor %}
+        {% endif %}
+
+
+
+        <!-- =========================================================
+             HALL OF FAME PRIZE POPUP
+        ========================================================= -->
+
+        <div
+            class="hof-popup-overlay"
+            id="hofPrizePopup"
+            aria-hidden="true"
+        >
+
+            <div class="hof-popup">
+
+
+                <!-- CLOSE BUTTON -->
+
+                <button
+                    type="button"
+                    class="hof-popup-close"
+                    id="closePrizePopup"
+                    aria-label="Close"
+                >
+                    ×
+                </button>
+
+
+                <!-- TROPHY -->
+
+                <div class="hof-popup-trophy">
+                    🏆
+                </div>
+
+
+                <!-- TITLE -->
+
+                <div class="hof-popup-title">
+                    HALL OF FAME PRIZE
+                </div>
+
+
+                {% if prize_winner %}
+
+
+                    <!-- ============================
+                         WINNER PHOTO
+                    ============================ -->
+
+                    {% if prize_winner.photo %}
+
+                        <img
+                            src="{{ prize_winner.photo }}"
+                            alt="{{ prize_winner.name }}"
+                            class="hof-popup-photo"
+                            loading="lazy"
+                        >
+
+                    {% else %}
+
+                        <div
+                            class="
+                                hof-popup-photo
+                                hof-popup-default
+                            "
+                        >
+                            🏆
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- ============================
+                         WINNER NAME
+                    ============================ -->
+
+                    <h2>
+                        {{ prize_winner.name }}
+                    </h2>
+
+
+                    <!-- ============================
+                         WINNER VICTORIES
+                    ============================ -->
+
+                    <div class="hof-popup-wins">
+
+                        {{ prize_winner.victories }}
+
+                        {% if prize_winner.victories == 1 %}
+                            Victory
+                        {% else %}
+                            Victories
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- ============================
+                         POPUP MESSAGE
+                    ============================ -->
+
+                    <div class="hof-popup-message">
+
+                        🎉 Congratulations!
+
+                        <br><br>
+
+                        <strong>
+                            {{ prize_winner.name }}
+                        </strong>
+
+                        is currently the Hall of Fame leader.
+
+                        <br><br>
+
+
+                        {% if dance_completed %}
+
+                            <strong>
+                                🏆 Final Hall of Fame Result
+                            </strong>
+
+                            <br><br>
+
+                            The Dance Competition has been
+                            completed.
+
+                            <br><br>
+
+                            The Hall of Fame result is now final.
+
+                            <br><br>
+
+                            <strong>
+                                Prize winner confirmed!
+                            </strong>
+
+                            <br><br>
+
+                            <strong>
+                                Winner:
+                                {{ prize_winner.name }}
+                                will be awarded the Hall of Fame prize.
+                            </strong>
+
+                            <br><br>
+
+                            At Ganpati Bhandara After Aarti On
+
+                            <strong>
+                                24 Sep 2026, 8:00 PM
+                            </strong>
+
+                        {% else %}
+
+                            The final Hall of Fame prize winner
+                            will be confirmed after the
+                            <strong>Dance Competition</strong>,
+                            which is the final competition of
+                            the year.
+
+                        {% endif %}
+
+                    </div>
+
+
+                {% else %}
+
+
+                    <!-- ============================
+                         NO PRIZE WINNER
+                    ============================ -->
+
+                    <div class="hof-popup-default">
+                        🏆
+                    </div>
+
+                    <h2>
+                        Prize Winner Not Decided
+                    </h2>
+
+                    <div class="hof-popup-message">
+
+                        The Hall of Fame prize winner will be
+                        decided after the final
+                        <strong>Dance Competition</strong>.
+
+                        <br><br>
+
+                        Keep competing and collecting victories!
+
+                    </div>
+
+
+                {% endif %}
+
+
+                <!-- ============================
+                     PRIZE INFORMATION
+                ============================ -->
+
+                <div class="hof-prize-details">
+
+                    <div class="hof-prize-detail-icon">
+                        🎁
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Hall of Fame Prize
+                        </strong>
+
+                        <p>
+                            This year's Hall of Fame Prize is
+                            awarded to the final champion after
+                            the Dance Competition.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+            </div>
 
         </div>
 
-    </div>
 
-</section>
 
-<section class="hall-of-fame">
+        <!-- =========================================================
+             SEARCH
+        ========================================================= -->
 
-    <div class="container">
+        <div class="hof-search">
 
-        <div class="hall-grid">
-
-            {% for person in hall_of_fame %}
-
-            <div
-                class="hall-card"
-                data-search="{{ person.name|lower }}"
+            <input
+                type="text"
+                id="hofSearch"
+                placeholder="🔍 Search participant..."
+                autocomplete="off"
             >
 
-                <div class="hall-card-header">
-
-                    <div class="hall-avatar">
-
-                        🏆
-
-                    </div>
-
-                    <div class="hall-info">
-
-                        <h3>{{ person.name }}</h3>
-
-                        <span>{{ person.total }} Total Award{{ 's' if person.total != 1 else '' }}</span>
-
-                    </div>
-
-                </div>
-
-                <div class="hall-medals">
-
-                    <div class="medal gold">
-
-                        <span>🥇</span>
-
-                        <strong>{{ person.gold }}</strong>
-
-                        <small>Gold</small>
-
-                    </div>
-
-                    <div class="medal silver">
-
-                        <span>🥈</span>
-
-                        <strong>{{ person.silver }}</strong>
-
-                        <small>Silver</small>
-
-                    </div>
-
-                    <div class="medal bronze">
-
-                        <span>🥉</span>
-
-                        <strong>{{ person.bronze }}</strong>
-
-                        <small>Bronze</small>
-
-                    </div>
-
-                </div>
-
-                <div class="hall-history">
-
-                    <h4>Award History</h4>
-
-                    <ul>
-
-                        {% for award in person.awards %}
-
-                        <li>
-
-                            {% if award.position == 1 %}
-                                🥇
-                            {% elif award.position == 2 %}
-                                🥈
-                            {% elif award.position == 3 %}
-                                🥉
-                            {% endif %}
-
-                            {{ award.game }}
-
-                            <span>({{ award.year }})</span>
-
-                        </li>
-
-                        {% endfor %}
-
-                    </ul>
-
-                </div>
-
-            </div>
-
-            {% endfor %}
-
         </div>
 
-        <div class="hall-no-results" id="hallNoResults">
 
-            <i>🏆</i>
 
-            <h3>No Participant Found</h3>
+        <!-- =========================================================
+             LEADERBOARD TITLE
+        ========================================================= -->
+
+        <div class="hof-section-title">
+
+            <h2>
+                🏁 Competition Leaderboard
+            </h2>
 
             <p>
-                Try searching with another participant name.
+                {{ current_year }} victories
             </p>
 
         </div>
 
+
+
+        <!-- =========================================================
+             LEADERBOARD
+        ========================================================= -->
+
+        {% if hall_of_fame %}
+
+            <div
+                class="hof-leaderboard"
+                id="hofLeaderboard"
+            >
+
+                {% for person in hall_of_fame %}
+
+                    <div
+                        class="hof-player"
+                        data-name="{{ person.name|lower }}"
+                    >
+
+
+                        <!-- ============================
+                             RANK
+                        ============================ -->
+
+                        <div class="hof-rank">
+
+                            {% if loop.index == 1 %}
+
+                                🥇
+
+                            {% elif loop.index == 2 %}
+
+                                🥈
+
+                            {% elif loop.index == 3 %}
+
+                                🥉
+
+                            {% else %}
+
+                                #{{ loop.index }}
+
+                            {% endif %}
+
+                        </div>
+
+
+
+                        <!-- ============================
+                             PLAYER + PHOTO
+                        ============================ -->
+
+                        <div class="hof-player-name">
+
+                            <div class="hof-player-profile">
+
+
+                                <!-- PLAYER PHOTO -->
+
+                                {% if person.photo %}
+
+                                    <img
+                                        src="{{ person.photo }}"
+                                        alt="{{ person.name }}"
+                                        class="hof-player-photo"
+                                        loading="lazy"
+                                    >
+
+                                {% else %}
+
+                                    <div
+                                        class="
+                                            hof-player-photo
+                                            hof-player-default
+                                        "
+                                    >
+                                        👤
+                                    </div>
+
+                                {% endif %}
+
+
+                                <!-- NAME + STATUS -->
+
+                                <div>
+
+                                    <h3>
+                                        {{ person.name }}
+                                    </h3>
+
+
+                                    {% if person.eligible %}
+
+                                        <span
+                                            class="
+                                                hof-status
+                                                eligible
+                                            "
+                                        >
+                                            ✓ Prize Eligible
+                                        </span>
+
+                                    {% else %}
+
+                                        {% set remaining =
+                                            2 - person.victories
+                                        %}
+
+                                        <span
+                                            class="
+                                                hof-status
+                                                ineligible
+                                            "
+                                        >
+
+                                            Needs
+                                            {{ remaining }}
+                                            more win{% if remaining != 1 %}s{% endif %}
+
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- ============================
+                             WINS
+                        ============================ -->
+
+                        <div class="hof-player-wins">
+
+                            <strong>
+                                {{ person.victories }}
+                            </strong>
+
+                            <span>
+
+                                {% if person.victories == 1 %}
+
+                                    Victory
+
+                                {% else %}
+
+                                    Victories
+
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+
+
+                        <!-- ============================
+                             GAP
+                        ============================ -->
+
+                        <div
+                            class="
+                                hof-gap
+                                {% if loop.index == 1 %}
+                                    champion
+                                {% elif not person.eligible %}
+                                    ineligible
+                                {% endif %}
+                            "
+                        >
+
+                            {% if loop.index == 1 %}
+
+                                🏆 Leading
+
+                            {% else %}
+
+                                {% set leader_wins =
+                                    hall_of_fame[0].victories
+                                %}
+
+                                {% set gap =
+                                    leader_wins - person.victories
+                                %}
+
+                                {% if gap > 0 %}
+
+                                    {{ gap }}
+                                    win{% if gap != 1 %}s{% endif %}
+                                    behind
+
+                                {% else %}
+
+                                    🏆 Leading
+
+                                {% endif %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+
+            <!-- =================================================
+                 NO SEARCH RESULT
+            ================================================= -->
+
+            <div
+                class="hof-empty"
+                id="hofNoResults"
+                style="display:none;"
+            >
+
+                <div style="font-size:55px;">
+                    🔍
+                </div>
+
+                <h2>
+                    No Participant Found
+                </h2>
+
+                <p>
+                    Try searching with another participant name.
+                </p>
+
+            </div>
+
+
+        {% else %}
+
+
+            <!-- =================================================
+                 NO DATA
+            ================================================= -->
+
+            <div class="hof-empty">
+
+                <div style="font-size:55px;">
+                    🏆
+                </div>
+
+                <h2>
+                    No Hall of Fame Data Yet
+                </h2>
+
+                <p>
+                    Winners will appear here automatically
+                    as competitions are completed.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
+
+        <!-- =========================================================
+             PREVIOUS HALL OF FAME CHAMPIONS
+        ========================================================= -->
+
+        {% if previous_champions %}
+
+            <section class="hof-previous-section">
+
+                <div class="hof-section-title">
+
+                    <h2>
+                        🏆 Previous Hall of Fame Champions
+                    </h2>
+
+                    <p>
+                        Champions from previous years
+                    </p>
+
+                </div>
+
+
+                <div class="hof-previous-grid">
+
+                    {% for previous in previous_champions %}
+
+                        <div class="hof-previous-card">
+
+
+                            <!-- YEAR -->
+
+                            <div class="hof-previous-year">
+                                {{ previous.year }}
+                            </div>
+
+
+                            <!-- PHOTO -->
+
+                            {% if previous.photo %}
+
+                                <img
+                                    src="{{ previous.photo }}"
+                                    alt="{{ previous.name }}"
+                                    class="hof-previous-photo"
+                                    loading="lazy"
+                                >
+
+                            {% else %}
+
+                                <div
+                                    class="
+                                        hof-previous-photo
+                                        hof-previous-default
+                                    "
+                                >
+                                    🏆
+                                </div>
+
+                            {% endif %}
+
+
+                            <!-- NAME -->
+
+                            <div class="hof-previous-name">
+                                {{ previous.name }}
+                            </div>
+
+
+                            <!-- VICTORIES -->
+
+                            <div class="hof-previous-wins">
+
+                                🏆
+
+                                {{ previous.victories }}
+
+                                {% if previous.victories == 1 %}
+                                    Victory
+                                {% else %}
+                                    Victories
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- LABEL -->
+
+                            <div class="hof-previous-label">
+
+                                👑 Hall of Fame Champion
+
+                            </div>
+
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+        {% endif %}
+
+
     </div>
 
 </section>
-{% block scripts %}
+
+{% endblock %}
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+     
+     IMPORTANT:
+     base.html mein block ka naam extra_js hai.
+     Isliye yahan extra_js hi use karna hai.
+========================================================= -->
+
+{% block extra_js %}
 
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    const search = document.getElementById("hallSearch");
 
-    const cards = document.querySelectorAll(".hall-card");
+        /* =====================================================
+           PARTICIPANT SEARCH
+        ===================================================== */
 
-    const empty = document.getElementById("hallNoResults");
+        const search =
+            document.getElementById(
+                "hofSearch"
+            );
 
-    search.addEventListener("input", function () {
+        const cards =
+            document.querySelectorAll(
+                ".hof-player"
+            );
 
-        const value = this.value.toLowerCase().trim();
+        const empty =
+            document.getElementById(
+                "hofNoResults"
+            );
 
-        let visible = 0;
 
-        cards.forEach(card => {
+        if (search) {
 
-            const text = card.dataset.search;
+            search.addEventListener(
+                "input",
+                function () {
 
-            if (text.includes(value)) {
+                    const value =
+                        this.value
+                            .toLowerCase()
+                            .trim();
 
-                card.style.display = "";
+                    let visible = 0;
 
-                visible++;
 
-            } else {
+                    cards.forEach(
+                        function (card) {
 
-                card.style.display = "none";
+                            const name =
+                                card.dataset.name || "";
+
+
+                            if (
+                                name.includes(value)
+                            ) {
+
+                                card.style.display =
+                                    "";
+
+                                visible++;
+
+                            } else {
+
+                                card.style.display =
+                                    "none";
+
+                            }
+
+                        }
+                    );
+
+
+                    if (empty) {
+
+                        empty.style.display =
+                            visible === 0
+                                ? "block"
+                                : "none";
+
+                    }
+
+                }
+            );
+
+        }
+
+
+
+        /* =====================================================
+           PRIZE POPUP
+        ===================================================== */
+
+        const openPrizePopup =
+            document.getElementById(
+                "openPrizePopup"
+            );
+
+        const closePrizePopup =
+            document.getElementById(
+                "closePrizePopup"
+            );
+
+        const prizePopup =
+            document.getElementById(
+                "hofPrizePopup"
+            );
+
+
+
+        /* =====================================================
+           OPEN POPUP
+        ===================================================== */
+
+        if (
+            openPrizePopup &&
+            prizePopup
+        ) {
+
+            openPrizePopup.addEventListener(
+                "click",
+                function () {
+
+                    prizePopup.classList.add(
+                        "active"
+                    );
+
+                    prizePopup.setAttribute(
+                        "aria-hidden",
+                        "false"
+                    );
+
+                    document.body.classList.add(
+                        "hof-popup-open"
+                    );
+
+                }
+            );
+
+        }
+
+
+
+        /* =====================================================
+           CLOSE POPUP BUTTON
+        ===================================================== */
+
+        if (
+            closePrizePopup &&
+            prizePopup
+        ) {
+
+            closePrizePopup.addEventListener(
+                "click",
+                function () {
+
+                    prizePopup.classList.remove(
+                        "active"
+                    );
+
+                    prizePopup.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    document.body.classList.remove(
+                        "hof-popup-open"
+                    );
+
+                }
+            );
+
+        }
+
+
+
+        /* =====================================================
+           CLOSE BY CLICKING OUTSIDE
+        ===================================================== */
+
+        if (prizePopup) {
+
+            prizePopup.addEventListener(
+                "click",
+                function (event) {
+
+                    if (
+                        event.target ===
+                        prizePopup
+                    ) {
+
+                        prizePopup.classList.remove(
+                            "active"
+                        );
+
+                        prizePopup.setAttribute(
+                            "aria-hidden",
+                            "true"
+                        );
+
+                        document.body.classList.remove(
+                            "hof-popup-open"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+
+        /* =====================================================
+           CLOSE WITH ESCAPE
+        ===================================================== */
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Escape" &&
+                    prizePopup
+                ) {
+
+                    prizePopup.classList.remove(
+                        "active"
+                    );
+
+                    prizePopup.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    document.body.classList.remove(
+                        "hof-popup-open"
+                    );
+
+                }
 
             }
+        );
 
-        });
-
-        empty.style.display = visible === 0 ? "block" : "none";
-
-    });
-
-});
+    }
+);
 
 </script>
-
 
 {% endblock %}

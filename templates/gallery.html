@@ -22,7 +22,8 @@ Gallery | Gajanan Utsav Samiti 2026
 
 </section>
 
-{% for year, events in gallery.items() %}
+{% for year in gallery.keys()|sort(reverse=true) %}
+    {% set events = gallery[year] %}
 
 <section class="gallery-year reveal">
 
