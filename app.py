@@ -671,16 +671,35 @@ def load_hall_of_fame():
 
     # Current year ka data nahi hai
     if current_year not in winners_data:
+
         return {
             "year": current_year,
             "players": [],
             "champion": None,
             "prize_winner": None,
             "tie_for_first": False,
-            "has_data": False
+            "has_data": False,
+            "dance_completed": False
         }
 
     current_games = winners_data[current_year]
+
+    # --------------------------------------------------------
+    # DANCE COMPETITION STATUS
+    # --------------------------------------------------------
+
+    dance_completed = False
+
+    for game in current_games:
+
+        game_name = str(
+            game.get("game", "")
+        ).strip().lower()
+
+        if "dance" in game_name:
+
+            dance_completed = True
+            break
 
     # --------------------------------------------------------
     # PLAYER VICTORY COUNT
@@ -710,10 +729,11 @@ def load_hall_of_fame():
 
                 # ------------------------------------------------
                 # IMPORTANT:
-                # Ranking competition mein winner list mein
-                # kisi bhi position par hona = 1 victory.
                 #
-                # 1st / 2nd / 3rd sab count honge.
+                # Winner list mein kisi bhi position par hona
+                # = 1 Hall of Fame victory.
+                #
+                # 1st, 2nd, 3rd sab count honge.
                 # ------------------------------------------------
 
                 name = str(
@@ -733,9 +753,8 @@ def load_hall_of_fame():
                     }
 
                 # ------------------------------------------------
-                # IMPORTANT:
-                # Ek competition mein same participant ki
-                # maximum 1 victory count hogi.
+                # Same competition mein same player ki
+                # multiple entries ko sirf 1 victory count karo.
                 # ------------------------------------------------
 
                 if game_name not in players[name]["competitions"]:
@@ -754,11 +773,9 @@ def load_hall_of_fame():
 
             groups = game.get("groups", [])
 
-            # Same competition mein same participant
-            # multiple groups jeet sakta hai.
-            #
-            # Lekin Hall of Fame ke liye ek competition
-            # maximum 1 victory hi count karega.
+            # Same competition mein agar same player
+            # multiple age groups jeetta hai,
+            # Hall of Fame mein sirf 1 victory count hogi.
 
             winners_in_this_competition = set()
 
@@ -871,10 +888,9 @@ def load_hall_of_fame():
         "champion": champion,
         "prize_winner": prize_winner,
         "tie_for_first": tie_for_first,
-        "has_data": bool(leaderboard)
+        "has_data": bool(leaderboard),
+        "dance_completed": dance_completed
     }
-    
-    
     
 
 # WINNERS - MIGRATE JSON DATA TO FIRESTORE
@@ -1865,21 +1881,30 @@ def hall_of_fame():
     return render_template(
         "hall_of_fame.html",
 
-        hall_of_fame=hall["players"],
+        # Complete leaderboard
+        hall_of_fame=hall.get("players", []),
 
-        top_three=hall["players"][:3],
+        # Top 3 players
+        top_three=hall.get("players", [])[:3],
 
-        champion=hall["champion"],
+        # Champion
+        champion=hall.get("champion"),
 
-        prize_winner=hall["prize_winner"],
+        # Prize winner
+        prize_winner=hall.get("prize_winner"),
 
-        tie_for_first=hall["tie_for_first"],
+        # Tie status
+        tie_for_first=hall.get("tie_for_first", False),
 
-        current_year=hall["year"],
+        # Current year
+        current_year=hall.get("year"),
 
-        has_data=hall["has_data"],
+        # Data available
+        has_data=hall.get("has_data", False),
 
-        dance_completed=hall["dance_completed"],
+        # Dance completion
+        # Key missing hone par bhi website crash nahi hogi
+        dance_completed=hall.get("dance_completed", False),
 
         active_page="hall_of_fame"
     )
