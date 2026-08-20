@@ -3531,479 +3531,600 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
 
 
 
-/*==================================================
-    HALL OF FAME
-==================================================*/
+/* =========================================================
+   HALL OF FAME
+========================================================= */
 
-.hall-of-fame{
-
-    padding:60px 0;
-
+.hof-page {
+    padding: 120px 0 80px;
+    background:
+        radial-gradient(circle at top right, rgba(212,175,55,.12), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #f8f8f8 100%);
+    min-height: 70vh;
 }
 
-.hall-search-section{
-
-    padding:30px 0;
-
-    position:sticky;
-
-    top:80px;
-
-    z-index:50;
-
-    backdrop-filter:blur(12px);
-
-    background:rgba(255,255,255,.92);
-
-    border-bottom:1px solid rgba(212,175,55,.20);
-
+.hof-container {
+    width: min(1200px, 92%);
+    margin: auto;
 }
 
-.hall-search-box{
+/* ================= HEADER ================= */
 
-    display:flex;
-
-    justify-content:center;
-
+.hof-header {
+    text-align: center;
+    margin-bottom: 45px;
 }
 
-.hall-search-box input{
-
-    width:100%;
-
-    max-width:550px;
-
-    padding:14px 20px;
-
-    border-radius:50px;
-
-    border:2px solid rgba(212,175,55,.25);
-
-    font-size:16px;
-
-    outline:none;
-
-    transition:.3s;
-
-    background:#fff;
-
+.hof-trophy {
+    font-size: 75px;
+    line-height: 1;
+    margin-bottom: 15px;
 }
 
-.hall-search-box input:focus{
-
-    border-color:var(--gold);
-
-    box-shadow:0 0 20px rgba(212,175,55,.20);
-
+.hof-header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 58px;
+    color: #111;
+    margin-bottom: 12px;
 }
 
-.hall-grid{
-
-    display:grid;
-
-    grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
-
-    gap:30px;
-
-    margin-top:20px;
-
+.hof-header p {
+    font-size: 19px;
+    color: #666;
+    margin-bottom: 18px;
 }
 
-
-
-
-.hall-card{
-
-    background:#fff;
-
-    border-radius:22px;
-
-    padding:28px;
-
-    border:1px solid rgba(212,175,55,.20);
-
-    box-shadow:0 12px 30px rgba(0,0,0,.08);
-
-    transition:.35s;
-
-    position:relative;
-
-    overflow:hidden;
-
+.hof-year {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: 40px;
+    background: linear-gradient(135deg,#d4af37,#f2d978);
+    color: #111;
+    font-weight: 800;
+    font-size: 17px;
 }
 
-.hall-card::before{
+/* ================= CHAMPION ================= */
 
-    content:"";
-
-    position:absolute;
-
-    top:0;
-
-    left:-100%;
-
-    width:100%;
-
-    height:100%;
-
-    background:linear-gradient(
-        120deg,
-        transparent,
-        rgba(255,255,255,.40),
-        transparent
-    );
-
-    transition:.7s;
-
+.hof-champion {
+    position: relative;
+    text-align: center;
+    background:
+        radial-gradient(circle at center, rgba(212,175,55,.14), transparent 45%),
+        #fffdf5;
+    border: 2px solid #d4af37;
+    border-radius: 30px;
+    padding: 55px 30px;
+    margin-bottom: 45px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.10);
+    overflow: hidden;
 }
 
-.hall-card:hover::before{
-
-    left:100%;
-
+.hof-champion-label {
+    display: inline-block;
+    padding: 13px 28px;
+    background: #111;
+    color: #f2d978;
+    border-radius: 50px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 25px;
 }
 
-.hall-card:hover{
-
-    transform:translateY(-8px);
-
-    box-shadow:0 18px 40px rgba(0,0,0,.12);
-
+.hof-champion h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 48px;
+    color: #111;
+    margin-bottom: 12px;
 }
 
-
-
-.hall-card-header{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:18px;
-
-    margin-bottom:25px;
-
+.hof-wins {
+    font-size: 30px;
+    font-weight: 800;
+    color: #c39400;
 }
 
-.hall-avatar{
-
-    width:70px;
-
-    height:70px;
-
-    border-radius:50%;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    font-size:34px;
-
-    background:linear-gradient(135deg,#FFD54F,#F9A825);
-
-    color:#fff;
-
-    flex-shrink:0;
-
+.hof-prize {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 28px;
+    border-radius: 40px;
+    background: linear-gradient(135deg,#d4af37,#f2d978);
+    color: #111;
+    font-weight: 800;
 }
 
-.hall-info h3{
+/* ================= TIE ================= */
 
-    margin:0;
-
-    font-size:22px;
-
-    color:#222;
-
+.hof-tie {
+    text-align: center;
+    padding: 45px 25px;
+    margin-bottom: 45px;
+    border-radius: 25px;
+    background: #fff;
+    border: 2px solid #d4af37;
+    box-shadow: var(--shadow);
 }
 
-.hall-info span{
-
-    color:#666;
-
-    font-size:14px;
-
+.hof-tie h2 {
+    color: #111;
+    margin-bottom: 12px;
 }
 
-.hall-medals{
-
-    display:grid;
-
-    grid-template-columns:repeat(3,1fr);
-
-    gap:12px;
-
-    margin-bottom:25px;
-
+.hof-no-prize {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 25px;
+    background: #f3f3f3;
+    border-radius: 40px;
+    font-weight: 700;
 }
 
-.medal{
+/* ================= SEARCH ================= */
 
-    text-align:center;
-
-    padding:15px;
-
-    border-radius:16px;
-
-    background:#fafafa;
-
+.hof-search {
+    position: sticky;
+    top: 82px;
+    z-index: 50;
+    padding: 22px 0;
+    margin-bottom: 35px;
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(212,175,55,.18);
 }
 
-.medal span{
-
-    display:block;
-
-    font-size:26px;
-
-    margin-bottom:6px;
-
+.hof-search input {
+    display: block;
+    width: min(550px,100%);
+    margin: auto;
+    padding: 15px 22px;
+    border: 2px solid rgba(212,175,55,.25);
+    border-radius: 50px;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    background: #fff;
+    transition: .3s;
 }
 
-.medal strong{
-
-    display:block;
-
-    font-size:24px;
-
-    color:#222;
-
+.hof-search input:focus {
+    border-color: #d4af37;
+    box-shadow: 0 0 20px rgba(212,175,55,.18);
 }
 
-.medal small{
+/* ================= SECTION TITLE ================= */
 
-    color:#666;
-
+.hof-section-title {
+    text-align: center;
+    margin: 45px 0 35px;
 }
 
-
-/*==================================================
-    AWARD HISTORY
-==================================================*/
-
-.hall-history{
-
-    border-top:1px solid rgba(212,175,55,.20);
-
-    padding-top:20px;
-
+.hof-section-title h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 38px;
+    color: #111;
+    margin-bottom: 8px;
 }
 
-.hall-history h4{
-
-    margin:0 0 15px;
-
-    color:#222;
-
-    font-size:18px;
-
+.hof-section-title p {
+    color: #777;
+    font-size: 17px;
 }
 
-.hall-history ul{
+/* ================= LEADERBOARD ================= */
 
-    list-style:none;
-
-    margin:0;
-
-    padding:0;
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:12px;
-
+.hof-leaderboard {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 }
 
-.hall-history li{
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:space-between;
-
-    gap:12px;
-
-    padding:12px 16px;
-
-    border-radius:12px;
-
-    background:#fafafa;
-
-    transition:.3s;
-
+.hof-player {
+    display: grid;
+    grid-template-columns: 75px 1fr 110px;
+    align-items: center;
+    gap: 20px;
+    padding: 22px 25px;
+    background: #fff;
+    border-radius: 22px;
+    border: 1px solid rgba(212,175,55,.15);
+    box-shadow: 0 10px 30px rgba(0,0,0,.07);
+    transition: .35s ease;
 }
 
-.hall-history li:hover{
-
-    background:#fff8e8;
-
-    transform:translateX(4px);
-
+.hof-player:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 18px 40px rgba(212,175,55,.16);
 }
 
-.hall-history li span{
+/* ================= RANK ================= */
 
-    color:#777;
-
-    font-size:14px;
-
-    white-space:nowrap;
-
+.hof-rank {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f1df;
+    font-size: 22px;
+    font-weight: 800;
+    color: #9b7500;
 }
 
-/*==================================================
-    NO RESULTS
-==================================================*/
+/* ================= PLAYER PHOTO ================= */
 
-.hall-no-results{
-
-    display:none;
-
-    text-align:center;
-
-    padding:80px 20px;
-
-    margin-top:40px;
-
-    border:2px dashed rgba(212,175,55,.35);
-
-    border-radius:20px;
-
-    background:#fff;
-
+.hof-player-photo {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #d4af37;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(212,175,55,.22);
 }
 
-.hall-no-results i{
+/* ================= PLAYER INFO ================= */
 
-    font-size:60px;
-
-    color:var(--gold);
-
-    margin-bottom:20px;
-
+.hof-player-info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
 }
 
-.hall-no-results h3{
-
-    margin-bottom:10px;
-
-    color:#222;
-
+.hof-player-info h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 23px;
+    color: #111;
+    margin: 0;
 }
 
-.hall-no-results p{
-
-    color:#666;
-
+.hof-player-info p {
+    margin: 5px 0 0;
+    color: #777;
+    font-size: 14px;
 }
 
-/*==================================================
-    RESPONSIVE
-==================================================*/
+/* ================= STATUS ================= */
 
-@media(max-width:768px){
+.hof-status {
+    display: inline-block;
+    margin-top: 7px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+}
 
-    .hall-card{
+.hof-status.eligible {
+    background: #e4f6e8;
+    color: #21863b;
+}
 
-        padding:22px;
+.hof-status.ineligible {
+    background: #f1f1f1;
+    color: #777;
+}
 
+/* ================= VICTORIES ================= */
+
+.hof-player-wins {
+    text-align: center;
+}
+
+.hof-player-wins strong {
+    display: block;
+    font-size: 34px;
+    color: #c39400;
+    font-weight: 800;
+}
+
+.hof-player-wins span {
+    display: block;
+    margin-top: 3px;
+    color: #777;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ================= GAP ================= */
+
+.hof-gap {
+    grid-column: 2 / -1;
+    color: #555;
+    font-weight: 600;
+    padding-top: 3px;
+}
+
+/* ================= GAMES ================= */
+
+.hof-games {
+    grid-column: 2 / -1;
+    margin-top: 15px;
+    padding-top: 18px;
+    border-top: 1px solid #eee;
+}
+
+.hof-games ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.hof-games li {
+    margin: 7px 0;
+    color: #555;
+}
+
+/* ================= EMPTY ================= */
+
+.hof-empty {
+    text-align: center;
+    padding: 70px 20px;
+    background: #fff;
+    border-radius: 25px;
+    box-shadow: var(--shadow);
+    color: #777;
+}
+
+.hof-empty h2 {
+    margin: 15px 0 8px;
+    color: #222;
+}
+
+/* ================= POPUP ================= */
+
+.hof-popup-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,.72);
+    backdrop-filter: blur(8px);
+    z-index: 99999;
+}
+
+.hof-popup-overlay.active {
+    display: flex;
+}
+
+.hof-popup {
+    width: min(520px,100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 40px 30px;
+    text-align: center;
+    background: #fff;
+    border-radius: 28px;
+    border: 2px solid #d4af37;
+    box-shadow: 0 25px 70px rgba(0,0,0,.3);
+}
+
+.hof-popup-close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: #111;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+.hof-popup-trophy {
+    font-size: 60px;
+}
+
+.hof-popup-title {
+    margin: 12px 0 20px;
+    color: #c39400;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.hof-popup-photo {
+    width: 130px;
+    height: 130px;
+    margin: 15px auto 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #d4af37;
+}
+
+.hof-popup-default {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 65px;
+}
+
+.hof-popup h2 {
+    margin-bottom: 10px;
+}
+
+.hof-popup-wins {
+    font-size: 25px;
+    font-weight: 800;
+    color: #c39400;
+}
+
+.hof-popup-message {
+    margin-top: 20px;
+    line-height: 1.8;
+    color: #555;
+}
+
+.hof-prize-details {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 25px;
+    padding: 18px;
+    text-align: left;
+    border-radius: 16px;
+    background: #fff8df;
+}
+
+.hof-prize-detail-icon {
+    font-size: 32px;
+}
+
+/* ================= PREVIOUS CHAMPIONS ================= */
+
+.hof-previous-section {
+    margin-top: 70px;
+}
+
+.hof-previous-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+    gap: 25px;
+}
+
+.hof-previous-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid rgba(212,175,55,.18);
+    box-shadow: var(--shadow);
+}
+
+.hof-previous-card img {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #d4af37;
+}
+
+.hof-previous-card h3 {
+    font-size: 20px;
+    margin-bottom: 6px;
+}
+
+.hof-previous-card p {
+    color: #777;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 850px) {
+
+    .hof-page {
+        padding-top: 105px;
     }
 
-    .hall-card-header{
-
-        flex-direction:column;
-
-        text-align:center;
-
+    .hof-header h1 {
+        font-size: 45px;
     }
 
-    .hall-avatar{
-
-        width:60px;
-
-        height:60px;
-
-        font-size:30px;
-
+    .hof-player {
+        grid-template-columns: 62px 1fr 90px;
     }
 
-    .hall-medals{
-
-        grid-template-columns:1fr;
-
-    }
-
-    .hall-history li{
-
-        flex-direction:column;
-
-        align-items:flex-start;
-
+    .hof-player-info h3 {
+        font-size: 20px;
     }
 
 }
 
-@media(max-width:480px){
+@media (max-width: 600px) {
 
-    .hall-grid{
-
-        grid-template-columns:1fr;
-
+    .hof-page {
+        padding: 105px 14px 60px;
     }
 
-    .hall-search-box input{
-
-        font-size:15px;
-
+    .hof-container {
+        width: 100%;
     }
 
-    .hall-info h3{
-
-        font-size:20px;
-
+    .hof-trophy {
+        font-size: 60px;
     }
 
-    .medal strong{
+    .hof-header h1 {
+        font-size: 38px;
+    }
 
-        font-size:20px;
+    .hof-header p {
+        font-size: 16px;
+    }
 
+    .hof-champion {
+        padding: 40px 18px;
+    }
+
+    .hof-champion h2 {
+        font-size: 35px;
+    }
+
+    .hof-section-title h2 {
+        font-size: 29px;
+    }
+
+    .hof-player {
+        grid-template-columns: 55px 1fr;
+        gap: 14px;
+        padding: 18px;
+    }
+
+    .hof-player-photo {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+    }
+
+    .hof-player-wins {
+        grid-column: 2;
+        text-align: left;
+    }
+
+    .hof-player-wins strong {
+        font-size: 28px;
+    }
+
+    .hof-gap {
+        grid-column: 2;
+    }
+
+    .hof-games {
+        grid-column: 2;
+    }
+
+    .hof-search {
+        top: 70px;
     }
 
 }
 
-/*==================================================
-    ANIMATION
-==================================================*/
+@media (max-width: 400px) {
 
-.hall-card{
-
-    animation:hallFade .45s ease;
-
-}
-
-@keyframes hallFade{
-
-    from{
-
-        opacity:0;
-
-        transform:translateY(20px);
-
+    .hof-header h1 {
+        font-size: 32px;
     }
 
-    to{
+    .hof-champion h2 {
+        font-size: 30px;
+    }
 
-        opacity:1;
+    .hof-player-info h3 {
+        font-size: 18px;
+    }
 
-        transform:translateY(0);
-
+    .hof-player-wins strong {
+        font-size: 25px;
     }
 
 }
-
 
 
 /*==================================================
@@ -5863,3 +5984,5 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
 
     letter-spacing: 0.7px;
 }
+
+
