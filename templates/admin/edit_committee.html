@@ -24,10 +24,11 @@ Edit Committee Member
                 </h1>
 
                 <p>
-                    Update member details and photo.
+                    Update committee member details and photo.
                 </p>
 
             </div>
+
 
             <a
                 href="{{ url_for(
@@ -57,7 +58,9 @@ Edit Committee Member
                     {% for category, message in messages %}
 
                         <div class="admin-message {{ category }}">
+
                             {{ message }}
+
                         </div>
 
                     {% endfor %}
@@ -100,12 +103,10 @@ Edit Committee Member
                     </label>
 
                     <input
-                        type="number"
+                        type="text"
                         id="year"
                         name="year"
                         value="{{ member.year }}"
-                        min="2000"
-                        max="2100"
                         required
                     >
 
@@ -127,7 +128,6 @@ Edit Committee Member
                         id="name"
                         name="name"
                         value="{{ member.name }}"
-                        maxlength="100"
                         required
                     >
 
@@ -141,7 +141,7 @@ Edit Committee Member
                 <div class="form-group">
 
                     <label for="post">
-                        Post / Position
+                        Post
                     </label>
 
                     <input
@@ -149,7 +149,6 @@ Edit Committee Member
                         id="post"
                         name="post"
                         value="{{ member.post }}"
-                        maxlength="100"
                         required
                     >
 
@@ -157,7 +156,7 @@ Edit Committee Member
 
 
                 <!-- =================================================
-                     ORDER
+                     DISPLAY ORDER
                 ================================================== -->
 
                 <div class="form-group">
@@ -172,11 +171,10 @@ Edit Committee Member
                         name="order"
                         value="{{ member.order|default(999) }}"
                         min="1"
-                        max="9999"
                     >
 
                     <small>
-                        Lower number appears first.
+                        Smaller number appears first.
                     </small>
 
                 </div>
@@ -192,24 +190,25 @@ Edit Committee Member
                         Current Photo
                     </label>
 
-                    <div class="current-committee-photo">
+                    {% if member.image %}
 
-                        {% if member.image %}
+                        <div class="current-committee-photo">
 
                             <img
                                 src="{{ member.image }}"
                                 alt="{{ member.name }}"
+                                loading="lazy"
                             >
 
-                        {% else %}
+                        </div>
 
-                            <div class="committee-no-photo">
-                                👤
-                            </div>
+                    {% else %}
 
-                        {% endif %}
+                        <div class="committee-no-photo">
+                            👤
+                        </div>
 
-                    </div>
+                    {% endif %}
 
                 </div>
 
@@ -228,15 +227,13 @@ Edit Committee Member
                         type="file"
                         id="photo"
                         name="photo"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept="image/*"
                     >
 
                     <small>
 
-                        Leave empty to keep the current photo.
-
-                        If a new photo is selected,
-                        the old Cloudinary photo will be removed.
+                        Leave empty if you want to keep
+                        the current photo.
 
                     </small>
 
@@ -248,8 +245,7 @@ Edit Committee Member
                 ================================================== -->
 
                 <div
-                    id="photoPreviewContainer"
-                    class="committee-photo-preview"
+                    id="photoPreviewBox"
                     style="display:none;"
                 >
 
@@ -261,6 +257,12 @@ Edit Committee Member
                         id="photoPreview"
                         src=""
                         alt="New Photo Preview"
+                        style="
+                            max-width:220px;
+                            max-height:220px;
+                            object-fit:cover;
+                            border-radius:15px;
+                        "
                     >
 
                 </div>
@@ -268,7 +270,7 @@ Edit Committee Member
 
                 <!-- =================================================
                      ACTIONS
-                ================================================== -->
+                ================================================= -->
 
                 <div class="committee-form-actions">
 
@@ -282,11 +284,12 @@ Edit Committee Member
                         Cancel
                     </a>
 
+
                     <button
                         type="submit"
                         class="admin-btn"
                     >
-                        💾 Update Member
+                        💾 Update Committee Member
                     </button>
 
                 </div>
@@ -313,9 +316,9 @@ document.addEventListener(
         const photoInput =
             document.getElementById("photo");
 
-        const previewContainer =
+        const previewBox =
             document.getElementById(
-                "photoPreviewContainer"
+                "photoPreviewBox"
             );
 
         const preview =
@@ -334,13 +337,12 @@ document.addEventListener(
             function () {
 
                 const file =
-                    this.files &&
                     this.files[0];
 
 
                 if (!file) {
 
-                    previewContainer.style.display =
+                    previewBox.style.display =
                         "none";
 
                     preview.src = "";
@@ -349,49 +351,15 @@ document.addEventListener(
                 }
 
 
-                const allowedTypes = [
-
-                    "image/jpeg",
-                    "image/png",
-                    "image/webp"
-
-                ];
-
-
-                if (
-                    !allowedTypes.includes(
-                        file.type
-                    )
-                ) {
+                if (!file.type.startsWith("image/")) {
 
                     alert(
-                        "Please select a JPG, PNG or WebP image."
+                        "Please select an image file."
                     );
 
                     this.value = "";
 
-                    previewContainer.style.display =
-                        "none";
-
-                    return;
-                }
-
-
-                const maxSize =
-                    5 * 1024 * 1024;
-
-
-                if (
-                    file.size > maxSize
-                ) {
-
-                    alert(
-                        "Photo size must be less than 5 MB."
-                    );
-
-                    this.value = "";
-
-                    previewContainer.style.display =
+                    previewBox.style.display =
                         "none";
 
                     return;
@@ -408,15 +376,13 @@ document.addEventListener(
                         preview.src =
                             event.target.result;
 
-                        previewContainer.style.display =
+                        previewBox.style.display =
                             "block";
 
                     };
 
 
-                reader.readAsDataURL(
-                    file
-                );
+                reader.readAsDataURL(file);
 
             }
         );
