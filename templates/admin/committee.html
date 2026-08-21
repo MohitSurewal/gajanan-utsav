@@ -36,9 +36,7 @@ Committee Manager
              FLASH MESSAGES
         ====================================================== -->
 
-        {% with messages = get_flashed_messages(
-            with_categories=true
-        ) %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
 
             {% if messages %}
 
@@ -46,9 +44,7 @@ Committee Manager
 
                     {% for category, message in messages %}
 
-                        <div
-                            class="admin-message {{ category }}"
-                        >
+                        <div class="admin-message {{ category }}">
 
                             {{ message }}
 
@@ -64,14 +60,16 @@ Committee Manager
 
 
         <!-- =====================================================
-             YEAR SELECTOR + ADD MEMBER
+             YEAR + ADD MEMBER
         ====================================================== -->
 
         <div class="admin-card">
 
             <div class="committee-toolbar">
 
-                <!-- YEAR -->
+                <!-- =================================================
+                     YEAR SELECTOR
+                ================================================== -->
 
                 <div class="committee-year-box">
 
@@ -92,9 +90,7 @@ Committee Manager
                                     selected
                                 {% endif %}
                             >
-
                                 {{ year }}
-
                             </option>
 
                         {% endfor %}
@@ -104,18 +100,20 @@ Committee Manager
                 </div>
 
 
-                <!-- ADD MEMBER -->
+                <!-- =================================================
+                     ADD MEMBER
+                ================================================== -->
 
-                <a
-                    href="{{ url_for(
-                        'admin_committee_add'
-                    ) }}"
-                    class="admin-btn"
-                >
+                <div class="committee-add-box">
 
-                    ➕ Add Committee Member
+                    <a
+                        href="{{ url_for('admin_committee_add') }}?year={{ current_year }}"
+                        class="admin-btn"
+                    >
+                        ➕ Add Committee Member
+                    </a>
 
-                </a>
+                </div>
 
             </div>
 
@@ -147,9 +145,7 @@ Committee Manager
 
             <form
                 method="POST"
-                action="{{ url_for(
-                    'migrate_committee'
-                ) }}"
+                action="{{ url_for('migrate_committee') }}"
                 onsubmit="
                     return confirm(
                         'Import old committee data into Firestore?'
@@ -173,6 +169,23 @@ Committee Manager
                 </button>
 
             </form>
+
+        </div>
+
+
+        <!-- =====================================================
+             CURRENT YEAR
+        ====================================================== -->
+
+        <div class="committee-current-year">
+
+            <span>
+                Showing Committee:
+            </span>
+
+            <strong>
+                {{ current_year }}
+            </strong>
 
         </div>
 
@@ -224,22 +237,16 @@ Committee Manager
                         <div class="committee-member-info">
 
                             <h3>
-
                                 {{ member.name }}
-
                             </h3>
 
                             <p>
-
                                 {{ member.post }}
-
                             </p>
 
                             <small>
-
                                 Year:
                                 {{ member.year }}
-
                             </small>
 
                         </div>
@@ -330,9 +337,7 @@ Committee Manager
                     </p>
 
                     <a
-                        href="{{ url_for(
-                            'admin_committee_add'
-                        ) }}"
+                        href="{{ url_for('admin_committee_add') }}?year={{ current_year }}"
                         class="admin-btn"
                     >
 
