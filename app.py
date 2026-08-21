@@ -418,35 +418,417 @@ REQUIRED_FIELDS = {
 }
 
 
-def load_committee():
+# ============================================================
+# COMMITTEE - FIRESTORE
+# ============================================================
 
-    file_path = os.path.join(BASE_DIR, "data", "committee.json")
+# ============================================================
+# COMMITTEE - FIRESTORE
+# ============================================================
 
-    with open(file_path, "r", encoding="utf-8") as f:
+def load_committee(year=None):
+    """
+    Load committee members from Firestore.
 
-        return json.load(f)
+    If year is not provided:
+        Current year is used.
+
+    Example:
+        load_committee()
+        load_committee("2026")
+        load_committee("2027")
+    """
+
+    try:
+
+        # ----------------------------------------------------
+        # YEAR
+        # ----------------------------------------------------
+
+        if year is None:
+            year = str(datetime.now().year)
+
+        year = str(year).strip()
+
+        # ----------------------------------------------------
+        # FIRESTORE
+        # ----------------------------------------------------
+
+        docs = (
+            db.collection("committee")
+            .where(
+                "year",
+                "==",
+                year
+            )
+            .stream()
+        )
+
+        committee = []
+
+        # ----------------------------------------------------
+        # READ DOCUMENTS
+        # ----------------------------------------------------
+
+        for doc in docs:
+
+            data = doc.to_dict()
+
+            if not data:
+                continue
+
+            # Firestore document ID
+            data["doc_id"] = doc.id
+
+            # ------------------------------------------------
+            # NORMALIZE NAME
+            # ------------------------------------------------
+
+            data["name"] = str(
+                data.get("name", "")
+            ).strip()
+
+            # ------------------------------------------------
+            # NORMALIZE POST
+            # ------------------------------------------------
+
+            data["post"] = str(
+                data.get("post", "")
+            ).strip()
+
+            # ------------------------------------------------
+            # PHOTO COMPATIBILITY
+            # ------------------------------------------------
+
+            image = (
+                data.get("image")
+                or data.get("photo")
+                or data.get("image_url")
+                or data.get("photo_url")
+                or ""
+            )
+
+            data["image"] = image
+
+            data["photo"] = image
+
+            # ------------------------------------------------
+            # ORDER
+            # ------------------------------------------------
+
+            try:
+
+                data["order"] = int(
+                    data.get(
+                        "order",
+                        999
+                    )
+                )
+
+            except Exception:
+
+                data["order"] = 999
+
+            committee.append(data)
+
+        # ----------------------------------------------------
+        # SORT
+        # ----------------------------------------------------
+
+        committee.sort(
+            key=lambda member: (
+                member.get(
+                    "order",
+                    999
+                ),
+                member.get(
+                    "name",
+                    ""
+                ).lower()
+            )
+        )
+
+        print(
+            f"[Committee] "
+            f"Loaded {len(committee)} "
+            f"member(s) for {year}"
+        )
+
+        return committee
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "COMMITTEE FIRESTORE LOAD ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
+        return []
 
 
-def save_committee(data):
+# ============================================================
+# ADD COMMITTEE MEMBER
+# ============================================================
 
-    file_path = os.path.join(BASE_DIR, "data", "committee.json")
+def save_committee_member(
+    year,
+    name,
+    post,
+    image="",
+    photo_public_id="",
+    order=999
+):
+    """
+    Add a new committee member to Firestore.
+    """
 
-    with open(file_path, "w", encoding="utf-8") as f:
+    try:
 
-        json.dump(data, f, indent=4, ensure_ascii=False)
+        year = str(
+            year
+        ).strip()
+
+        name = str(
+            name
+        ).strip()
+
+        post = str(
+            post
+        ).strip()
+
+        try:
+
+            order = int(order)
+
+        except Exception:
+
+            order = 999
+
+        # ----------------------------------------------------
+        # DATA
+        # ----------------------------------------------------
+
+        data = {
+
+            "year": year,
+
+            "name": name,
+
+            "post": post,
+
+            "image": image,
+
+            "photo": image,
+
+            "photo_public_id":
+                photo_public_id,
+
+            "order": order,
+
+            "created_at":
+                datetime.utcnow().isoformat(),
+
+            "updated_at":
+                datetime.utcnow().isoformat()
+        }
+
+        # ----------------------------------------------------
+        # CREATE FIRESTORE DOCUMENT
+        # ----------------------------------------------------
+
+        doc_ref = (
+            db.collection("committee")
+            .document()
+        )
+
+        doc_ref.set(data)
+
+        print(
+            f"[Committee] "
+            f"Added member: {name} "
+            f"({year})"
+        )
+
+        return doc_ref.id
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "COMMITTEE SAVE ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
+        return None
 
 
-def validate_game(game, filename):
+# ============================================================
+# UPDATE COMMITTEE MEMBER
+# ============================================================
 
-    missing = REQUIRED_FIELDS - game.keys()
+def update_committee_member(
+    doc_id,
+    year,
+    name,
+    post,
+    image="",
+    photo_public_id="",
+    order=999
+):
+    """
+    Update an existing committee member.
+    """
 
-    if missing:
-        print(f"\n❌ {filename}")
-        print("Missing Fields:", ", ".join(sorted(missing)))
+    try:
+
+        year = str(
+            year
+        ).strip()
+
+        name = str(
+            name
+        ).strip()
+
+        post = str(
+            post
+        ).strip()
+
+        try:
+
+            order = int(order)
+
+        except Exception:
+
+            order = 999
+
+        db.collection(
+            "committee"
+        ).document(
+            doc_id
+        ).update({
+
+            "year": year,
+
+            "name": name,
+
+            "post": post,
+
+            "image": image,
+
+            "photo": image,
+
+            "photo_public_id":
+                photo_public_id,
+
+            "order": order,
+
+            "updated_at":
+                datetime.utcnow().isoformat()
+
+        })
+
+        print(
+            f"[Committee] "
+            f"Updated member: {name}"
+        )
+
+        return True
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "COMMITTEE UPDATE ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
         return False
 
-    return True
 
+# ============================================================
+# DELETE COMMITTEE MEMBER
+# ============================================================
+
+def delete_committee_member(
+    doc_id
+):
+    """
+    Delete committee member from Firestore.
+    """
+
+    try:
+
+        db.collection(
+            "committee"
+        ).document(
+            doc_id
+        ).delete()
+
+        print(
+            f"[Committee] "
+            f"Deleted member: {doc_id}"
+        )
+
+        return True
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "COMMITTEE DELETE ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
+        return False
 
 
 
@@ -2778,14 +3160,33 @@ def videos():
         videos=videos,
         active_page="videos"
     )
+    
+    
 
 @app.route("/committee")
 def committee():
 
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+    committee_data = load_committee(
+        selected_year
+    )
+
     return render_template(
         "committee.html",
+
+        committee=committee_data,
+
+        current_year=selected_year,
+
         active_page="committee"
     )
+    
+    
+    
 
 @app.route("/donate")
 def donate():
@@ -5766,36 +6167,654 @@ def admin_schedule():
     )
 
 
-@app.route("/admin/committee", methods=["GET", "POST"])
+# ============================================================
+# ADMIN - COMMITTEE
+# ============================================================
+
+@app.route("/admin/committee")
 def admin_committee():
 
     if not session.get("admin"):
         return redirect(url_for("admin_login"))
 
-    committee = load_committee()
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
 
-    if request.method == "POST":
-
-        for i, member in enumerate(committee, start=1):
-
-            member["name"] = request.form.get(f"name{i}")
-            member["post"] = request.form.get(f"post{i}")
-            member["image"] = request.form.get(f"image{i}")
-
-        save_committee(committee)
-
-        flash(
-            "Committee updated successfully.",
-            "success"
-        )
-
-        return redirect(url_for("admin_committee"))
+    committee = load_committee(selected_year)
 
     return render_template(
         "admin/committee.html",
-        committee=committee
+        committee=committee,
+        current_year=selected_year
+    )
+    
+    
+    
+# ============================================================
+# ADMIN - ADD COMMITTEE MEMBER
+# ============================================================
+
+@app.route(
+    "/admin/committee/add",
+    methods=["GET", "POST"]
+)
+def admin_committee_add():
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    if request.method == "POST":
+
+        year = request.form.get(
+            "year",
+            str(datetime.now().year)
+        ).strip()
+
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
+
+        post = request.form.get(
+            "post",
+            ""
+        ).strip()
+
+        order = request.form.get(
+            "order",
+            "999"
+        ).strip()
+
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
+        if not name:
+
+            flash(
+                "Member name is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_committee_add")
+            )
+
+        if not post:
+
+            flash(
+                "Member post is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_committee_add")
+            )
+
+        try:
+
+            order = int(order)
+
+        except ValueError:
+
+            order = 999
+
+        # ----------------------------------------------------
+        # PHOTO
+        # ----------------------------------------------------
+
+        image_url = ""
+        photo_public_id = ""
+
+        photo = request.files.get("photo")
+
+        if photo and photo.filename:
+
+            try:
+
+                result = cloudinary.uploader.upload(
+                    photo,
+                    folder=f"Gajanan-Utsav/committee/{year}",
+                    resource_type="image"
+                )
+
+                image_url = result.get(
+                    "secure_url",
+                    ""
+                )
+
+                photo_public_id = result.get(
+                    "public_id",
+                    ""
+                )
+
+            except Exception as e:
+
+                print(
+                    "[Committee] "
+                    "Cloudinary upload error:",
+                    e
+                )
+
+                flash(
+                    "Photo upload failed.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for(
+                        "admin_committee_add"
+                    )
+                )
+
+        # ----------------------------------------------------
+        # FIRESTORE
+        # ----------------------------------------------------
+
+        save_committee_member(
+
+            year=year,
+
+            name=name,
+
+            post=post,
+
+            image=image_url,
+
+            photo_public_id=photo_public_id,
+
+            order=order
+
+        )
+
+        flash(
+            "Committee member added successfully.",
+            "success"
+        )
+
+        return redirect(
+            url_for(
+                "admin_committee",
+                year=year
+            )
+        )
+
+    return render_template(
+        "admin/add_committee.html",
+        current_year=str(datetime.now().year)
+    )
+    
+    
+    
+# ============================================================
+# ADMIN - DELETE COMMITTEE MEMBER
+# ============================================================
+
+@app.route(
+    "/admin/committee/delete/<doc_id>",
+    methods=["POST"]
+)
+def admin_committee_delete(doc_id):
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    try:
+
+        doc_ref = (
+            db.collection("committee")
+            .document(doc_id)
+        )
+
+        doc = doc_ref.get()
+
+        if not doc.exists:
+
+            flash(
+                "Committee member not found.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_committee")
+            )
+
+        data = doc.to_dict() or {}
+
+        # ----------------------------------------------------
+        # DELETE CLOUDINARY PHOTO
+        # ----------------------------------------------------
+
+        public_id = data.get(
+            "photo_public_id",
+            ""
+        )
+
+        if public_id:
+
+            try:
+
+                cloudinary.uploader.destroy(
+                    public_id,
+                    resource_type="image"
+                )
+
+            except Exception as e:
+
+                print(
+                    "[Committee] "
+                    "Cloudinary delete error:",
+                    e
+                )
+
+        # ----------------------------------------------------
+        # DELETE FIRESTORE DOCUMENT
+        # ----------------------------------------------------
+
+        doc_ref.delete()
+
+        flash(
+            "Committee member deleted successfully.",
+            "success"
+        )
+
+    except Exception as e:
+
+        print(
+            "[Committee] Delete error:",
+            e
+        )
+
+        flash(
+            "Unable to delete committee member.",
+            "danger"
+        )
+
+    return redirect(
+        url_for("admin_committee")
     )
 
+
+
+# ============================================================
+# ADMIN - EDIT COMMITTEE MEMBER
+# ============================================================
+
+@app.route(
+    "/admin/committee/edit/<doc_id>",
+    methods=["GET", "POST"]
+)
+def admin_committee_edit(doc_id):
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    doc_ref = (
+        db.collection("committee")
+        .document(doc_id)
+    )
+
+    doc = doc_ref.get()
+
+    if not doc.exists:
+
+        flash(
+            "Committee member not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("admin_committee")
+        )
+
+    member = doc.to_dict() or {}
+
+    if request.method == "POST":
+
+        year = request.form.get(
+            "year",
+            member.get("year", "")
+        ).strip()
+
+        name = request.form.get(
+            "name",
+            ""
+        ).strip()
+
+        post = request.form.get(
+            "post",
+            ""
+        ).strip()
+
+        order = request.form.get(
+            "order",
+            "999"
+        ).strip()
+
+        if not name or not post:
+
+            flash(
+                "Name and post are required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_committee_edit",
+                    doc_id=doc_id
+                )
+            )
+
+        try:
+
+            order = int(order)
+
+        except ValueError:
+
+            order = 999
+
+        # ----------------------------------------------------
+        # EXISTING PHOTO
+        # ----------------------------------------------------
+
+        image_url = member.get(
+            "image",
+            ""
+        )
+
+        photo_public_id = member.get(
+            "photo_public_id",
+            ""
+        )
+
+        # ----------------------------------------------------
+        # NEW PHOTO
+        # ----------------------------------------------------
+
+        photo = request.files.get("photo")
+
+        if photo and photo.filename:
+
+            try:
+
+                # Delete old image first
+                if photo_public_id:
+
+                    try:
+
+                        cloudinary.uploader.destroy(
+                            photo_public_id,
+                            resource_type="image"
+                        )
+
+                    except Exception as e:
+
+                        print(
+                            "[Committee] "
+                            "Old photo delete error:",
+                            e
+                        )
+
+                # Upload new image
+                result = cloudinary.uploader.upload(
+
+                    photo,
+
+                    folder=(
+                        f"Gajanan-Utsav/"
+                        f"committee/{year}"
+                    ),
+
+                    resource_type="image"
+
+                )
+
+                image_url = result.get(
+                    "secure_url",
+                    ""
+                )
+
+                photo_public_id = result.get(
+                    "public_id",
+                    ""
+                )
+
+            except Exception as e:
+
+                print(
+                    "[Committee] "
+                    "New photo upload error:",
+                    e
+                )
+
+                flash(
+                    "Photo upload failed.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for(
+                        "admin_committee_edit",
+                        doc_id=doc_id
+                    )
+                )
+
+        # ----------------------------------------------------
+        # UPDATE FIRESTORE
+        # ----------------------------------------------------
+
+        doc_ref.update({
+
+            "year": year,
+
+            "name": name,
+
+            "post": post,
+
+            "image": image_url,
+
+            "photo": image_url,
+
+            "photo_public_id":
+                photo_public_id,
+
+            "order": order,
+
+            "updated_at":
+                datetime.utcnow().isoformat()
+
+        })
+
+        flash(
+            "Committee member updated successfully.",
+            "success"
+        )
+
+        return redirect(
+            url_for(
+                "admin_committee",
+                year=year
+            )
+        )
+
+    member["doc_id"] = doc_id
+
+    return render_template(
+        "admin/edit_committee.html",
+        member=member
+    )
+    
+    
+    
+# ============================================================
+# ONE-TIME COMMITTEE MIGRATION
+# ============================================================
+
+@app.route(
+    "/admin/committee/migrate",
+    methods=["POST"]
+)
+def migrate_committee():
+
+    if not session.get("admin"):
+        return redirect(url_for("admin_login"))
+
+    file_path = os.path.join(
+        BASE_DIR,
+        "data",
+        "committee.json"
+    )
+
+    if not os.path.exists(file_path):
+
+        flash(
+            "committee.json not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("admin_committee")
+        )
+
+    try:
+
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8"
+        ) as f:
+
+            old_committee = json.load(f)
+
+        if not isinstance(
+            old_committee,
+            list
+        ):
+
+            flash(
+                "Invalid committee.json format.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_committee")
+            )
+
+        migrated = 0
+
+        year = str(
+            datetime.now().year
+        )
+
+        for index, member in enumerate(
+            old_committee,
+            start=1
+        ):
+
+            if not isinstance(
+                member,
+                dict
+            ):
+                continue
+
+            name = str(
+                member.get(
+                    "name",
+                    ""
+                )
+            ).strip()
+
+            post = str(
+                member.get(
+                    "post",
+                    ""
+                )
+            ).strip()
+
+            image = str(
+                member.get(
+                    "image",
+                    ""
+                )
+            ).strip()
+
+            if not name:
+
+                continue
+
+            # ----------------------------------------------
+            # Prevent duplicate migration
+            # ----------------------------------------------
+
+            existing = (
+                db.collection("committee")
+                .where(
+                    "year",
+                    "==",
+                    year
+                )
+                .where(
+                    "name",
+                    "==",
+                    name
+                )
+                .limit(1)
+                .stream()
+            )
+
+            already_exists = False
+
+            for _ in existing:
+
+                already_exists = True
+                break
+
+            if already_exists:
+
+                continue
+
+            save_committee_member(
+
+                year=year,
+
+                name=name,
+
+                post=post,
+
+                image=image,
+
+                photo_public_id="",
+
+                order=index
+
+            )
+
+            migrated += 1
+
+        flash(
+            f"{migrated} committee member(s) "
+            "migrated successfully.",
+            "success"
+        )
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            traceback.format_exc()
+        )
+
+        flash(
+            "Committee migration failed.",
+            "danger"
+        )
+
+    return redirect(
+        url_for("admin_committee")
+    )
 
 
 
