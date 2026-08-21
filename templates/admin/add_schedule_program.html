@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+
+Add Program | Schedule Manager
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+
+        <div class="admin-page-header">
+
+            <div>
+
+                <h1>
+                    ➕ Add Main Program
+                </h1>
+
+                <p>
+                    Add a new program to the festival schedule.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{{ url_for(
+                    'admin_schedule',
+                    year=current_year
+                ) }}"
+                class="admin-btn secondary"
+            >
+
+                ← Back to Schedule
+
+            </a>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             FORM
+        ====================================================== -->
+
+        <div class="admin-card committee-form-card">
+
+            <form method="POST">
+
+
+                <!-- CSRF -->
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <!-- =================================================
+                     YEAR
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="year">
+
+                        Schedule Year
+
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="year"
+                        name="year"
+                        value="{{ current_year }}"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- =================================================
+                     DATE
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="date">
+
+                        Program Date
+
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="date"
+                        name="date"
+                        placeholder="Example: 22 September 2026"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- =================================================
+                     TITLE
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="title">
+
+                        Program Title
+
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        placeholder="Example: Ganesh Maha Aarti"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- =================================================
+                     WINNER LINK
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="winner_link">
+
+                        Winner Link
+                        <small>(Optional)</small>
+
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="winner_link"
+                        name="winner_link"
+                        placeholder="Example: dance-competition"
+                    >
+
+
+                    <small>
+
+                        If this program has winners,
+                        enter the winners section ID/link.
+
+                    </small>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     ACTIONS
+                ================================================== -->
+
+                <div class="committee-form-actions">
+
+
+                    <a
+                        href="{{ url_for(
+                            'admin_schedule',
+                            year=current_year
+                        ) }}"
+                        class="admin-btn secondary"
+                    >
+
+                        Cancel
+
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="admin-btn"
+                    >
+
+                        💾 Add Program
+
+                    </button>
+
+
+                </div>
+
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
