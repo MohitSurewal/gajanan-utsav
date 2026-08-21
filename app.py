@@ -831,7 +831,69 @@ def delete_committee_member(
         return False
 
 
+# ============================================================
+# COMMITTEE AVAILABLE YEARS
+# ============================================================
 
+def get_committee_years():
+
+    try:
+
+        years = set()
+
+        # ----------------------------------------------------
+        # Current year hamesha available
+        # ----------------------------------------------------
+
+        years.add(
+            str(datetime.now().year)
+        )
+
+        # ----------------------------------------------------
+        # Firestore committee documents
+        # ----------------------------------------------------
+
+        docs = (
+            db.collection("committee")
+            .stream()
+        )
+
+        for doc in docs:
+
+            data = doc.to_dict() or {}
+
+            year = str(
+                data.get(
+                    "year",
+                    ""
+                )
+            ).strip()
+
+            if year.isdigit():
+
+                years.add(year)
+
+        # ----------------------------------------------------
+        # Latest year first
+        # ----------------------------------------------------
+
+        return sorted(
+            years,
+            key=lambda x: int(x),
+            reverse=True
+        )
+
+    except Exception as e:
+
+        print(
+            "[Committee] "
+            "Year loading error:",
+            e
+        )
+
+        return [
+            str(datetime.now().year)
+        ]
 
 
 
@@ -6171,25 +6233,92 @@ def admin_schedule():
 # ADMIN - COMMITTEE
 # ============================================================
 
+# ============================================================
+# ADMIN - COMMITTEE MANAGER
+# ============================================================
+
 @app.route("/admin/committee")
 def admin_committee():
 
     if not session.get("admin"):
-        return redirect(url_for("admin_login"))
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+    # --------------------------------------------------------
+    # SELECTED YEAR
+    # --------------------------------------------------------
 
     selected_year = request.args.get(
         "year",
         str(datetime.now().year)
     ).strip()
 
-    committee = load_committee(selected_year)
+
+    # --------------------------------------------------------
+    # AVAILABLE YEARS
+    # --------------------------------------------------------
+
+    available_years = get_committee_years()
+
+
+    # --------------------------------------------------------
+    # SAFETY
+    #
+    # Agar URL me koi invalid/non-existing year aaye,
+    # to current year use hoga.
+    # --------------------------------------------------------
+
+    if not selected_year.isdigit():
+
+        selected_year = str(
+            datetime.now().year
+        )
+
+
+    # Current year ko ensure karo
+
+    current_year = str(
+        datetime.now().year
+    )
+
+    if current_year not in available_years:
+
+        available_years.append(
+            current_year
+        )
+
+        available_years.sort(
+            key=lambda x: int(x),
+            reverse=True
+        )
+
+
+    # --------------------------------------------------------
+    # LOAD SELECTED YEAR
+    # --------------------------------------------------------
+
+    committee = load_committee(
+        selected_year
+    )
+
+
+    # --------------------------------------------------------
+    # RENDER
+    # --------------------------------------------------------
 
     return render_template(
+
         "admin/committee.html",
+
         committee=committee,
-        current_year=selected_year
+
+        current_year=selected_year,
+
+        available_years=available_years
+
     )
-    
     
     
 # ============================================================
@@ -6442,14 +6571,30 @@ def admin_committee_delete(doc_id):
 # ADMIN - EDIT COMMITTEE MEMBER
 # ============================================================
 
+# ============================================================
+# ADMIN - EDIT COMMITTEE MEMBER
+# ============================================================
+
 @app.route(
     "/admin/committee/edit/<doc_id>",
     methods=["GET", "POST"]
 )
 def admin_committee_edit(doc_id):
 
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
     if not session.get("admin"):
-        return redirect(url_for("admin_login"))
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # FIRESTORE DOCUMENT
+    # --------------------------------------------------------
 
     doc_ref = (
         db.collection("committee")
@@ -6457,6 +6602,7 @@ def admin_committee_edit(doc_id):
     )
 
     doc = doc_ref.get()
+
 
     if not doc.exists:
 
@@ -6469,13 +6615,37 @@ def admin_committee_edit(doc_id):
             url_for("admin_committee")
         )
 
+
     member = doc.to_dict() or {}
+
+    member["doc_id"] = doc_id
+
+
+    # --------------------------------------------------------
+    # GET CURRENT YEAR
+    # --------------------------------------------------------
+
+    current_member_year = str(
+        member.get(
+            "year",
+            datetime.now().year
+        )
+    ).strip()
+
+
+    # ========================================================
+    # POST
+    # ========================================================
 
     if request.method == "POST":
 
+        # ----------------------------------------------------
+        # FORM DATA
+        # ----------------------------------------------------
+
         year = request.form.get(
             "year",
-            member.get("year", "")
+            current_member_year
         ).strip()
 
         name = request.form.get(
@@ -6493,10 +6663,15 @@ def admin_committee_edit(doc_id):
             "999"
         ).strip()
 
-        if not name or not post:
+
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
+        if not year.isdigit():
 
             flash(
-                "Name and post are required.",
+                "Please enter a valid year.",
                 "danger"
             )
 
@@ -6507,63 +6682,97 @@ def admin_committee_edit(doc_id):
                 )
             )
 
+
+        if not name:
+
+            flash(
+                "Member name is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_committee_edit",
+                    doc_id=doc_id
+                )
+            )
+
+
+        if not post:
+
+            flash(
+                "Member post is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_committee_edit",
+                    doc_id=doc_id
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # ORDER
+        # ----------------------------------------------------
+
         try:
 
             order = int(order)
 
-        except ValueError:
+        except Exception:
 
             order = 999
 
-        # ----------------------------------------------------
+
+        # ====================================================
         # EXISTING PHOTO
-        # ----------------------------------------------------
+        # ====================================================
 
-        image_url = member.get(
-            "image",
-            ""
+        image_url = (
+            member.get("image")
+            or member.get("photo")
+            or ""
         )
 
-        photo_public_id = member.get(
-            "photo_public_id",
-            ""
+        photo_public_id = (
+            member.get(
+                "photo_public_id",
+                ""
+            )
+            or ""
         )
 
-        # ----------------------------------------------------
+
+        # ====================================================
         # NEW PHOTO
-        # ----------------------------------------------------
+        # ====================================================
 
-        photo = request.files.get("photo")
+        photo = request.files.get(
+            "photo"
+        )
+
 
         if photo and photo.filename:
 
             try:
 
-                # Delete old image first
-                if photo_public_id:
+                # ------------------------------------------------
+                # UPLOAD NEW PHOTO FIRST
+                #
+                # New upload successful hone ke baad hi
+                # old photo delete karenge.
+                #
+                # Isse upload fail hone par old photo safe rahegi.
+                # ------------------------------------------------
 
-                    try:
-
-                        cloudinary.uploader.destroy(
-                            photo_public_id,
-                            resource_type="image"
-                        )
-
-                    except Exception as e:
-
-                        print(
-                            "[Committee] "
-                            "Old photo delete error:",
-                            e
-                        )
-
-                # Upload new image
                 result = cloudinary.uploader.upload(
 
                     photo,
 
                     folder=(
-                        f"Gajanan-Utsav/"
+                        "Gajanan-Utsav/"
                         f"committee/{year}"
                     ),
 
@@ -6571,26 +6780,77 @@ def admin_committee_edit(doc_id):
 
                 )
 
-                image_url = result.get(
+
+                new_image_url = result.get(
                     "secure_url",
                     ""
                 )
 
-                photo_public_id = result.get(
+                new_public_id = result.get(
                     "public_id",
                     ""
                 )
 
+
+                if not new_image_url:
+
+                    raise Exception(
+                        "Cloudinary did not return secure_url."
+                    )
+
+
+                # ------------------------------------------------
+                # DELETE OLD PHOTO
+                # ------------------------------------------------
+
+                if photo_public_id:
+
+                    try:
+
+                        cloudinary.uploader.destroy(
+
+                            photo_public_id,
+
+                            resource_type="image"
+
+                        )
+
+                    except Exception as delete_error:
+
+                        print(
+                            "[Committee] "
+                            "Old Cloudinary photo "
+                            "delete warning:",
+                            delete_error
+                        )
+
+
+                # ------------------------------------------------
+                # USE NEW PHOTO
+                # ------------------------------------------------
+
+                image_url = new_image_url
+
+                photo_public_id = new_public_id
+
+
             except Exception as e:
+
+                import traceback
 
                 print(
                     "[Committee] "
-                    "New photo upload error:",
-                    e
+                    "Photo update error:"
                 )
 
+                print(
+                    traceback.format_exc()
+                )
+
+
                 flash(
-                    "Photo upload failed.",
+                    "Photo upload failed. "
+                    "Existing photo was kept.",
                     "danger"
                 )
 
@@ -6601,49 +6861,70 @@ def admin_committee_edit(doc_id):
                     )
                 )
 
-        # ----------------------------------------------------
+
+        # ====================================================
         # UPDATE FIRESTORE
-        # ----------------------------------------------------
+        # ====================================================
 
-        doc_ref.update({
+        success = update_committee_member(
 
-            "year": year,
+            doc_id=doc_id,
 
-            "name": name,
+            year=year,
 
-            "post": post,
+            name=name,
 
-            "image": image_url,
+            post=post,
 
-            "photo": image_url,
+            image=image_url,
 
-            "photo_public_id":
-                photo_public_id,
+            photo_public_id=photo_public_id,
 
-            "order": order,
+            order=order
 
-            "updated_at":
-                datetime.utcnow().isoformat()
-
-        })
-
-        flash(
-            "Committee member updated successfully.",
-            "success"
         )
 
-        return redirect(
-            url_for(
-                "admin_committee",
-                year=year
+
+        if success:
+
+            flash(
+                "Committee member updated successfully.",
+                "success"
             )
-        )
 
-    member["doc_id"] = doc_id
+            return redirect(
+                url_for(
+                    "admin_committee",
+                    year=year
+                )
+            )
+
+
+        else:
+
+            flash(
+                "Unable to update committee member.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_committee_edit",
+                    doc_id=doc_id
+                )
+            )
+
+
+    # ========================================================
+    # GET
+    # ========================================================
 
     return render_template(
+
         "admin/edit_committee.html",
+
         member=member
+
     )
     
     
