@@ -4,6 +4,7 @@
 Add Committee Member
 {% endblock %}
 
+
 {% block content %}
 
 <section class="admin-dashboard">
@@ -23,10 +24,11 @@ Add Committee Member
                 </h1>
 
                 <p>
-                    Add a new committee member for the selected year.
+                    Add a new committee member with name, post and photo.
                 </p>
 
             </div>
+
 
             <a
                 href="{{ url_for('admin_committee') }}"
@@ -69,17 +71,15 @@ Add Committee Member
                     </label>
 
                     <input
-                        type="number"
+                        type="text"
                         id="year"
                         name="year"
                         value="{{ current_year }}"
-                        min="2000"
-                        max="2100"
                         required
                     >
 
                     <small>
-                        Enter the year for this committee.
+                        Enter the year for which this member belongs.
                     </small>
 
                 </div>
@@ -100,7 +100,6 @@ Add Committee Member
                         id="name"
                         name="name"
                         placeholder="Enter member name"
-                        maxlength="100"
                         required
                     >
 
@@ -114,15 +113,14 @@ Add Committee Member
                 <div class="form-group">
 
                     <label for="post">
-                        Post / Position
+                        Post
                     </label>
 
                     <input
                         type="text"
                         id="post"
                         name="post"
-                        placeholder="Example: President"
-                        maxlength="100"
+                        placeholder="President / Secretary / Treasurer / Member"
                         required
                     >
 
@@ -130,7 +128,7 @@ Add Committee Member
 
 
                 <!-- =================================================
-                     DISPLAY ORDER
+                     ORDER
                 ================================================== -->
 
                 <div class="form-group">
@@ -145,11 +143,10 @@ Add Committee Member
                         name="order"
                         value="999"
                         min="1"
-                        max="9999"
                     >
 
                     <small>
-                        Lower number appears first.
+                        Smaller number appears first.
                     </small>
 
                 </div>
@@ -162,19 +159,18 @@ Add Committee Member
                 <div class="form-group">
 
                     <label for="photo">
-                        Member Photo
+                        Committee Member Photo
                     </label>
 
                     <input
                         type="file"
                         id="photo"
                         name="photo"
-                        accept="image/jpeg,image/png,image/webp"
+                        accept="image/*"
                     >
 
                     <small>
-                        JPG, PNG or WebP recommended.
-                        The photo will be uploaded to Cloudinary.
+                        Photo will be uploaded securely to Cloudinary.
                     </small>
 
                 </div>
@@ -185,8 +181,7 @@ Add Committee Member
                 ================================================== -->
 
                 <div
-                    id="photoPreviewContainer"
-                    class="committee-photo-preview"
+                    id="photoPreviewBox"
                     style="display:none;"
                 >
 
@@ -198,13 +193,19 @@ Add Committee Member
                         id="photoPreview"
                         src=""
                         alt="Photo Preview"
+                        style="
+                            max-width:220px;
+                            max-height:220px;
+                            object-fit:cover;
+                            border-radius:15px;
+                        "
                     >
 
                 </div>
 
 
                 <!-- =================================================
-                     BUTTONS
+                     ACTIONS
                 ================================================== -->
 
                 <div class="committee-form-actions">
@@ -216,11 +217,12 @@ Add Committee Member
                         Cancel
                     </a>
 
+
                     <button
                         type="submit"
                         class="admin-btn"
                     >
-                        💾 Save Committee Member
+                        💾 Add Committee Member
                     </button>
 
                 </div>
@@ -247,15 +249,11 @@ document.addEventListener(
         const photoInput =
             document.getElementById("photo");
 
-        const previewContainer =
-            document.getElementById(
-                "photoPreviewContainer"
-            );
+        const previewBox =
+            document.getElementById("photoPreviewBox");
 
         const preview =
-            document.getElementById(
-                "photoPreview"
-            );
+            document.getElementById("photoPreview");
 
 
         if (!photoInput) {
@@ -268,14 +266,12 @@ document.addEventListener(
             function () {
 
                 const file =
-                    this.files &&
                     this.files[0];
 
 
                 if (!file) {
 
-                    previewContainer.style.display =
-                        "none";
+                    previewBox.style.display = "none";
 
                     preview.src = "";
 
@@ -283,68 +279,19 @@ document.addEventListener(
                 }
 
 
-                // ---------------------------------------------
-                // FILE TYPE CHECK
-                // ---------------------------------------------
-
-                const allowedTypes = [
-
-                    "image/jpeg",
-
-                    "image/png",
-
-                    "image/webp"
-
-                ];
-
-
-                if (
-                    !allowedTypes.includes(
-                        file.type
-                    )
-                ) {
+                if (!file.type.startsWith("image/")) {
 
                     alert(
-                        "Please select a JPG, PNG or WebP image."
+                        "Please select an image file."
                     );
 
                     this.value = "";
 
-                    previewContainer.style.display =
-                        "none";
+                    previewBox.style.display = "none";
 
                     return;
                 }
 
-
-                // ---------------------------------------------
-                // FILE SIZE CHECK
-                // ---------------------------------------------
-
-                const maxSize =
-                    5 * 1024 * 1024;
-
-
-                if (
-                    file.size > maxSize
-                ) {
-
-                    alert(
-                        "Photo size must be less than 5 MB."
-                    );
-
-                    this.value = "";
-
-                    previewContainer.style.display =
-                        "none";
-
-                    return;
-                }
-
-
-                // ---------------------------------------------
-                // PREVIEW
-                // ---------------------------------------------
 
                 const reader =
                     new FileReader();
@@ -356,15 +303,13 @@ document.addEventListener(
                         preview.src =
                             event.target.result;
 
-                        previewContainer.style.display =
+                        previewBox.style.display =
                             "block";
 
                     };
 
 
-                reader.readAsDataURL(
-                    file
-                );
+                reader.readAsDataURL(file);
 
             }
         );
