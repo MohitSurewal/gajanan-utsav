@@ -6870,3 +6870,112 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
     }
 
 }
+
+
+/* =========================================================
+   SCHEDULE ADMIN - FIXED LAYOUT
+========================================================= */
+
+.schedule-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.schedule-section-header h2 {
+    margin: 0;
+}
+
+.schedule-section-header .admin-btn {
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   PROGRAM / GAME ITEM
+========================================================= */
+
+.schedule-admin-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+
+    padding: 20px 22px;
+    margin-bottom: 16px;
+
+    border-radius: 14px;
+}
+
+
+/* LEFT CONTENT */
+
+.schedule-admin-item > div:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.schedule-admin-item strong {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.schedule-admin-item p {
+    margin: 0;
+}
+
+
+/* RIGHT ACTIONS */
+
+.schedule-admin-item > div:last-child {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+
+    flex-shrink: 0;
+}
+
+
+/* DELETE FORM */
+
+.schedule-admin-item > div:last-child form {
+    display: inline-flex !important;
+    margin: 0;
+}
+
+
+/* BUTTONS */
+
+.schedule-admin-item .admin-btn {
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .schedule-section-header {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 24px;
+    }
+
+    .schedule-admin-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .schedule-admin-item > div:last-child {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+}
