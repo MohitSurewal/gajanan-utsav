@@ -3225,26 +3225,127 @@ def videos():
     
     
 
+# ============================================================
+# PUBLIC COMMITTEE PAGE
+# ============================================================
+
 @app.route("/committee")
 def committee():
+
+    # --------------------------------------------------------
+    # SELECTED YEAR
+    # --------------------------------------------------------
 
     selected_year = request.args.get(
         "year",
         str(datetime.now().year)
     ).strip()
 
-    committee_data = load_committee(
-        selected_year
+
+    # --------------------------------------------------------
+    # LOAD ALL COMMITTEE DATA
+    # --------------------------------------------------------
+
+    all_committee = load_committee()
+
+
+    # --------------------------------------------------------
+    # AVAILABLE YEARS
+    # --------------------------------------------------------
+
+    available_years = sorted(
+        {
+            str(
+                member.get("year", "")
+            ).strip()
+
+            for member in all_committee
+
+            if str(
+                member.get("year", "")
+            ).strip()
+        },
+
+        key=lambda x: int(x)
+        if x.isdigit()
+        else 0,
+
+        reverse=True
     )
 
+
+    # --------------------------------------------------------
+    # CURRENT YEAR ALWAYS AVAILABLE
+    # --------------------------------------------------------
+
+    current_year = str(
+        datetime.now().year
+    )
+
+    if current_year not in available_years:
+
+        available_years.insert(
+            0,
+            current_year
+        )
+
+
+    # --------------------------------------------------------
+    # FILTER SELECTED YEAR
+    # --------------------------------------------------------
+
+    committee_data = [
+
+        member
+
+        for member in all_committee
+
+        if str(
+            member.get("year", "")
+        ).strip() == selected_year
+
+    ]
+
+
+    # --------------------------------------------------------
+    # SORT BY ORDER
+    # --------------------------------------------------------
+
+    committee_data.sort(
+
+        key=lambda member: int(
+            member.get(
+                "order",
+                999
+            )
+        )
+        if str(
+            member.get(
+                "order",
+                999
+            )
+        ).isdigit()
+        else 999
+
+    )
+
+
+    # --------------------------------------------------------
+    # RENDER
+    # --------------------------------------------------------
+
     return render_template(
+
         "committee.html",
 
         committee=committee_data,
 
+        available_years=available_years,
+
         current_year=selected_year,
 
         active_page="committee"
+
     )
     
     
@@ -6029,15 +6130,32 @@ def admin_logout():
 
     return redirect(url_for("admin_login"))
 
+
+
 @app.route("/")
 def home():
 
     notice = load_notice()
     schedule = load_schedule()
-    committee = load_committee()
-    winners = load_winners()
 
+    all_committee = load_committee()
+
+    committee = [
+        member
+        for member in all_committee
+        if str(
+            member.get("post", "")
+        ).strip().lower()
+        in [
+            "president",
+            "secretary"
+        ]
+    ]
+
+    winners = load_winners()
     gallery = load_gallery()
+
+   
 
     # ==========================================
     # LATEST GALLERY
@@ -6229,13 +6347,7 @@ def admin_schedule():
     )
 
 
-# ============================================================
-# ADMIN - COMMITTEE
-# ============================================================
 
-# ============================================================
-# ADMIN - COMMITTEE MANAGER
-# ============================================================
 
 @app.route("/admin/committee")
 def admin_committee():
@@ -6320,14 +6432,7 @@ def admin_committee():
 
     )
     
-    
-# ============================================================
-# ADMIN - ADD COMMITTEE MEMBER
-# ============================================================
 
-# ============================================================
-# ADMIN - ADD COMMITTEE MEMBER
-# ============================================================
 
 @app.route(
     "/admin/committee/add",
