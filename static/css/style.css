@@ -6524,3 +6524,97 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
 }
 
 
+/* =========================================================
+   COMMITTEE ADMIN TOOLBAR FIX
+========================================================= */
+
+.committee-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 25px;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.committee-year-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 180px;
+}
+
+.committee-year-box label {
+    display: block;
+    font-family: "Poppins", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+    margin: 0;
+}
+
+.committee-year-box select {
+    display: block;
+    width: 180px;
+    min-height: 44px;
+    padding: 8px 38px 8px 14px;
+
+    border: 2px solid #dcae20;
+    border-radius: 10px;
+
+    background: #fff;
+    color: #222;
+
+    font-family: "Poppins", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+    outline: none;
+}
+
+.committee-year-box select:focus {
+    border-color: #b88900;
+    box-shadow: 0 0 0 3px rgba(220, 174, 32, 0.15);
+}
+
+
+/* =========================================================
+   ADD BUTTON
+========================================================= */
+
+.committee-toolbar > .admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 44px;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .committee-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 18px;
+    }
+
+    .committee-year-box {
+        width: 100%;
+    }
+
+    .committee-year-box select {
+        width: 100%;
+    }
+
+    .committee-toolbar > .admin-btn {
+        width: 100%;
+    }
+
+}
