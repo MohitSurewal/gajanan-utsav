@@ -6817,3 +6817,56 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
     }
 
 }
+
+
+/* =========================================================
+   HOME PAGE - COMMITTEE PREVIEW
+   Circular Member Photos
+========================================================= */
+
+.committee-preview .committee-grid .member {
+    text-align: center;
+}
+
+.committee-preview .committee-grid .member img {
+    width: 150px;
+    height: 150px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    display: block;
+    margin: 0 auto 15px;
+
+    border: 4px solid #d9ad24;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Member name */
+
+.committee-preview .committee-grid .member h3 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+
+/* Member post */
+
+.committee-preview .committee-grid .member p {
+    margin: 0;
+}
+
+
+/* Mobile */
+
+@media (max-width: 768px) {
+
+    .committee-preview .committee-grid .member img {
+        width: 120px;
+        height: 120px;
+    }
+
+}
