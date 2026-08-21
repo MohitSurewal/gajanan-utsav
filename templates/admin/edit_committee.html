@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Committee Member
+{% endblock %}
+
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+
+        <div class="admin-page-header">
+
+            <div>
+
+                <h1>
+                    ✏️ Edit Committee Member
+                </h1>
+
+                <p>
+                    Update member details and photo.
+                </p>
+
+            </div>
+
+            <a
+                href="{{ url_for(
+                    'admin_committee',
+                    year=member.year
+                ) }}"
+                class="admin-btn secondary"
+            >
+                ← Back to Committee
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             FLASH MESSAGES
+        ====================================================== -->
+
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
+
+            {% if messages %}
+
+                <div class="admin-messages">
+
+                    {% for category, message in messages %}
+
+                        <div class="admin-message {{ category }}">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <!-- =====================================================
+             EDIT FORM
+        ====================================================== -->
+
+        <div class="admin-card committee-form-card">
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                <!-- CSRF -->
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <!-- =================================================
+                     YEAR
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="year">
+                        Committee Year
+                    </label>
+
+                    <input
+                        type="number"
+                        id="year"
+                        name="year"
+                        value="{{ member.year }}"
+                        min="2000"
+                        max="2100"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     NAME
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="name">
+                        Member Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value="{{ member.name }}"
+                        maxlength="100"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     POST
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="post">
+                        Post / Position
+                    </label>
+
+                    <input
+                        type="text"
+                        id="post"
+                        name="post"
+                        value="{{ member.post }}"
+                        maxlength="100"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     ORDER
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="order">
+                        Display Order
+                    </label>
+
+                    <input
+                        type="number"
+                        id="order"
+                        name="order"
+                        value="{{ member.order|default(999) }}"
+                        min="1"
+                        max="9999"
+                    >
+
+                    <small>
+                        Lower number appears first.
+                    </small>
+
+                </div>
+
+
+                <!-- =================================================
+                     CURRENT PHOTO
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label>
+                        Current Photo
+                    </label>
+
+                    <div class="current-committee-photo">
+
+                        {% if member.image %}
+
+                            <img
+                                src="{{ member.image }}"
+                                alt="{{ member.name }}"
+                            >
+
+                        {% else %}
+
+                            <div class="committee-no-photo">
+                                👤
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     NEW PHOTO
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="photo">
+                        Replace Photo
+                    </label>
+
+                    <input
+                        type="file"
+                        id="photo"
+                        name="photo"
+                        accept="image/jpeg,image/png,image/webp"
+                    >
+
+                    <small>
+
+                        Leave empty to keep the current photo.
+
+                        If a new photo is selected,
+                        the old Cloudinary photo will be removed.
+
+                    </small>
+
+                </div>
+
+
+                <!-- =================================================
+                     NEW PHOTO PREVIEW
+                ================================================== -->
+
+                <div
+                    id="photoPreviewContainer"
+                    class="committee-photo-preview"
+                    style="display:none;"
+                >
+
+                    <p>
+                        New Photo Preview
+                    </p>
+
+                    <img
+                        id="photoPreview"
+                        src=""
+                        alt="New Photo Preview"
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     ACTIONS
+                ================================================== -->
+
+                <div class="committee-form-actions">
+
+                    <a
+                        href="{{ url_for(
+                            'admin_committee',
+                            year=member.year
+                        ) }}"
+                        class="admin-btn secondary"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="admin-btn"
+                    >
+                        💾 Update Member
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     PHOTO PREVIEW
+========================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const photoInput =
+            document.getElementById("photo");
+
+        const previewContainer =
+            document.getElementById(
+                "photoPreviewContainer"
+            );
+
+        const preview =
+            document.getElementById(
+                "photoPreview"
+            );
+
+
+        if (!photoInput) {
+            return;
+        }
+
+
+        photoInput.addEventListener(
+            "change",
+            function () {
+
+                const file =
+                    this.files &&
+                    this.files[0];
+
+
+                if (!file) {
+
+                    previewContainer.style.display =
+                        "none";
+
+                    preview.src = "";
+
+                    return;
+                }
+
+
+                const allowedTypes = [
+
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp"
+
+                ];
+
+
+                if (
+                    !allowedTypes.includes(
+                        file.type
+                    )
+                ) {
+
+                    alert(
+                        "Please select a JPG, PNG or WebP image."
+                    );
+
+                    this.value = "";
+
+                    previewContainer.style.display =
+                        "none";
+
+                    return;
+                }
+
+
+                const maxSize =
+                    5 * 1024 * 1024;
+
+
+                if (
+                    file.size > maxSize
+                ) {
+
+                    alert(
+                        "Photo size must be less than 5 MB."
+                    );
+
+                    this.value = "";
+
+                    previewContainer.style.display =
+                        "none";
+
+                    return;
+                }
+
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function (event) {
+
+                        preview.src =
+                            event.target.result;
+
+                        previewContainer.style.display =
+                            "block";
+
+                    };
+
+
+                reader.readAsDataURL(
+                    file
+                );
+
+            }
+        );
+
+    }
+);
+
+</script>
+
+{% endblock %}
