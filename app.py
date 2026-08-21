@@ -6325,20 +6325,49 @@ def admin_committee():
 # ADMIN - ADD COMMITTEE MEMBER
 # ============================================================
 
+# ============================================================
+# ADMIN - ADD COMMITTEE MEMBER
+# ============================================================
+
 @app.route(
     "/admin/committee/add",
     methods=["GET", "POST"]
 )
 def admin_committee_add():
 
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
     if not session.get("admin"):
-        return redirect(url_for("admin_login"))
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # DEFAULT YEAR
+    # --------------------------------------------------------
+
+    current_year = str(
+        datetime.now().year
+    )
+
+
+    # ========================================================
+    # POST
+    # ========================================================
 
     if request.method == "POST":
 
+        # ----------------------------------------------------
+        # FORM DATA
+        # ----------------------------------------------------
+
         year = request.form.get(
             "year",
-            str(datetime.now().year)
+            current_year
         ).strip()
 
         name = request.form.get(
@@ -6356,9 +6385,24 @@ def admin_committee_add():
             "999"
         ).strip()
 
+
         # ----------------------------------------------------
         # VALIDATION
         # ----------------------------------------------------
+
+        if not year.isdigit():
+
+            flash(
+                "Please enter a valid year.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_committee_add"
+                )
+            )
+
 
         if not name:
 
@@ -6368,8 +6412,11 @@ def admin_committee_add():
             )
 
             return redirect(
-                url_for("admin_committee_add")
+                url_for(
+                    "admin_committee_add"
+                )
             )
+
 
         if not post:
 
@@ -6379,35 +6426,89 @@ def admin_committee_add():
             )
 
             return redirect(
-                url_for("admin_committee_add")
+                url_for(
+                    "admin_committee_add"
+                )
             )
+
+
+        # ----------------------------------------------------
+        # ORDER
+        # ----------------------------------------------------
 
         try:
 
             order = int(order)
 
-        except ValueError:
+        except Exception:
 
             order = 999
+
 
         # ----------------------------------------------------
         # PHOTO
         # ----------------------------------------------------
 
+        photo = request.files.get(
+            "photo"
+        )
+
+
         image_url = ""
         photo_public_id = ""
 
-        photo = request.files.get("photo")
+
+        # ====================================================
+        # CLOUDINARY UPLOAD
+        # ====================================================
 
         if photo and photo.filename:
 
             try:
 
-                result = cloudinary.uploader.upload(
-                    photo,
-                    folder=f"Gajanan-Utsav/committee/{year}",
-                    resource_type="image"
+                # --------------------------------------------
+                # BASIC FILE VALIDATION
+                # --------------------------------------------
+
+                if not allowed_file(
+                    photo.filename
+                ):
+
+                    flash(
+                        "Invalid photo format.",
+                        "danger"
+                    )
+
+                    return redirect(
+                        url_for(
+                            "admin_committee_add"
+                        )
+                    )
+
+
+                # --------------------------------------------
+                # CLOUDINARY
+                # --------------------------------------------
+
+                print(
+                    "[Committee] "
+                    "Uploading photo to Cloudinary..."
                 )
+
+
+                result = cloudinary.uploader.upload(
+
+                    photo,
+
+                    folder=(
+                        "Gajanan-Utsav/"
+                        f"committee/{year}"
+                    ),
+
+                    resource_type="image"
+
+                )
+
 
                 image_url = result.get(
                     "secure_url",
@@ -6419,16 +6520,44 @@ def admin_committee_add():
                     ""
                 )
 
-            except Exception as e:
+
+                if not image_url:
+
+                    raise Exception(
+                        "Cloudinary secure_url missing."
+                    )
+
 
                 print(
                     "[Committee] "
-                    "Cloudinary upload error:",
-                    e
+                    "Cloudinary upload successful."
                 )
 
+
+            except Exception as e:
+
+                import traceback
+
+                print(
+                    "======================================"
+                )
+
+                print(
+                    "COMMITTEE CLOUDINARY UPLOAD ERROR"
+                )
+
+                print(
+                    traceback.format_exc()
+                )
+
+                print(
+                    "======================================"
+                )
+
+
                 flash(
-                    "Photo upload failed.",
+                    "Photo upload failed. "
+                    "Member was not saved.",
                     "danger"
                 )
 
@@ -6438,11 +6567,12 @@ def admin_committee_add():
                     )
                 )
 
-        # ----------------------------------------------------
-        # FIRESTORE
-        # ----------------------------------------------------
 
-        save_committee_member(
+        # ====================================================
+        # FIRESTORE SAVE
+        # ====================================================
+
+        doc_id = save_committee_member(
 
             year=year,
 
@@ -6458,23 +6588,75 @@ def admin_committee_add():
 
         )
 
+
+        # ====================================================
+        # SUCCESS
+        # ====================================================
+
+        if doc_id:
+
+            flash(
+                "Committee member added successfully.",
+                "success"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_committee",
+                    year=year
+                )
+            )
+
+
+        # ====================================================
+        # FIRESTORE FAILED
+        # ====================================================
+
+        # Agar Firestore save fail ho gaya aur
+        # Cloudinary par photo upload ho chuki thi,
+        # to orphan image ko delete kar do.
+
+        if photo_public_id:
+
+            try:
+
+                cloudinary.uploader.destroy(
+                    photo_public_id,
+                    resource_type="image"
+                )
+
+            except Exception as cleanup_error:
+
+                print(
+                    "[Committee] "
+                    "Cloudinary cleanup error:",
+                    cleanup_error
+                )
+
+
         flash(
-            "Committee member added successfully.",
-            "success"
+            "Unable to save committee member.",
+            "danger"
         )
 
         return redirect(
             url_for(
-                "admin_committee",
-                year=year
+                "admin_committee_add"
             )
         )
 
+
+    # ========================================================
+    # GET
+    # ========================================================
+
     return render_template(
+
         "admin/add_committee.html",
-        current_year=str(datetime.now().year)
+
+        current_year=current_year
+
     )
-    
     
     
 # ============================================================
