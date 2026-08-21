@@ -1,10 +1,7 @@
 from unittest import result
 from urllib import response
 import firebase_admin
-import firebase_admin
 from firebase_admin import credentials, firestore
-from firebase_admin import credentials
-from firebase_admin import firestore
 from google.cloud.firestore_v1.client import Client
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect
@@ -28,7 +25,6 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import tempfile
-from google.auth.transport.requests import Request
 import secrets
 import string
 from datetime import datetime
@@ -198,11 +194,10 @@ def save_notice(data):
         json.dump(data, f, indent=4, ensure_ascii=False)
 
     
-def load_schedule():
-    file_path = os.path.join(BASE_DIR, "data", "schedule.json")
+# ============================================================
+# LOAD YEAR-WISE SCHEDULE
+# ============================================================
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
     
     
 def load_videos():
@@ -577,6 +572,1945 @@ def load_committee(year=None):
         )
 
         return []
+
+
+
+# ============================================================
+# LOAD SCHEDULE
+# YEAR-WISE FIRESTORE
+# ============================================================
+
+def load_schedule(year=None):
+
+    try:
+
+        # ----------------------------------------------------
+        # YEAR
+        # ----------------------------------------------------
+
+        if year is None:
+            year = str(datetime.now().year)
+
+        year = str(year).strip()
+
+
+        # ----------------------------------------------------
+        # FIRESTORE
+        # ----------------------------------------------------
+
+        doc = (
+            db.collection("schedules")
+            .document(year)
+            .get()
+        )
+
+
+        # ----------------------------------------------------
+        # DOCUMENT DOES NOT EXIST
+        # ----------------------------------------------------
+
+        if not doc.exists:
+
+            print(
+                f"[Schedule] "
+                f"No schedule found for {year}"
+            )
+
+            return {
+                "year": year,
+                "program": [],
+                "games": [],
+                "aarti": {
+                    "morning": "",
+                    "evening": ""
+                },
+                
+            }
+
+
+        # ----------------------------------------------------
+        # DATA
+        # ----------------------------------------------------
+
+        data = doc.to_dict() or {}
+
+
+        # ----------------------------------------------------
+        # NORMALIZE
+        # ----------------------------------------------------
+
+        data["year"] = year
+
+        data["program"] = data.get(
+            "program",
+            []
+        )
+
+        data["games"] = data.get(
+            "games",
+            []
+        )
+
+        data["aarti"] = data.get(
+            "aarti",
+            {
+                "morning": "",
+                "evening": ""
+            }
+        )
+
+
+        # ----------------------------------------------------
+        # GAME NORMALIZATION
+        # ----------------------------------------------------
+
+        for game in data["games"]:
+
+            if not isinstance(game, dict):
+                continue
+
+            game.setdefault(
+                "rules",
+                []
+            )
+
+            game.setdefault(
+                "winner_link",
+                ""
+            )
+
+
+        # ----------------------------------------------------
+        # PROGRAM NORMALIZATION
+        # ----------------------------------------------------
+
+        for event in data["program"]:
+
+            if not isinstance(event, dict):
+                continue
+
+            event.setdefault(
+                "winner_link",
+                ""
+            )
+
+
+        print(
+            f"[Schedule] "
+            f"Loaded schedule for {year}"
+        )
+
+
+        return data
+
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "SCHEDULE FIRESTORE LOAD ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
+        return {
+            "year": str(
+                year
+                if year
+                else datetime.now().year
+            ),
+            "program": [],
+            "games": [],
+            "aarti": {
+                "morning": "",
+                "evening": ""
+            },
+            
+        }
+
+
+
+
+# ============================================================
+# SAVE SCHEDULE
+# YEAR-WISE FIRESTORE
+# ============================================================
+
+# ============================================================
+# SAVE YEAR-WISE SCHEDULE
+# ============================================================
+
+def save_schedule(year, data):
+
+    try:
+
+        year = str(year).strip()
+
+        if not year:
+            raise ValueError("Schedule year is required.")
+
+        schedule_data = {
+
+            "year": year,
+
+            "program": data.get(
+                "program",
+                []
+            ),
+
+            "games": data.get(
+                "games",
+                []
+            ),
+
+            "aarti": data.get(
+                "aarti",
+                {
+                    "morning": "",
+                    "evening": ""
+                }
+            )
+
+        }
+
+        db.collection(
+            "schedules"
+        ).document(
+            year
+        ).set(
+            schedule_data,
+            merge=True
+        )
+
+        print(
+            f"[Schedule] Saved schedule for {year}"
+        )
+
+        return True
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "SCHEDULE FIRESTORE SAVE ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
+        return False
+
+# ============================================================
+# MIGRATE OLD SCHEDULE.JSON → FIRESTORE
+# ============================================================
+
+# ============================================================
+# MIGRATE OLD SCHEDULE.JSON → FIRESTORE
+# ============================================================
+
+@app.route(
+    "/admin/schedule/migrate",
+    methods=["POST"]
+)
+def migrate_schedule():
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    try:
+
+        # ----------------------------------------------------
+        # OLD JSON FILE
+        # ----------------------------------------------------
+
+        file_path = os.path.join(
+            BASE_DIR,
+            "data",
+            "schedule.json"
+        )
+
+
+        if not os.path.exists(file_path):
+
+            flash(
+                "schedule.json was not found.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_schedule")
+            )
+
+
+        # ----------------------------------------------------
+        # READ OLD 2026 DATA
+        # ----------------------------------------------------
+
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8"
+        ) as f:
+
+            old_data = json.load(f)
+
+
+        # ----------------------------------------------------
+        # OLD FILE IS 2026
+        # ----------------------------------------------------
+
+        year = "2026"
+
+
+        # ----------------------------------------------------
+        # PREPARE PROGRAMS
+        # ----------------------------------------------------
+
+        programs = old_data.get(
+            "program",
+            []
+        )
+
+
+        for event in programs:
+
+            if not isinstance(
+                event,
+                dict
+            ):
+                continue
+
+
+            event.setdefault(
+                "winner_link",
+                ""
+            )
+
+
+        # ----------------------------------------------------
+        # PREPARE GAMES
+        # ----------------------------------------------------
+
+        games = old_data.get(
+            "games",
+            []
+        )
+
+
+        for game in games:
+
+            if not isinstance(
+                game,
+                dict
+            ):
+                continue
+
+
+            game.setdefault(
+                "rules",
+                []
+            )
+
+
+            game.setdefault(
+                "winner_link",
+                ""
+            )
+
+
+        # ----------------------------------------------------
+        # PREPARE AARTI
+        # ----------------------------------------------------
+
+        aarti = old_data.get(
+            "aarti",
+            {
+                "morning": "",
+                "evening": ""
+            }
+        )
+
+
+        # ----------------------------------------------------
+        # FINAL 2026 DATA
+        # ----------------------------------------------------
+
+        schedule_data = {
+
+            "year": year,
+
+            "program": programs,
+
+            "games": games,
+
+            "aarti": {
+
+                "morning": aarti.get(
+                    "morning",
+                    ""
+                ),
+
+                "evening": aarti.get(
+                    "evening",
+                    ""
+                )
+
+            }
+
+        }
+
+
+        # ----------------------------------------------------
+        # SAVE TO FIRESTORE
+        # ----------------------------------------------------
+
+        success = save_schedule(
+            year,
+            schedule_data
+        )
+
+
+        if not success:
+
+            flash(
+                "2026 schedule migration failed.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule",
+                    year=year
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # SUCCESS
+        # ----------------------------------------------------
+
+        flash(
+            "2026 schedule successfully imported into Firestore.",
+            "success"
+        )
+
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=year
+            )
+        )
+
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "SCHEDULE MIGRATION ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
+
+        flash(
+            "Unable to migrate 2026 schedule.",
+            "danger"
+        )
+
+
+        return redirect(
+            url_for(
+                "admin_schedule"
+            )
+        )
+# ============================================================
+# ADMIN - SCHEDULE MANAGER
+# ============================================================
+
+@app.route(
+    "/admin/schedule",
+    methods=["GET", "POST"]
+)
+def admin_schedule():
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # SELECTED YEAR
+    # --------------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # LOAD SCHEDULE
+    # --------------------------------------------------------
+
+    schedule_data = load_schedule(
+        selected_year
+    )
+
+
+    # --------------------------------------------------------
+    # AVAILABLE YEARS
+    # --------------------------------------------------------
+
+    years = set()
+
+
+    try:
+
+        docs = (
+            db.collection("schedules")
+            .stream()
+        )
+
+        for doc in docs:
+
+            data = doc.to_dict() or {}
+
+            year = str(
+                data.get(
+                    "year",
+                    doc.id
+                )
+            ).strip()
+
+            if year:
+                years.add(year)
+
+    except Exception as e:
+
+        print(
+            "[Schedule] "
+            "Unable to load available years:",
+            e
+        )
+
+
+    # Current year always available
+
+    years.add(
+        str(datetime.now().year)
+    )
+
+
+    available_years = sorted(
+        years,
+        key=lambda x: int(x)
+        if x.isdigit()
+        else 0,
+        reverse=True
+    )
+
+
+    # --------------------------------------------------------
+    # SAVE GENERAL SCHEDULE DATA
+    # --------------------------------------------------------
+
+    if request.method == "POST":
+
+        morning = request.form.get(
+            "morning",
+            ""
+        ).strip()
+
+        evening = request.form.get(
+            "evening",
+            ""
+        ).strip()
+
+  
+
+        schedule_data["aarti"] = {
+
+            "morning": morning,
+
+            "evening": evening
+
+        }
+
+
+
+
+        # ----------------------------------------------------
+        # SAVE
+        # ----------------------------------------------------
+
+        if save_schedule(
+            selected_year,
+            schedule_data
+        ):
+
+            flash(
+                f"Schedule settings saved for {selected_year}.",
+                "success"
+            )
+
+        else:
+
+            flash(
+                "Unable to save schedule.",
+                "danger"
+            )
+
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=selected_year
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # RENDER
+    # --------------------------------------------------------
+
+    return render_template(
+
+        "admin/schedule.html",
+
+        schedule=schedule_data,
+
+        current_year=selected_year,
+
+        available_years=available_years
+
+    )
+
+
+# ============================================================
+# ADMIN - CREATE NEW SCHEDULE YEAR
+# ============================================================
+
+@app.route(
+    "/admin/schedule/create-year",
+    methods=["POST"]
+)
+def admin_schedule_create_year():
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # YEAR
+    # --------------------------------------------------------
+
+    year = request.form.get(
+        "year",
+        ""
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # VALIDATION
+    # --------------------------------------------------------
+
+    if not year:
+
+        flash(
+            "Please enter a schedule year.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("admin_schedule")
+        )
+
+
+    if not year.isdigit():
+
+        flash(
+            "Please enter a valid year.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("admin_schedule")
+        )
+
+
+    # --------------------------------------------------------
+    # CHECK EXISTING YEAR
+    # --------------------------------------------------------
+
+    existing = (
+        db.collection("schedules")
+        .document(year)
+        .get()
+    )
+
+
+    if existing.exists:
+
+        flash(
+            f"Schedule for {year} already exists.",
+            "warning"
+        )
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=year
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # CREATE EMPTY YEAR
+    # --------------------------------------------------------
+
+    schedule_data = {
+
+        "year": year,
+
+        "aarti": {
+
+            "morning": "",
+
+            "evening": ""
+
+        },
+
+        "program": [],
+
+        "games": []
+
+    }
+
+
+    # --------------------------------------------------------
+    # SAVE
+    # --------------------------------------------------------
+
+    success = save_schedule(
+        year,
+        schedule_data
+    )
+
+
+    if success:
+
+        flash(
+            f"New schedule year {year} created successfully.",
+            "success"
+        )
+
+    else:
+
+        flash(
+            f"Unable to create schedule for {year}.",
+            "danger"
+        )
+
+
+    return redirect(
+        url_for(
+            "admin_schedule",
+            year=year
+        )
+    )
+
+
+
+
+
+# ============================================================
+# ADMIN - ADD PROGRAM
+# ============================================================
+
+@app.route(
+    "/admin/schedule/program/add",
+    methods=["GET", "POST"]
+)
+def admin_schedule_program_add():
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # YEAR
+    # --------------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # ========================================================
+    # POST
+    # ========================================================
+
+    if request.method == "POST":
+
+        # ----------------------------------------------------
+        # FORM DATA
+        # ----------------------------------------------------
+
+        year = request.form.get(
+            "year",
+            selected_year
+        ).strip()
+
+        date = request.form.get(
+            "date",
+            ""
+        ).strip()
+
+        title = request.form.get(
+            "title",
+            ""
+        ).strip()
+
+        winner_link = request.form.get(
+            "winner_link",
+            ""
+        ).strip()
+
+
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
+        if not year:
+
+            year = selected_year
+
+
+        if not date:
+
+            flash(
+                "Program date is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule_program_add",
+                    year=year
+                )
+            )
+
+
+        if not title:
+
+            flash(
+                "Program title is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule_program_add",
+                    year=year
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # LOAD YEAR SCHEDULE
+        # ----------------------------------------------------
+
+        schedule_data = load_schedule(
+            year
+        )
+
+
+        # ----------------------------------------------------
+        # NEW PROGRAM
+        # ----------------------------------------------------
+
+        new_program = {
+
+            "date": date,
+
+            "title": title,
+
+            "winner_link": winner_link
+
+        }
+
+
+        # ----------------------------------------------------
+        # ADD
+        # ----------------------------------------------------
+
+        schedule_data.setdefault(
+            "program",
+            []
+        )
+
+
+        schedule_data["program"].append(
+            new_program
+        )
+
+
+        # ----------------------------------------------------
+        # SAVE
+        # ----------------------------------------------------
+
+        success = save_schedule(
+            year,
+            schedule_data
+        )
+
+
+        if success:
+
+            flash(
+                f"Program added successfully for {year}.",
+                "success"
+            )
+
+        else:
+
+            flash(
+                "Unable to save program.",
+                "danger"
+            )
+
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=year
+            )
+        )
+
+
+    # ========================================================
+    # GET
+    # ========================================================
+
+    return render_template(
+
+        "admin/add_schedule_program.html",
+
+        current_year=selected_year
+
+    )
+    
+    
+    
+    
+# ============================================================
+# ADMIN - EDIT PROGRAM
+# ============================================================
+
+@app.route(
+    "/admin/schedule/program/edit/<int:index>",
+    methods=["GET", "POST"]
+)
+def admin_schedule_program_edit(index):
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # YEAR
+    # --------------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # LOAD SCHEDULE
+    # --------------------------------------------------------
+
+    schedule_data = load_schedule(
+        selected_year
+    )
+
+    programs = schedule_data.get(
+        "program",
+        []
+    )
+
+
+    # --------------------------------------------------------
+    # INDEX VALIDATION
+    # --------------------------------------------------------
+
+    if index < 0 or index >= len(programs):
+
+        flash(
+            "Program not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=selected_year
+            )
+        )
+
+
+    # ========================================================
+    # POST
+    # ========================================================
+
+    if request.method == "POST":
+
+        year = request.form.get(
+            "year",
+            selected_year
+        ).strip()
+
+        date = request.form.get(
+            "date",
+            ""
+        ).strip()
+
+        title = request.form.get(
+            "title",
+            ""
+        ).strip()
+
+        winner_link = request.form.get(
+            "winner_link",
+            ""
+        ).strip()
+
+
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
+        if not date:
+
+            flash(
+                "Program date is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule_program_edit",
+                    index=index,
+                    year=selected_year
+                )
+            )
+
+
+        if not title:
+
+            flash(
+                "Program title is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule_program_edit",
+                    index=index,
+                    year=selected_year
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # YEAR CHANGED
+        # ----------------------------------------------------
+
+        if year != selected_year:
+
+            old_schedule = load_schedule(
+                selected_year
+            )
+
+            old_programs = old_schedule.get(
+                "program",
+                []
+            )
+
+
+            if index < len(old_programs):
+
+                old_programs.pop(index)
+
+
+            old_schedule["program"] = old_programs
+
+
+            save_schedule(
+                selected_year,
+                old_schedule
+            )
+
+
+            # Load target year
+
+            schedule_data = load_schedule(
+                year
+            )
+
+            programs = schedule_data.get(
+                "program",
+                []
+            )
+
+
+            programs.append({
+
+                "date": date,
+
+                "title": title,
+
+                "winner_link": winner_link
+
+            })
+
+
+        else:
+
+            # ------------------------------------------------
+            # UPDATE EXISTING PROGRAM
+            # ------------------------------------------------
+
+            programs[index] = {
+
+                "date": date,
+
+                "title": title,
+
+                "winner_link": winner_link
+
+            }
+
+
+        schedule_data["program"] = programs
+
+
+        # ----------------------------------------------------
+        # SAVE
+        # ----------------------------------------------------
+
+        success = save_schedule(
+            year,
+            schedule_data
+        )
+
+
+        if success:
+
+            flash(
+                "Program updated successfully.",
+                "success"
+            )
+
+        else:
+
+            flash(
+                "Unable to update program.",
+                "danger"
+            )
+
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=year
+            )
+        )
+
+
+    # ========================================================
+    # GET
+    # ========================================================
+
+    program = programs[index]
+
+
+    return render_template(
+
+        "admin/edit_schedule_program.html",
+
+        program=program,
+
+        current_year=selected_year
+
+    )
+    
+    
+    
+# ============================================================
+# ADMIN - DELETE PROGRAM
+# ============================================================
+
+@app.route(
+    "/admin/schedule/program/delete/<int:index>",
+    methods=["POST"]
+)
+def admin_schedule_program_delete(index):
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # YEAR
+    # --------------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # LOAD
+    # --------------------------------------------------------
+
+    schedule_data = load_schedule(
+        selected_year
+    )
+
+    programs = schedule_data.get(
+        "program",
+        []
+    )
+
+
+    # --------------------------------------------------------
+    # VALIDATE INDEX
+    # --------------------------------------------------------
+
+    if index < 0 or index >= len(programs):
+
+        flash(
+            "Program not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=selected_year
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # DELETE
+    # --------------------------------------------------------
+
+    deleted_program = programs.pop(
+        index
+    )
+
+
+    schedule_data["program"] = programs
+
+
+    # --------------------------------------------------------
+    # SAVE
+    # --------------------------------------------------------
+
+    success = save_schedule(
+        selected_year,
+        schedule_data
+    )
+
+
+    if success:
+
+        flash(
+            f"Program '{deleted_program.get('title', '')}' deleted successfully.",
+            "success"
+        )
+
+    else:
+
+        flash(
+            "Unable to delete program.",
+            "danger"
+        )
+
+
+    return redirect(
+        url_for(
+            "admin_schedule",
+            year=selected_year
+        )
+    )
+    
+    
+# ============================================================
+# ADMIN - ADD GAME
+# ============================================================
+
+@app.route(
+    "/admin/schedule/game/add",
+    methods=["GET", "POST"]
+)
+def admin_schedule_game_add():
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # YEAR
+    # --------------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # ========================================================
+    # POST
+    # ========================================================
+
+    if request.method == "POST":
+
+        year = request.form.get(
+            "year",
+            selected_year
+        ).strip()
+
+        date = request.form.get(
+            "date",
+            ""
+        ).strip()
+
+        game = request.form.get(
+            "game",
+            ""
+        ).strip()
+
+        winner_link = request.form.get(
+            "winner_link",
+            ""
+        ).strip()
+
+
+        # ----------------------------------------------------
+        # RULES
+        # ----------------------------------------------------
+
+        rules_text = request.form.get(
+            "rules",
+            ""
+        ).strip()
+
+
+        rules = [
+
+            line.strip()
+
+            for line in rules_text.splitlines()
+
+            if line.strip()
+
+        ]
+
+
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
+        if not year:
+            year = selected_year
+
+
+        if not date:
+
+            flash(
+                "Game date is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule_game_add",
+                    year=year
+                )
+            )
+
+
+        if not game:
+
+            flash(
+                "Game name is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule_game_add",
+                    year=year
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # LOAD YEAR SCHEDULE
+        # ----------------------------------------------------
+
+        schedule_data = load_schedule(
+            year
+        )
+
+
+        # ----------------------------------------------------
+        # NEW GAME
+        # ----------------------------------------------------
+
+        new_game = {
+
+            "date": date,
+
+            "game": game,
+
+            "rules": rules,
+
+            "winner_link": winner_link
+
+        }
+
+
+        # ----------------------------------------------------
+        # ADD GAME
+        # ----------------------------------------------------
+
+        schedule_data.setdefault(
+            "games",
+            []
+        )
+
+        schedule_data["games"].append(
+            new_game
+        )
+
+
+        # ----------------------------------------------------
+        # SAVE
+        # ----------------------------------------------------
+
+        success = save_schedule(
+            year,
+            schedule_data
+        )
+
+
+        if success:
+
+            flash(
+                f"Game added successfully for {year}.",
+                "success"
+            )
+
+        else:
+
+            flash(
+                "Unable to save game.",
+                "danger"
+            )
+
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=year
+            )
+        )
+
+
+    # ========================================================
+    # GET
+    # ========================================================
+
+    return render_template(
+
+        "admin/add_schedule_game.html",
+
+        current_year=selected_year
+
+    )
+    
+    
+# ============================================================
+# ADMIN - EDIT GAME
+# ============================================================
+
+@app.route(
+    "/admin/schedule/game/edit/<int:index>",
+    methods=["GET", "POST"]
+)
+def admin_schedule_game_edit(index):
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # YEAR
+    # --------------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # LOAD SCHEDULE
+    # --------------------------------------------------------
+
+    schedule_data = load_schedule(
+        selected_year
+    )
+
+    games = schedule_data.get(
+        "games",
+        []
+    )
+
+
+    # --------------------------------------------------------
+    # INDEX VALIDATION
+    # --------------------------------------------------------
+
+    if index < 0 or index >= len(games):
+
+        flash(
+            "Game not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=selected_year
+            )
+        )
+
+
+    # ========================================================
+    # POST
+    # ========================================================
+
+    if request.method == "POST":
+
+        year = request.form.get(
+            "year",
+            selected_year
+        ).strip()
+
+        date = request.form.get(
+            "date",
+            ""
+        ).strip()
+
+        game_name = request.form.get(
+            "game",
+            ""
+        ).strip()
+
+        winner_link = request.form.get(
+            "winner_link",
+            ""
+        ).strip()
+
+
+        # ----------------------------------------------------
+        # RULES
+        # ----------------------------------------------------
+
+        rules_text = request.form.get(
+            "rules",
+            ""
+        ).strip()
+
+        rules = [
+
+            line.strip()
+
+            for line in rules_text.splitlines()
+
+            if line.strip()
+
+        ]
+
+
+        # ----------------------------------------------------
+        # VALIDATION
+        # ----------------------------------------------------
+
+        if not date:
+
+            flash(
+                "Game date is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule_game_edit",
+                    index=index,
+                    year=selected_year
+                )
+            )
+
+
+        if not game_name:
+
+            flash(
+                "Game name is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for(
+                    "admin_schedule_game_edit",
+                    index=index,
+                    year=selected_year
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # YEAR CHANGED
+        # ----------------------------------------------------
+
+        if year != selected_year:
+
+            old_schedule = load_schedule(
+                selected_year
+            )
+
+            old_games = old_schedule.get(
+                "games",
+                []
+            )
+
+
+            if index < len(old_games):
+
+                old_games.pop(index)
+
+
+            old_schedule["games"] = old_games
+
+
+            save_schedule(
+                selected_year,
+                old_schedule
+            )
+
+
+            # Load target year
+
+            schedule_data = load_schedule(
+                year
+            )
+
+            games = schedule_data.get(
+                "games",
+                []
+            )
+
+
+            games.append({
+
+                "date": date,
+
+                "game": game_name,
+
+                "rules": rules,
+
+                "winner_link": winner_link
+
+            })
+
+
+        else:
+
+            # ------------------------------------------------
+            # UPDATE EXISTING GAME
+            # ------------------------------------------------
+
+            games[index] = {
+
+                "date": date,
+
+                "game": game_name,
+
+                "rules": rules,
+
+                "winner_link": winner_link
+
+            }
+
+
+        schedule_data["games"] = games
+
+
+        # ----------------------------------------------------
+        # SAVE
+        # ----------------------------------------------------
+
+        success = save_schedule(
+            year,
+            schedule_data
+        )
+
+
+        if success:
+
+            flash(
+                "Game updated successfully.",
+                "success"
+            )
+
+        else:
+
+            flash(
+                "Unable to update game.",
+                "danger"
+            )
+
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=year
+            )
+        )
+
+
+    # ========================================================
+    # GET
+    # ========================================================
+
+    game = games[index]
+
+
+    return render_template(
+
+        "admin/edit_schedule_game.html",
+
+        game=game,
+
+        current_year=selected_year
+
+    )
+
+
+# ============================================================
+# ADMIN - DELETE GAME
+# ============================================================
+
+@app.route(
+    "/admin/schedule/game/delete/<int:index>",
+    methods=["POST"]
+)
+def admin_schedule_game_delete(index):
+
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
+    if not session.get("admin"):
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # --------------------------------------------------------
+    # YEAR
+    # --------------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # LOAD
+    # --------------------------------------------------------
+
+    schedule_data = load_schedule(
+        selected_year
+    )
+
+    games = schedule_data.get(
+        "games",
+        []
+    )
+
+
+    # --------------------------------------------------------
+    # VALIDATE
+    # --------------------------------------------------------
+
+    if index < 0 or index >= len(games):
+
+        flash(
+            "Game not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for(
+                "admin_schedule",
+                year=selected_year
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # DELETE
+    # --------------------------------------------------------
+
+    deleted_game = games.pop(
+        index
+    )
+
+
+    schedule_data["games"] = games
+
+
+    # --------------------------------------------------------
+    # SAVE
+    # --------------------------------------------------------
+
+    success = save_schedule(
+        selected_year,
+        schedule_data
+    )
+
+
+    if success:
+
+        flash(
+            f"Game '{deleted_game.get('game', '')}' deleted successfully.",
+            "success"
+        )
+
+    else:
+
+        flash(
+            "Unable to delete game.",
+            "danger"
+        )
+
+
+    return redirect(
+        url_for(
+            "admin_schedule",
+            year=selected_year
+        )
+    )
+
+
+
+
 
 
 # ============================================================
@@ -3160,17 +5094,123 @@ def python_version():
 
 
 
+# ============================================================
+# PUBLIC - FESTIVAL SCHEDULE
+# YEAR-WISE
+# ============================================================
+
 @app.route("/schedule")
 def schedule():
 
-    data = load_schedule()
+    # --------------------------------------------------------
+    # SELECTED YEAR
+    # --------------------------------------------------------
 
-    return render_template(
-        "schedule.html",
-        schedule=data,
-        active_page="schedule"
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # LOAD SELECTED YEAR
+    # --------------------------------------------------------
+
+    data = load_schedule(
+        selected_year
     )
 
+
+    # --------------------------------------------------------
+    # AVAILABLE YEARS
+    # --------------------------------------------------------
+
+    years = set()
+
+
+    try:
+
+        docs = (
+            db.collection("schedules")
+            .stream()
+        )
+
+
+        for doc in docs:
+
+            data_year = str(
+                doc.to_dict().get(
+                    "year",
+                    doc.id
+                )
+            ).strip()
+
+
+            if data_year:
+
+                years.add(
+                    data_year
+                )
+
+
+    except Exception as e:
+
+        print(
+            "[Schedule] "
+            "Unable to load available years:",
+            e
+        )
+
+
+    # --------------------------------------------------------
+    # CURRENT YEAR ALWAYS AVAILABLE
+    # --------------------------------------------------------
+
+    years.add(
+        selected_year
+    )
+
+
+    # --------------------------------------------------------
+    # SORT YEARS
+    # --------------------------------------------------------
+
+    available_years = sorted(
+
+        years,
+
+        key=lambda value:
+            int(value)
+            if value.isdigit()
+            else 0,
+
+        reverse=True
+
+    )
+
+
+    # --------------------------------------------------------
+    # RENDER
+    # --------------------------------------------------------
+
+    return render_template(
+
+        "schedule.html",
+
+        schedule=data,
+
+        current_year=selected_year,
+
+        available_years=available_years,
+
+        active_page="schedule"
+
+    )
+    
+    
+    
+    
+    
 @app.route("/gallery")
 def gallery():
 
@@ -6300,52 +8340,6 @@ def home():
     )
     
     
-    
-    
-    
-@app.route("/admin/schedule", methods=["GET", "POST"])
-def admin_schedule():
-
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
-
-    schedule = load_schedule()
-
-    if request.method == "POST":
-
-        schedule["aarti"]["morning"] = request.form.get("morning")
-        schedule["aarti"]["evening"] = request.form.get("evening")
-
-        for i, item in enumerate(schedule["program"], start=1):
-
-            item["date"] = request.form.get(f"program_date{i}")
-            item["title"] = request.form.get(f"program_title{i}")
-
-        for i, item in enumerate(schedule["games"], start=1):
-
-            item["date"] = request.form.get(f"game_date{i}")
-            item["game"] = request.form.get(f"game_name{i}")
-
-        file_path = os.path.join(BASE_DIR, "data", "schedule.json")
-
-        with open(file_path, "w", encoding="utf-8") as f:
-
-            json.dump(
-                schedule,
-                f,
-                indent=4,
-                ensure_ascii=False
-            )
-
-        flash("Schedule updated successfully.", "success")
-
-        return redirect(url_for("admin_schedule"))
-
-    return render_template(
-        "admin/schedule.html",
-        schedule=schedule
-    )
-
 
 
 
