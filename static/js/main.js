@@ -445,3 +445,262 @@ document.addEventListener("DOMContentLoaded", () => {
     gameFilter.addEventListener("change", filterWinners);
 
 });
+
+/* =========================
+   HOME GALLERY SLIDER
+========================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const slider = document.querySelector(".gallery-slider");
+
+    if (!slider) {
+        return;
+    }
+
+    const slides = slider.querySelectorAll(".gallery-slide");
+    const dots = slider.querySelectorAll(".gallery-dot");
+
+    const prevBtn = slider.querySelector(".gallery-prev");
+    const nextBtn = slider.querySelector(".gallery-next");
+
+    if (slides.length <= 1) {
+        return;
+    }
+
+    let currentSlide = 0;
+    let autoSlide;
+
+    function showSlide(index) {
+
+        if (index >= slides.length) {
+            index = 0;
+        }
+
+        if (index < 0) {
+            index = slides.length - 1;
+        }
+
+        slides.forEach(function (slide) {
+            slide.classList.remove("active");
+        });
+
+        dots.forEach(function (dot) {
+            dot.classList.remove("active");
+        });
+
+        slides[index].classList.add("active");
+
+        if (dots[index]) {
+            dots[index].classList.add("active");
+        }
+
+        currentSlide = index;
+    }
+
+    function nextSlide() {
+        showSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+        showSlide(currentSlide - 1);
+    }
+
+    function startAutoSlide() {
+
+        clearInterval(autoSlide);
+
+        autoSlide = setInterval(function () {
+            nextSlide();
+        }, 4000);
+
+    }
+
+    if (nextBtn) {
+
+        nextBtn.addEventListener("click", function () {
+            nextSlide();
+            startAutoSlide();
+        });
+
+    }
+
+    if (prevBtn) {
+
+        prevBtn.addEventListener("click", function () {
+            prevSlide();
+            startAutoSlide();
+        });
+
+    }
+
+    dots.forEach(function (dot, index) {
+
+        dot.addEventListener("click", function () {
+            showSlide(index);
+            startAutoSlide();
+        });
+
+    });
+
+    showSlide(0);
+    startAutoSlide();
+
+});
+
+
+/* =========================
+   ADMIN GALLERY UPLOAD PREVIEW
+========================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const fileInput = document.querySelector('input[name="photos"]');
+    const preview = document.getElementById("uploadPreview");
+
+    if (!fileInput || !preview) {
+        return;
+    }
+
+    fileInput.addEventListener("change", function () {
+
+        preview.innerHTML = "";
+
+        const files = Array.from(fileInput.files);
+
+        files.forEach(function (file) {
+
+            if (!file.type.startsWith("image/")) {
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                const item = document.createElement("div");
+                item.className = "upload-preview-item";
+
+                item.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <span>${file.name}</span>
+                `;
+
+                preview.appendChild(item);
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+    });
+
+});
+
+/* =========================================================
+   HALL OF FAME PRIZE POPUP
+========================================================= */
+
+const prizeButton =
+    document.getElementById("openPrizePopup");
+
+const prizePopup =
+    document.getElementById("hofPrizePopup");
+
+const closePrizePopup =
+    document.getElementById("closePrizePopup");
+
+
+if (prizeButton && prizePopup) {
+
+    prizeButton.addEventListener(
+        "click",
+        function () {
+
+            prizePopup.classList.add("active");
+
+            prizePopup.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+            document.body.style.overflow =
+                "hidden";
+        }
+    );
+
+}
+
+
+if (closePrizePopup && prizePopup) {
+
+    closePrizePopup.addEventListener(
+        "click",
+        function () {
+
+            prizePopup.classList.remove("active");
+
+            prizePopup.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            document.body.style.overflow =
+                "";
+        }
+    );
+
+}
+
+
+if (prizePopup) {
+
+    prizePopup.addEventListener(
+        "click",
+        function (event) {
+
+            if (event.target === prizePopup) {
+
+                prizePopup.classList.remove(
+                    "active"
+                );
+
+                prizePopup.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+
+                document.body.style.overflow =
+                    "";
+            }
+
+        }
+    );
+
+}
+
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            event.key === "Escape" &&
+            prizePopup &&
+            prizePopup.classList.contains("active")
+        ) {
+
+            prizePopup.classList.remove(
+                "active"
+            );
+
+            prizePopup.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+            document.body.style.overflow =
+                "";
+        }
+
+    }
+);

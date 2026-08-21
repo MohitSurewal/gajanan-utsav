@@ -1,4 +1,6 @@
+import json
 import os
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -34,3 +36,7 @@ ALLOWED_EXTENSIONS = {
     "png",
     "webp"
 }
+
+FIREBASE_CREDENTIALS = json.loads(
+    os.environ["FIREBASE_CREDENTIALS"]
+)

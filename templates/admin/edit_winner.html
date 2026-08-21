@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Winner{% endblock %}
+{% block title %}
+Edit Winner | {{ game.game }}
+{% endblock %}
 
 {% block content %}
 
@@ -8,93 +10,1488 @@
 
     <div class="container">
 
-        <h1>{{ game.game }}</h1>
+        <!-- ==========================================
+             HEADER
+        =========================================== -->
 
-        <p>{{ year }}</p>
+        <div class="admin-page-header">
 
-        <form method="POST">
+            <h1>✏️ Edit Winner</h1>
 
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="{{ csrf_token() }}"
-            >
+            <p>
+                {{ game.game }} — {{ year }}
+            </p>
+
+        </div>
+
+
+        <!-- ==========================================
+             FORM
+        =========================================== -->
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="winner-form"
+            id="editWinnerForm"
+        >
+
+            <!-- ======================================
+                 COMPETITION DETAILS
+            ======================================= -->
+
+            <div class="admin-card">
+
+                <h2>🏆 Competition Details</h2>
+
+                <div class="form-grid">
+
+                    <div>
+
+                        <label>
+                            Game Name
+                        </label>
+
+                        <input
+                            type="text"
+                            value="{{ game.game }}"
+                            disabled
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label>
+                            Year
+                        </label>
+
+                        <input
+                            type="text"
+                            value="{{ year }}"
+                            disabled
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ======================================
+                 RANKING WINNERS
+            ======================================= -->
 
             {% if game.type == "ranking" %}
 
-                {% for person in game.winners %}
+            <div class="admin-card">
 
-                <div class="admin-card">
+                <div class="section-title-row">
 
-                    <h3>
+                    <div>
 
-                        Position {{ person.position }}
+                        <h2>
+                            🏆 Ranking Winners
+                        </h2>
 
-                    </h3>
+                        <p>
+                            Add as many winners as required.
+                        </p>
 
-                    <label>Name</label>
+                    </div>
 
-                    <input
-                        type="text"
-                        name="name{{ loop.index }}"
-                        value="{{ person.name }}"
+
+                    <button
+                        type="button"
+                        class="admin-btn"
+                        id="addWinnerBtn"
                     >
-
-                    <label>Photo</label>
-
-                    <input
-                        type="text"
-                        name="photo{{ loop.index }}"
-                        value="{{ person.photo }}"
-                    >
+                        ➕ Add Winner
+                    </button>
 
                 </div>
 
-                {% endfor %}
 
-            {% endif %}
+                <div id="rankingContainer">
+
+                    {% for person in game.winners %}
+
+                    <div
+                        class="winner-entry"
+                        data-index="{{ loop.index }}"
+                    >
+
+                        <div class="winner-entry-header">
+
+                            <h3>
+                                Winner {{ loop.index }}
+                            </h3>
+
+                            <button
+                                type="button"
+                                class="remove-winner-btn"
+                                onclick="removeWinner(this)"
+                            >
+                                ✕ Remove
+                            </button>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+                            <!-- POSITION -->
+
+                            <div>
+
+                                <label>
+                                    Position
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="winner-position"
+                                    name="winner_position_{{ loop.index }}"
+                                    value="{{ person.position if person.position else loop.index }}"
+                                    min="1"
+                                    placeholder="1"
+                                >
+
+                            </div>
+
+
+                            <!-- NAME -->
+
+                            <div>
+
+                                <label>
+                                    Winner Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="winner-name"
+                                    name="winner_name_{{ loop.index }}"
+                                    value="{{ person.name }}"
+                                    placeholder="Enter winner name"
+                                >
+
+                            </div>
+
+
+                            <!-- AGE -->
+
+                            <div>
+
+                                <label>
+                                    Winner Age
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="winner-age"
+                                    name="winner_age_{{ loop.index }}"
+                                    value="{{ person.age if person.age else '' }}"
+                                    min="1"
+                                    max="100"
+                                    placeholder="Enter age"
+                                >
+
+                            </div>
+
+
+                            <!-- PHOTO -->
+
+                            <div>
+
+                                <label>
+                                    Winner Photo
+                                </label>
+
+                                <input
+                                    type="file"
+                                    class="winner-photo-input"
+                                    name="winner_photo_{{ loop.index }}"
+                                    accept="image/*"
+                                >
+
+
+                                {% if person.photo %}
+
+                                <div class="current-photo">
+
+                                    <p>
+                                        Current Photo
+                                    </p>
+
+                                    <img
+                                        src="{{ person.photo }}"
+                                        alt="{{ person.name }}"
+                                    >
+
+                                </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="winner_count"
+                    id="winnerCount"
+                    value="{{ game.winners|length }}"
+                >
+
+            </div>
+
+
+            <!-- ======================================
+                 AGE GROUP WINNERS
+            ======================================= -->
 
             {% elif game.type == "age_group" %}
 
-                {% for group in game.groups %}
+            <div class="admin-card">
 
-                <div class="admin-card">
+                <div class="section-title-row">
 
-                    <h3>{{ group.age_group }}</h3>
+                    <div>
 
-                    <label>Winner Name</label>
+                        <h2>
+                            👶 Age Group Winners
+                        </h2>
 
-                    <input
-                        type="text"
-                        name="winner{{ loop.index }}"
-                        value="{{ group.winner.name }}"
+                        <p>
+                            Manage age-wise winners.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="admin-btn"
+                        id="addAgeGroupBtn"
                     >
-
-                    <label>Photo</label>
-
-                    <input
-                        type="text"
-                        name="photo{{ loop.index }}"
-                        value="{{ group.winner.photo }}"
-                    >
+                        ➕ Add Age Group
+                    </button>
 
                 </div>
 
-                {% endfor %}
 
-            <button
-                type="submit"
-                class="admin-btn"
-            >
+                <div id="ageGroupContainer">
 
-                Save Changes
+                    {% for group in game.groups %}
 
-            </button>
+                    <div
+                        class="age-entry"
+                        data-index="{{ loop.index }}"
+                    >
+
+                        <div class="winner-entry-header">
+
+                            <h3>
+                                Age Group {{ loop.index }}
+                            </h3>
+
+                            <button
+                                type="button"
+                                class="remove-winner-btn"
+                                onclick="removeAgeGroup(this)"
+                            >
+                                ✕ Remove
+                            </button>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+                            <!-- AGE GROUP -->
+
+                            <div>
+
+                                <label>
+                                    Age Group
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="age-group-name"
+                                    name="age_group_{{ loop.index }}"
+                                    value="{{ group.age_group }}"
+                                    placeholder="Example: 5–8 Years"
+                                >
+
+                            </div>
+
+
+                            <!-- WINNER NAME -->
+
+                            <div>
+
+                                <label>
+                                    Winner Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="age-winner-name"
+                                    name="age_winner_{{ loop.index }}"
+                                    value="{{ group.winner.name }}"
+                                    placeholder="Enter winner name"
+                                >
+
+                            </div>
+
+
+                            <!-- WINNER AGE -->
+
+                            <div>
+
+                                <label>
+                                    Winner Age
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="age-winner-age"
+                                    name="age_winner_age_{{ loop.index }}"
+                                    value="{{ group.winner.age if group.winner.age else '' }}"
+                                    min="1"
+                                    max="100"
+                                    placeholder="Enter age"
+                                >
+
+                            </div>
+
+
+                            <!-- PHOTO -->
+
+                            <div>
+
+                                <label>
+                                    Winner Photo
+                                </label>
+
+                                <input
+                                    type="file"
+                                    class="age-photo-input"
+                                    name="age_photo_{{ loop.index }}"
+                                    accept="image/*"
+                                >
+
+
+                                {% if group.winner.photo %}
+
+                                <div class="current-photo">
+
+                                    <p>
+                                        Current Photo
+                                    </p>
+
+                                    <img
+                                        src="{{ group.winner.photo }}"
+                                        alt="{{ group.winner.name }}"
+                                    >
+
+                                </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="group_count"
+                    id="groupCount"
+                    value="{{ game.groups|length }}"
+                >
+
+            </div>
+
+
+            <!-- ======================================
+                 TEAM
+            ======================================= -->
+
+            {% elif game.type == "team" %}
+
+            <div class="admin-card">
+
+                <div class="section-title-row">
+
+                    <div>
+
+                        <h2>
+                            👥 Teams
+                        </h2>
+
+                        <p>
+                            Manage winning teams.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="admin-btn"
+                        id="addTeamBtn"
+                    >
+                        ➕ Add Team
+                    </button>
+
+                </div>
+
+
+                <div id="teamContainer">
+
+                    {% for team in game.teams %}
+
+                    <div
+                        class="team-entry"
+                        data-index="{{ loop.index }}"
+                    >
+
+                        <div class="winner-entry-header">
+
+                            <h3>
+                                Team {{ loop.index }}
+                            </h3>
+
+                            <button
+                                type="button"
+                                class="remove-winner-btn"
+                                onclick="removeTeam(this)"
+                            >
+                                ✕ Remove
+                            </button>
+
+                        </div>
+
+
+                        <label>
+                            Team Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="team_name_{{ loop.index }}"
+                            value="{{ team.team }}"
+                            placeholder="Enter team name"
+                        >
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="team_count"
+                    id="teamCount"
+                    value="{{ game.teams|length }}"
+                >
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- ======================================
+                 SAVE BUTTONS
+            ======================================= -->
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="admin-btn"
+                >
+                    💾 Save Changes
+                </button>
+
+
+                <a
+                    href="{{ url_for('admin_winners') }}"
+                    class="admin-btn secondary-btn"
+                >
+                    ← Back
+                </a>
+
+            </div>
 
         </form>
 
     </div>
 
 </section>
+
+
+<!-- =================================================
+     JAVASCRIPT
+================================================= -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* =================================================
+           RANKING WINNERS
+        ================================================= */
+
+        const addWinnerBtn =
+            document.getElementById(
+                "addWinnerBtn"
+            );
+
+
+        const rankingContainer =
+            document.getElementById(
+                "rankingContainer"
+            );
+
+
+        if (
+            addWinnerBtn &&
+            rankingContainer
+        ) {
+
+            addWinnerBtn.addEventListener(
+                "click",
+                function () {
+
+                    const entries =
+                        rankingContainer.querySelectorAll(
+                            ".winner-entry"
+                        );
+
+
+                    const index =
+                        entries.length + 1;
+
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    div.className =
+                        "winner-entry";
+
+
+                    div.dataset.index =
+                        index;
+
+
+                    div.innerHTML = `
+
+                        <div class="winner-entry-header">
+
+                            <h3>
+                                Winner ${index}
+                            </h3>
+
+                            <button
+                                type="button"
+                                class="remove-winner-btn"
+                                onclick="removeWinner(this)"
+                            >
+                                ✕ Remove
+                            </button>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+
+                            <!-- POSITION -->
+
+                            <div>
+
+                                <label>
+                                    Position
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="winner-position"
+                                    name="winner_position_${index}"
+                                    value="${index}"
+                                    min="1"
+                                    placeholder="1"
+                                >
+
+                            </div>
+
+
+                            <!-- NAME -->
+
+                            <div>
+
+                                <label>
+                                    Winner Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="winner-name"
+                                    name="winner_name_${index}"
+                                    placeholder="Enter winner name"
+                                >
+
+                            </div>
+
+
+                            <!-- AGE -->
+
+                            <div>
+
+                                <label>
+                                    Winner Age
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="winner-age"
+                                    name="winner_age_${index}"
+                                    min="1"
+                                    max="100"
+                                    placeholder="Enter age"
+                                >
+
+                            </div>
+
+
+                            <!-- PHOTO -->
+
+                            <div>
+
+                                <label>
+                                    Winner Photo
+                                </label>
+
+                                <input
+                                    type="file"
+                                    class="winner-photo-input"
+                                    name="winner_photo_${index}"
+                                    accept="image/*"
+                                >
+
+                            </div>
+
+
+                        </div>
+
+                    `;
+
+
+                    rankingContainer.appendChild(
+                        div
+                    );
+
+
+                    updateWinnerIndexes();
+
+                }
+            );
+
+        }
+
+
+
+        /* =================================================
+           AGE GROUP
+        ================================================= */
+
+        const addAgeGroupBtn =
+            document.getElementById(
+                "addAgeGroupBtn"
+            );
+
+
+        const ageGroupContainer =
+            document.getElementById(
+                "ageGroupContainer"
+            );
+
+
+        if (
+            addAgeGroupBtn &&
+            ageGroupContainer
+        ) {
+
+            addAgeGroupBtn.addEventListener(
+                "click",
+                function () {
+
+                    const entries =
+                        ageGroupContainer.querySelectorAll(
+                            ".age-entry"
+                        );
+
+
+                    const index =
+                        entries.length + 1;
+
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    div.className =
+                        "age-entry";
+
+
+                    div.dataset.index =
+                        index;
+
+
+                    div.innerHTML = `
+
+                        <div class="winner-entry-header">
+
+                            <h3>
+                                Age Group ${index}
+                            </h3>
+
+                            <button
+                                type="button"
+                                class="remove-winner-btn"
+                                onclick="removeAgeGroup(this)"
+                            >
+                                ✕ Remove
+                            </button>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+
+                            <!-- AGE GROUP -->
+
+                            <div>
+
+                                <label>
+                                    Age Group
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="age-group-name"
+                                    name="age_group_${index}"
+                                    placeholder="Example: 5–8 Years"
+                                >
+
+                            </div>
+
+
+                            <!-- WINNER NAME -->
+
+                            <div>
+
+                                <label>
+                                    Winner Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="age-winner-name"
+                                    name="age_winner_${index}"
+                                    placeholder="Enter winner name"
+                                >
+
+                            </div>
+
+
+                            <!-- WINNER AGE -->
+
+                            <div>
+
+                                <label>
+                                    Winner Age
+                                </label>
+
+                                <input
+                                    type="number"
+                                    class="age-winner-age"
+                                    name="age_winner_age_${index}"
+                                    min="1"
+                                    max="100"
+                                    placeholder="Enter age"
+                                >
+
+                            </div>
+
+
+                            <!-- PHOTO -->
+
+                            <div>
+
+                                <label>
+                                    Winner Photo
+                                </label>
+
+                                <input
+                                    type="file"
+                                    class="age-photo-input"
+                                    name="age_photo_${index}"
+                                    accept="image/*"
+                                >
+
+                            </div>
+
+
+                        </div>
+
+                    `;
+
+
+                    ageGroupContainer.appendChild(
+                        div
+                    );
+
+
+                    updateAgeIndexes();
+
+                }
+            );
+
+        }
+
+
+
+        /* =================================================
+           TEAM
+        ================================================= */
+
+        const addTeamBtn =
+            document.getElementById(
+                "addTeamBtn"
+            );
+
+
+        const teamContainer =
+            document.getElementById(
+                "teamContainer"
+            );
+
+
+        if (
+            addTeamBtn &&
+            teamContainer
+        ) {
+
+            addTeamBtn.addEventListener(
+                "click",
+                function () {
+
+                    const entries =
+                        teamContainer.querySelectorAll(
+                            ".team-entry"
+                        );
+
+
+                    const index =
+                        entries.length + 1;
+
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    div.className =
+                        "team-entry";
+
+
+                    div.dataset.index =
+                        index;
+
+
+                    div.innerHTML = `
+
+                        <div class="winner-entry-header">
+
+                            <h3>
+                                Team ${index}
+                            </h3>
+
+                            <button
+                                type="button"
+                                class="remove-winner-btn"
+                                onclick="removeTeam(this)"
+                            >
+                                ✕ Remove
+                            </button>
+
+                        </div>
+
+
+                        <label>
+                            Team Name
+                        </label>
+
+
+                        <input
+                            type="text"
+                            name="team_name_${index}"
+                            placeholder="Enter team name"
+                        >
+
+                    `;
+
+
+                    teamContainer.appendChild(
+                        div
+                    );
+
+
+                    updateTeamIndexes();
+
+                }
+            );
+
+        }
+
+    }
+
+);
+
+
+/* =====================================================
+   REMOVE RANKING WINNER
+===================================================== */
+
+function removeWinner(button) {
+
+    const entry =
+        button.closest(
+            ".winner-entry"
+        );
+
+
+    if (!entry) {
+        return;
+    }
+
+
+    const container =
+        document.getElementById(
+            "rankingContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const entries =
+        container.querySelectorAll(
+            ".winner-entry"
+        );
+
+
+    if (entries.length <= 1) {
+
+        alert(
+            "At least one winner is required."
+        );
+
+        return;
+
+    }
+
+
+    entry.remove();
+
+
+    updateWinnerIndexes();
+
+}
+
+
+
+/* =====================================================
+   UPDATE RANKING WINNERS
+===================================================== */
+
+function updateWinnerIndexes() {
+
+    const container =
+        document.getElementById(
+            "rankingContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const entries =
+        container.querySelectorAll(
+            ".winner-entry"
+        );
+
+
+    entries.forEach(
+        function (entry, index) {
+
+            const number =
+                index + 1;
+
+
+            entry.dataset.index =
+                number;
+
+
+            const heading =
+                entry.querySelector(
+                    "h3"
+                );
+
+
+            if (heading) {
+
+                heading.textContent =
+                    "Winner " + number;
+
+            }
+
+
+            const position =
+                entry.querySelector(
+                    ".winner-position"
+                );
+
+
+            if (position) {
+
+                position.name =
+                    "winner_position_" +
+                    number;
+
+            }
+
+
+            const name =
+                entry.querySelector(
+                    ".winner-name"
+                );
+
+
+            if (name) {
+
+                name.name =
+                    "winner_name_" +
+                    number;
+
+            }
+
+
+            const age =
+                entry.querySelector(
+                    ".winner-age"
+                );
+
+
+            if (age) {
+
+                age.name =
+                    "winner_age_" +
+                    number;
+
+            }
+
+
+            const photo =
+                entry.querySelector(
+                    ".winner-photo-input"
+                );
+
+
+            if (photo) {
+
+                photo.name =
+                    "winner_photo_" +
+                    number;
+
+            }
+
+        }
+    );
+
+
+    const count =
+        document.getElementById(
+            "winnerCount"
+        );
+
+
+    if (count) {
+
+        count.value =
+            entries.length;
+
+    }
+
+}
+
+
+
+/* =====================================================
+   REMOVE AGE GROUP
+===================================================== */
+
+function removeAgeGroup(button) {
+
+    const entry =
+        button.closest(
+            ".age-entry"
+        );
+
+
+    if (!entry) {
+        return;
+    }
+
+
+    const container =
+        document.getElementById(
+            "ageGroupContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const entries =
+        container.querySelectorAll(
+            ".age-entry"
+        );
+
+
+    if (entries.length <= 1) {
+
+        alert(
+            "At least one age group is required."
+        );
+
+        return;
+
+    }
+
+
+    entry.remove();
+
+
+    updateAgeIndexes();
+
+}
+
+
+
+/* =====================================================
+   UPDATE AGE GROUPS
+===================================================== */
+
+function updateAgeIndexes() {
+
+    const container =
+        document.getElementById(
+            "ageGroupContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const entries =
+        container.querySelectorAll(
+            ".age-entry"
+        );
+
+
+    entries.forEach(
+        function (entry, index) {
+
+            const number =
+                index + 1;
+
+
+            entry.dataset.index =
+                number;
+
+
+            const heading =
+                entry.querySelector(
+                    "h3"
+                );
+
+
+            if (heading) {
+
+                heading.textContent =
+                    "Age Group " +
+                    number;
+
+            }
+
+
+            const ageGroup =
+                entry.querySelector(
+                    ".age-group-name"
+                );
+
+
+            if (ageGroup) {
+
+                ageGroup.name =
+                    "age_group_" +
+                    number;
+
+            }
+
+
+            const winnerName =
+                entry.querySelector(
+                    ".age-winner-name"
+                );
+
+
+            if (winnerName) {
+
+                winnerName.name =
+                    "age_winner_" +
+                    number;
+
+            }
+
+
+            const winnerAge =
+                entry.querySelector(
+                    ".age-winner-age"
+                );
+
+
+            if (winnerAge) {
+
+                winnerAge.name =
+                    "age_winner_age_" +
+                    number;
+
+            }
+
+
+            const photo =
+                entry.querySelector(
+                    ".age-photo-input"
+                );
+
+
+            if (photo) {
+
+                photo.name =
+                    "age_photo_" +
+                    number;
+
+            }
+
+        }
+    );
+
+
+    const count =
+        document.getElementById(
+            "groupCount"
+        );
+
+
+    if (count) {
+
+        count.value =
+            entries.length;
+
+    }
+
+}
+
+
+
+/* =====================================================
+   REMOVE TEAM
+===================================================== */
+
+function removeTeam(button) {
+
+    const entry =
+        button.closest(
+            ".team-entry"
+        );
+
+
+    if (!entry) {
+        return;
+    }
+
+
+    const container =
+        document.getElementById(
+            "teamContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const entries =
+        container.querySelectorAll(
+            ".team-entry"
+        );
+
+
+    if (entries.length <= 1) {
+
+        alert(
+            "At least one team is required."
+        );
+
+        return;
+
+    }
+
+
+    entry.remove();
+
+
+    updateTeamIndexes();
+
+}
+
+
+
+/* =====================================================
+   UPDATE TEAMS
+===================================================== */
+
+function updateTeamIndexes() {
+
+    const container =
+        document.getElementById(
+            "teamContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const entries =
+        container.querySelectorAll(
+            ".team-entry"
+        );
+
+
+    entries.forEach(
+        function (entry, index) {
+
+            const number =
+                index + 1;
+
+
+            entry.dataset.index =
+                number;
+
+
+            const heading =
+                entry.querySelector(
+                    "h3"
+                );
+
+
+            if (heading) {
+
+                heading.textContent =
+                    "Team " +
+                    number;
+
+            }
+
+
+            const input =
+                entry.querySelector(
+                    "input"
+                );
+
+
+            if (input) {
+
+                input.name =
+                    "team_name_" +
+                    number;
+
+            }
+
+        }
+    );
+
+
+    const count =
+        document.getElementById(
+            "teamCount"
+        );
+
+
+    if (count) {
+
+        count.value =
+            entries.length;
+
+    }
+
+}
+
+</script>
 
 {% endblock %}

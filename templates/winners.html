@@ -127,9 +127,10 @@ Games Winners
                     <div class="winner-row">
 
                         <img
-                            src="{{ url_for('static', filename=person.photo if person.photo else 'images/default-user.png') }}"
+                            src="{{ person.photo if person.photo else url_for('static', filename='images/default-user.png') }}"
                             class="winner-photo"
-                            alt="{{ person.name }}">
+                            alt="{{ person.name }}"
+                            loading="lazy">
 
                         <div class="winner-details">
 
@@ -176,9 +177,10 @@ Games Winners
                         <div class="winner-row">
 
                             <img
-                                src="{{ url_for('static', filename=group.winner.photo if group.winner.photo else 'images/default-user.png') }}"
+                                src="{{ group.winner.photo if group.winner.photo else url_for('static', filename='images/default-user.png') }}"
                                 class="winner-photo"
-                                alt="{{ group.winner.name }}">
+                                alt="{{ group.winner.name }}"
+                                loading="lazy">
 
                             <div class="winner-details">
 
@@ -220,33 +222,36 @@ Games Winners
 
                 <!-- Gallery Button -->
 
+                <!-- ==========================================
+                    GALLERY BUTTON
+                =========================================== -->
+
                 <div class="winner-footer">
 
-                    {% if game.status=="completed" %}
+                    {% if game.status|lower == "completed" %}
 
-                    <a
-                    href="{{ url_for('gallery',year=year,event=game.gallery) }}"
-                    class="gallery-btn">
+                        <a
+                            href="{{ url_for(
+                                'gallery',
+                                year=year,
+                                event=game.gallery_event
+                            ) }}"
+                            class="gallery-btn"
+                        >
+                            📷 View Event Photos
+                        </a>
+                    {% elif game.status|lower == "live" %}
 
-                    📷 View Event Photos
+                        <span class="gallery-btn disabled">
+                            🔴 Competition Running
+                        </span>
 
-                    </a>
-
-                    {% elif game.status=="live" %}
-
-                    <span class="gallery-btn disabled">
-
-                    🔴 Competition Running
-
-                    </span>
 
                     {% else %}
 
-                    <span class="gallery-btn disabled">
-
-                    ⏳ Photos Available After Event
-
-                    </span>
+                        <span class="gallery-btn disabled">
+                            ⏳ Photos Available After Event
+                        </span>
 
                     {% endif %}
 
