@@ -1,133 +1,315 @@
 {% extends "base.html" %}
 
 {% block title %}
-Festival Schedule | Gajanan Utsav Samiti 2026
+Festival Schedule | Gajanan Utsav Samiti {{ current_year }}
 {% endblock %}
 
+
 {% block content %}
+
+<!-- =========================================================
+     PAGE HEADER
+========================================================= -->
 
 <section class="page-header">
 
     <div class="container">
 
-        <h1>Festival Schedule</h1>
+        <h1>
+            Festival Schedule
+        </h1>
 
-        <p>Ganesh Utsav 2026 • I TYPE Colony</p>
+        <p>
+            Ganesh Utsav {{ current_year }} • I TYPE Colony
+        </p>
 
     </div>
 
 </section>
+
+
+<!-- =========================================================
+     SCHEDULE
+========================================================= -->
 
 <section class="schedule-section">
 
     <div class="container">
 
-        <!-- Program -->
 
-        <h2>Main Program</h2>
+        <!-- =====================================================
+             YEAR SELECTOR
+        ====================================================== -->
+
+        <div class="schedule-year-selector">
+
+            <label for="publicScheduleYear">
+
+                Schedule Year
+
+            </label>
+
+
+            <select
+                id="publicScheduleYear"
+                onchange="changePublicScheduleYear(this.value)"
+            >
+
+                {% for year in available_years %}
+
+                    <option
+                        value="{{ year }}"
+
+                        {% if year|string == current_year|string %}
+                            selected
+                        {% endif %}
+                    >
+
+                        {{ year }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+
+        <!-- =====================================================
+             MAIN PROGRAM
+        ====================================================== -->
+
+        <h2>
+            Main Program
+        </h2>
+
 
         <div class="event-list">
 
-        {% for event in schedule.program %}
+            {% if schedule.program %}
 
-        <div class="event">
+                {% for event in schedule.program %}
 
-        <span>
+                    <div class="event">
 
-        {{ event.date }}
+                        <span>
+                            {{ event.date }}
+                        </span>
 
-        </span>
 
-        <h3>
+                        <h3>
+                            {{ event.title }}
+                        </h3>
 
-        {{ event.title }}
 
-        </h3>
-        {% if event.winner_link %}
+                        {% if event.winner_link %}
 
-        <a class="winner-btn"
-        href="/winners#{{ event.winner_link }}">
+                            <a
+                                class="winner-btn"
+                                href="/winners#{{ event.winner_link }}"
+                            >
 
-        🏆 View Winners
+                                🏆 View Winners
 
-        </a>
+                            </a>
 
-        {% endif %}
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="schedule-empty">
+
+                    <p>
+                        No programs have been added for
+                        {{ current_year }} yet.
+                    </p>
+
+                </div>
+
+            {% endif %}
 
         </div>
 
-{% endfor %}
 
-</div>
-
-        <!-- Games -->
+        <!-- =====================================================
+             GAMES
+        ====================================================== -->
 
         <div class="schedule-card fade-up">
 
-            <h2>Games</h2>
+            <h2>
+                Games
+            </h2>
+
 
             <div class="games-grid">
 
-            {% for game in schedule.games %}
+                {% if schedule.games %}
 
-            <div class="game">
+                    {% for game in schedule.games %}
 
-            <strong>
+                        <div class="game">
 
-            {{ game.date }}
 
-            </strong>
+                            <!-- DATE -->
 
-            <p>
+                            <strong>
 
-            {{ game.game }}
+                                {{ game.date }}
 
-            </p>
+                            </strong>
 
-            </div>
 
-{% endfor %}
+                            <!-- GAME -->
 
-</div>
+                            <p>
 
-        <!-- Aarti -->
+                                {{ game.game }}
 
-        <div class="schedule-card fade-up">
+                            </p>
 
-            <h2>Daily Aarti</h2>
 
-            <div class="aarti-box">
+                            <!-- RULES -->
 
-            <h3>
+                            {% if game.rules %}
 
-            Morning Aarti
+                                <details class="game-rules">
 
-            </h3>
+                                    <summary>
 
-            <p>
+                                        📋 View Rules
 
-            {{ schedule.aarti.morning }}
+                                    </summary>
 
-            </p>
 
-            <h3>
+                                    <div class="game-rules-content">
 
-            Evening Aarti
+                                        <ul>
 
-            </h3>
+                                            {% for rule in game.rules %}
 
-            <p>
+                                                <li>
 
-            {{ schedule.aarti.evening }}
+                                                    {{ rule }}
 
-            </p>
+                                                </li>
+
+                                            {% endfor %}
+
+                                        </ul>
+
+                                    </div>
+
+                                </details>
+
+                            {% endif %}
+
+
+                            <!-- WINNERS -->
+
+                            {% if game.winner_link %}
+
+                                <a
+                                    class="winner-btn"
+                                    href="/winners#{{ game.winner_link }}"
+                                >
+
+                                    🏆 View Winners
+
+                                </a>
+
+                            {% endif %}
+
+
+                        </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="schedule-empty">
+
+                        <p>
+                            No games have been added for
+                            {{ current_year }} yet.
+                        </p>
+
+                    </div>
+
+                {% endif %}
 
             </div>
 
         </div>
+
+
+        <!-- =====================================================
+             DAILY AARTI
+        ====================================================== -->
+
+        <div class="schedule-card fade-up">
+
+            <h2>
+                Daily Aarti
+            </h2>
+
+
+            <div class="aarti-box">
+
+
+                <h3>
+                    Morning Aarti
+                </h3>
+
+                <p>
+                    {{ schedule.aarti.morning }}
+                </p>
+
+
+                <h3>
+                    Evening Aarti
+                </h3>
+
+                <p>
+                    {{ schedule.aarti.evening }}
+                </p>
+
+
+            </div>
+
+        </div>
+
 
     </div>
 
 </section>
+
+
+<!-- =========================================================
+     YEAR CHANGE
+========================================================= -->
+
+<script>
+
+function changePublicScheduleYear(year) {
+
+    if (!year) {
+        return;
+    }
+
+
+    window.location.href =
+        "{{ url_for('schedule') }}" +
+        "?year=" +
+        encodeURIComponent(year);
+
+}
+
+</script>
 
 {% endblock %}
