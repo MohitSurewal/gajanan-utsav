@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Program | Schedule Manager
+{% endblock %}
+
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+
+        <div class="admin-page-header">
+
+            <div>
+
+                <h1>
+                    ✏️ Edit Main Program
+                </h1>
+
+                <p>
+                    Update the selected festival program.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{{ url_for(
+                    'admin_schedule',
+                    year=current_year
+                ) }}"
+                class="admin-btn secondary"
+            >
+                ← Back to Schedule
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             FORM
+        ====================================================== -->
+
+        <div class="admin-card committee-form-card">
+
+            <form method="POST">
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <!-- YEAR -->
+
+                <div class="form-group">
+
+                    <label for="year">
+                        Schedule Year
+                    </label>
+
+                    <input
+                        type="text"
+                        id="year"
+                        name="year"
+                        value="{{ current_year }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DATE -->
+
+                <div class="form-group">
+
+                    <label for="date">
+                        Program Date
+                    </label>
+
+                    <input
+                        type="text"
+                        id="date"
+                        name="date"
+                        value="{{ program.date }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- TITLE -->
+
+                <div class="form-group">
+
+                    <label for="title">
+                        Program Title
+                    </label>
+
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        value="{{ program.title }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- WINNER LINK -->
+
+                <div class="form-group">
+
+                    <label for="winner_link">
+                        Winner Link
+                        <small>(Optional)</small>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="winner_link"
+                        name="winner_link"
+                        value="{{ program.winner_link|default('') }}"
+                    >
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div class="committee-form-actions">
+
+                    <a
+                        href="{{ url_for(
+                            'admin_schedule',
+                            year=current_year
+                        ) }}"
+                        class="admin-btn secondary"
+                    >
+                        Cancel
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="admin-btn"
+                    >
+                        💾 Update Program
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

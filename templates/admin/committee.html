@@ -1,72 +1,380 @@
 {% extends "base.html" %}
 
 {% block title %}
-
 Committee Manager
-
 {% endblock %}
+
 
 {% block content %}
 
 <section class="admin-dashboard">
 
-<div class="container">
+    <div class="container">
 
-<h1>👥 Committee Manager</h1>
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
 
-<form method="POST">
+        <div class="admin-page-header">
 
-<input
-type="hidden"
-name="csrf_token"
-value="{{ csrf_token() }}"
->
+            <div>
 
-{% for member in committee %}
+                <h1>
+                    👥 Committee Manager
+                </h1>
 
-<div class="admin-card">
+                <p>
+                    Manage committee members, photos and yearly records.
+                </p>
 
-<label>Name</label>
+            </div>
 
-<input
-type="text"
-name="name{{ loop.index }}"
-value="{{ member.name }}"
->
+        </div>
 
-<label>Post</label>
 
-<input
-type="text"
-name="post{{ loop.index }}"
-value="{{ member.post }}"
->
+        <!-- =====================================================
+             FLASH MESSAGES
+        ====================================================== -->
 
-<label>Image</label>
+        {% with messages = get_flashed_messages(with_categories=true) %}
 
-<input
-type="text"
-name="image{{ loop.index }}"
-value="{{ member.image }}"
->
+            {% if messages %}
 
-</div>
+                <div class="admin-messages">
 
-{% endfor %}
+                    {% for category, message in messages %}
 
-<button
-class="admin-btn"
-type="submit"
->
+                        <div class="admin-message {{ category }}">
 
-💾 Save Committee
+                            {{ message }}
 
-</button>
+                        </div>
 
-</form>
+                    {% endfor %}
 
-</div>
+                </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <!-- =====================================================
+             YEAR + ADD MEMBER
+        ====================================================== -->
+
+        <div class="admin-card">
+
+            <div class="committee-toolbar">
+
+                <!-- =================================================
+                     YEAR SELECTOR
+                ================================================== -->
+
+                <div class="committee-year-box">
+
+                    <label for="committeeYear">
+                        Committee Year
+                    </label>
+
+                    <select
+                        id="committeeYear"
+                        onchange="changeCommitteeYear(this.value)"
+                    >
+
+                        {% for year in available_years %}
+
+                            <option
+                                value="{{ year }}"
+                                {% if year|string == current_year|string %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ year }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- =================================================
+                     ADD MEMBER
+                ================================================== -->
+
+                <div class="committee-add-box">
+
+                    <a
+                        href="{{ url_for('admin_committee_add') }}?year={{ current_year }}"
+                        class="admin-btn"
+                    >
+                        ➕ Add Committee Member
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             OLD DATA MIGRATION
+        ====================================================== -->
+
+        <div class="admin-card committee-migration">
+
+            <div>
+
+                <h3>
+                    ⚠️ Existing Committee Data
+                </h3>
+
+                <p>
+
+                    If your old committee members are still stored
+                    in <strong>committee.json</strong>, use this
+                    one-time migration button.
+
+                </p>
+
+            </div>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('migrate_committee') }}"
+                onsubmit="
+                    return confirm(
+                        'Import old committee data into Firestore?'
+                    );
+                "
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <button
+                    type="submit"
+                    class="admin-btn secondary"
+                >
+
+                    🔄 Import Old Committee Data
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- =====================================================
+             CURRENT YEAR
+        ====================================================== -->
+
+        <div class="committee-current-year">
+
+            <span>
+                Showing Committee:
+            </span>
+
+            <strong>
+                {{ current_year }}
+            </strong>
+
+        </div>
+
+
+        <!-- =====================================================
+             COMMITTEE MEMBERS
+        ====================================================== -->
+
+        <div class="committee-admin-grid">
+
+            {% if committee %}
+
+                {% for member in committee %}
+
+                    <div class="admin-card committee-member-card">
+
+
+                        <!-- =================================================
+                             PHOTO
+                        ================================================== -->
+
+                        <div class="committee-member-photo">
+
+                            {% if member.image %}
+
+                                <img
+                                    src="{{ member.image }}"
+                                    alt="{{ member.name }}"
+                                    loading="lazy"
+                                >
+
+                            {% else %}
+
+                                <div class="committee-no-photo">
+
+                                    👤
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- =================================================
+                             MEMBER DETAILS
+                        ================================================== -->
+
+                        <div class="committee-member-info">
+
+                            <h3>
+                                {{ member.name }}
+                            </h3>
+
+                            <p>
+                                {{ member.post }}
+                            </p>
+
+                            <small>
+                                Year:
+                                {{ member.year }}
+                            </small>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             ACTION BUTTONS
+                        ================================================== -->
+
+                        <div class="committee-member-actions">
+
+
+                            <!-- EDIT -->
+
+                            <a
+                                href="{{ url_for(
+                                    'admin_committee_edit',
+                                    doc_id=member.doc_id
+                                ) }}"
+                                class="admin-btn edit-btn"
+                            >
+
+                                ✏️ Edit
+
+                            </a>
+
+
+                            <!-- DELETE -->
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'admin_committee_delete',
+                                    doc_id=member.doc_id
+                                ) }}"
+                                onsubmit="
+                                    return confirm(
+                                        'Are you sure you want to delete this committee member?'
+                                    );
+                                "
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="admin-btn delete-btn"
+                                >
+
+                                    🗑️ Delete
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+
+            {% else %}
+
+                <!-- =================================================
+                     EMPTY STATE
+                ================================================== -->
+
+                <div class="admin-card committee-empty">
+
+                    <div class="empty-icon">
+                        👥
+                    </div>
+
+                    <h2>
+                        No Committee Members
+                    </h2>
+
+                    <p>
+
+                        No committee members have been added
+                        for {{ current_year }} yet.
+
+                    </p>
+
+                    <a
+                        href="{{ url_for('admin_committee_add') }}?year={{ current_year }}"
+                        class="admin-btn"
+                    >
+
+                        ➕ Add First Member
+
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
 
 </section>
+
+
+<!-- =========================================================
+     YEAR CHANGE
+========================================================== -->
+
+<script>
+
+function changeCommitteeYear(year) {
+
+    if (!year) {
+        return;
+    }
+
+    window.location.href =
+        "{{ url_for('admin_committee') }}" +
+        "?year=" +
+        encodeURIComponent(year);
+
+}
+
+</script>
 
 {% endblock %}

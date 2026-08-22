@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block title %}
+Winner Migration
+{% endblock %}
+
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <div
+            style="
+                max-width:1000px;
+                margin:40px auto;
+            "
+        >
+
+            <!-- ==========================================
+                 HEADER
+            =========================================== -->
+
+            <div
+                style="
+                    background:#fff;
+                    border-radius:18px;
+                    padding:30px;
+                    box-shadow:
+                        0 10px 30px
+                        rgba(0,0,0,.08);
+                    margin-bottom:25px;
+                "
+            >
+
+                <h1
+                    style="
+                        margin:0 0 8px;
+                        color:#b8860b;
+                    "
+                >
+                    🏆 Winner Migration
+                </h1>
+
+                <p
+                    style="
+                        margin:0;
+                        color:#777;
+                    "
+                >
+                    Existing winner data ko Firestore
+                    mein migrate kiya ja raha hai.
+                </p>
+
+            </div>
+
+
+            <!-- ==========================================
+                 STATS
+            =========================================== -->
+
+            <div
+                style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(
+                            2,
+                            minmax(0,1fr)
+                        );
+                    gap:20px;
+                    margin-bottom:25px;
+                "
+            >
+
+                <div
+                    style="
+                        background:#fff;
+                        padding:25px;
+                        border-radius:16px;
+                        box-shadow:
+                            0 8px 25px
+                            rgba(0,0,0,.06);
+                    "
+                >
+
+                    <div
+                        style="
+                            color:#777;
+                            font-size:14px;
+                        "
+                    >
+                        Successfully Migrated
+                    </div>
+
+                    <strong
+                        style="
+                            display:block;
+                            font-size:36px;
+                            margin-top:5px;
+                            color:#2e7d32;
+                        "
+                    >
+                        {{ migrated }}
+                    </strong>
+
+                </div>
+
+
+                <div
+                    style="
+                        background:#fff;
+                        padding:25px;
+                        border-radius:16px;
+                        box-shadow:
+                            0 8px 25px
+                            rgba(0,0,0,.06);
+                    "
+                >
+
+                    <div
+                        style="
+                            color:#777;
+                            font-size:14px;
+                        "
+                    >
+                        Skipped
+                    </div>
+
+                    <strong
+                        style="
+                            display:block;
+                            font-size:36px;
+                            margin-top:5px;
+                            color:#f57c00;
+                        "
+                    >
+                        {{ skipped }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==========================================
+                 MIGRATED
+            =========================================== -->
+
+            {% if migrated_documents %}
+
+            <div
+                style="
+                    background:#fff;
+                    padding:25px;
+                    border-radius:16px;
+                    box-shadow:
+                        0 8px 25px
+                        rgba(0,0,0,.06);
+                    margin-bottom:25px;
+                "
+            >
+
+                <h2>
+                    ✅ Migrated Winners
+                </h2>
+
+
+                {% for item in migrated_documents %}
+
+                <div
+                    style="
+                        padding:12px 0;
+                        border-bottom:
+                            1px solid #eee;
+                    "
+                >
+
+                    <strong>
+                        {{ item.game }}
+                    </strong>
+
+                    <span
+                        style="
+                            color:#777;
+                            margin-left:10px;
+                        "
+                    >
+                        {{ item.year }}
+                    </span>
+
+                    <div
+                        style="
+                            font-size:12px;
+                            color:#999;
+                            margin-top:3px;
+                        "
+                    >
+                        {{ item.document }}
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- ==========================================
+                 SKIPPED
+            =========================================== -->
+
+            {% if skipped_documents %}
+
+            <div
+                style="
+                    background:#fff;
+                    padding:25px;
+                    border-radius:16px;
+                    box-shadow:
+                        0 8px 25px
+                        rgba(0,0,0,.06);
+                    margin-bottom:25px;
+                "
+            >
+
+                <h2>
+                    ⚠️ Skipped
+                </h2>
+
+
+                {% for item in skipped_documents %}
+
+                <div
+                    style="
+                        padding:12px 0;
+                        border-bottom:
+                            1px solid #eee;
+                    "
+                >
+
+                    <strong>
+                        {{ item.file }}
+                    </strong>
+
+                    <div
+                        style="
+                            font-size:13px;
+                            color:#777;
+                            margin-top:4px;
+                        "
+                    >
+                        {{ item.reason }}
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- ==========================================
+                 ERRORS
+            =========================================== -->
+
+            {% if errors %}
+
+            <div
+                style="
+                    background:#fff5f5;
+                    padding:25px;
+                    border-radius:16px;
+                    border:
+                        1px solid #ffcdd2;
+                    margin-bottom:25px;
+                "
+            >
+
+                <h2
+                    style="
+                        color:#c62828;
+                    "
+                >
+                    ❌ Errors
+                </h2>
+
+
+                {% for error in errors %}
+
+                <div
+                    style="
+                        padding:15px 0;
+                        border-bottom:
+                            1px solid #ffcdd2;
+                    "
+                >
+
+                    <strong>
+                        {{ error.file }}
+                    </strong>
+
+                    <div
+                        style="
+                            margin-top:5px;
+                            color:#c62828;
+                        "
+                    >
+                        {{ error.error }}
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- ==========================================
+                 BUTTONS
+            =========================================== -->
+
+            <div
+                style="
+                    display:flex;
+                    gap:12px;
+                    flex-wrap:wrap;
+                "
+            >
+
+                <a
+                    href="{{ url_for('admin_winners') }}"
+                    class="admin-btn"
+                >
+                    ← Winners Manager
+                </a>
+
+                <a
+                    href="{{ url_for('admin_dashboard') }}"
+                    class="admin-btn"
+                >
+                    🏠 Admin Dashboard
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<style>
+
+@media(max-width:600px){
+
+    div[style*="repeat(2"]{
+        grid-template-columns:1fr !important;
+    }
+
+}
+
+</style>
+
+{% endblock %}

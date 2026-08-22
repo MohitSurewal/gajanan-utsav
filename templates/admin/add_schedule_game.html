@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Add Game | Schedule Manager
+{% endblock %}
+
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+
+        <div class="admin-page-header">
+
+            <div>
+
+                <h1>
+                    ➕ Add Game
+                </h1>
+
+                <p>
+                    Add a new game with its rules and winner link.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{{ url_for(
+                    'admin_schedule',
+                    year=current_year
+                ) }}"
+                class="admin-btn secondary"
+            >
+                ← Back to Schedule
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             FORM
+        ====================================================== -->
+
+        <div class="admin-card committee-form-card">
+
+            <form
+                method="POST"
+                id="addGameForm"
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <!-- YEAR -->
+
+                <div class="form-group">
+
+                    <label for="year">
+                        Schedule Year
+                    </label>
+
+                    <input
+                        type="text"
+                        id="year"
+                        name="year"
+                        value="{{ current_year }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DATE -->
+
+                <div class="form-group">
+
+                    <label for="date">
+                        Game Date
+                    </label>
+
+                    <input
+                        type="text"
+                        id="date"
+                        name="date"
+                        placeholder="Example: 16 September 2026"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- GAME -->
+
+                <div class="form-group">
+
+                    <label for="game">
+                        Game Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="game"
+                        name="game"
+                        placeholder="Example: Lemon Spoon Race"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     GAME RULES
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label>
+                        Game Rules
+                    </label>
+
+
+                    <!--
+                        Hidden field.
+
+                        JavaScript will collect all rule inputs
+                        and send them to Flask as newline-separated
+                        rules, exactly as the existing backend expects.
+                    -->
+
+                    <textarea
+                        id="rules"
+                        name="rules"
+                        hidden
+                    ></textarea>
+
+
+                    <div
+                        id="rulesContainer"
+                        class="rules-builder"
+                    >
+
+                        <div class="rule-row">
+
+                            <span class="rule-number">
+                                1
+                            </span>
+
+                            <input
+                                type="text"
+                                class="rule-input"
+                                placeholder="Enter game rule..."
+                                autocomplete="off"
+                            >
+
+                            <button
+                                type="button"
+                                class="rule-remove"
+                                onclick="removeRule(this)"
+                                aria-label="Remove rule"
+                                title="Remove rule"
+                            >
+                                ✕
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="admin-btn secondary add-rule-btn"
+                        onclick="addRule()"
+                    >
+                        ➕ Add Another Rule
+                    </button>
+
+
+                    <small>
+                        Add each rule separately. You can add or remove
+                        as many rules as required.
+                    </small>
+
+                </div>
+
+
+                <!-- WINNER LINK -->
+
+                <div class="form-group">
+
+                    <label for="winner_link">
+                        Winner Link
+                        <small>(Optional)</small>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="winner_link"
+                        name="winner_link"
+                        placeholder="Example: lemon-spoon-race"
+                    >
+
+                    <small>
+                        Use this only when the game has a
+                        Winners section.
+                    </small>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div class="committee-form-actions">
+
+                    <a
+                        href="{{ url_for(
+                            'admin_schedule',
+                            year=current_year
+                        ) }}"
+                        class="admin-btn secondary"
+                    >
+                        Cancel
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="admin-btn"
+                    >
+                        💾 Add Game
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     RULE BUILDER
+========================================================= -->
+
+<style>
+
+.rules-builder {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.rule-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.rule-number {
+    flex: 0 0 34px;
+
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-weight: 700;
+    font-size: 14px;
+
+    background: rgba(255, 193, 7, 0.15);
+}
+
+.rule-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.rule-remove {
+    flex: 0 0 38px;
+
+    width: 38px;
+    height: 38px;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+}
+
+.rule-remove:hover {
+    background: rgba(220, 53, 69, 0.20);
+}
+
+.add-rule-btn {
+    margin-top: 12px;
+}
+
+
+@media (max-width: 600px) {
+
+    .rule-row {
+        gap: 7px;
+    }
+
+    .rule-number {
+        flex: 0 0 30px;
+
+        width: 30px;
+        height: 30px;
+
+        font-size: 13px;
+    }
+
+    .rule-remove {
+        flex: 0 0 34px;
+
+        width: 34px;
+        height: 34px;
+    }
+
+}
+
+</style>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+function updateRuleNumbers() {
+
+    const rows =
+        document.querySelectorAll(".rule-row");
+
+    rows.forEach(function(row, index) {
+
+        const number =
+            row.querySelector(".rule-number");
+
+        if (number) {
+            number.textContent = index + 1;
+        }
+
+    });
+
+}
+
+
+function addRule() {
+
+    const container =
+        document.getElementById("rulesContainer");
+
+    const row =
+        document.createElement("div");
+
+    row.className = "rule-row";
+
+    row.innerHTML = `
+        <span class="rule-number"></span>
+
+        <input
+            type="text"
+            class="rule-input"
+            placeholder="Enter game rule..."
+            autocomplete="off"
+        >
+
+        <button
+            type="button"
+            class="rule-remove"
+            onclick="removeRule(this)"
+            aria-label="Remove rule"
+            title="Remove rule"
+        >
+            ✕
+        </button>
+    `;
+
+    container.appendChild(row);
+
+    updateRuleNumbers();
+
+    const input =
+        row.querySelector(".rule-input");
+
+    if (input) {
+        input.focus();
+    }
+
+}
+
+
+function removeRule(button) {
+
+    const container =
+        document.getElementById("rulesContainer");
+
+    const rows =
+        container.querySelectorAll(".rule-row");
+
+    /*
+        Keep at least one rule input available.
+    */
+
+    if (rows.length <= 1) {
+
+        const input =
+            rows[0].querySelector(".rule-input");
+
+        if (input) {
+            input.value = "";
+            input.focus();
+        }
+
+        return;
+    }
+
+
+    button.closest(".rule-row").remove();
+
+    updateRuleNumbers();
+
+}
+
+
+document.getElementById("addGameForm").addEventListener(
+    "submit",
+    function() {
+
+        const inputs =
+            document.querySelectorAll(".rule-input");
+
+        const rules = [];
+
+
+        inputs.forEach(function(input) {
+
+            const value =
+                input.value.trim();
+
+            if (value) {
+                rules.push(value);
+            }
+
+        });
+
+
+        /*
+            Convert separate rule boxes into the format
+            already supported by Flask:
+
+            Rule 1
+            Rule 2
+            Rule 3
+        */
+
+        document.getElementById("rules").value =
+            rules.join("\n");
+
+    }
+);
+
+
+updateRuleNumbers();
+
+</script>
+
+{% endblock %}
