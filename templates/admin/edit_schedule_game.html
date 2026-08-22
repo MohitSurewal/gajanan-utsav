@@ -39,9 +39,7 @@ Edit Game | Schedule Manager
                 ) }}"
                 class="admin-btn secondary"
             >
-
                 ← Back to Schedule
-
             </a>
 
         </div>
@@ -53,7 +51,10 @@ Edit Game | Schedule Manager
 
         <div class="admin-card committee-form-card">
 
-            <form method="POST">
+            <form
+                method="POST"
+                id="editGameForm"
+            >
 
                 <input
                     type="hidden"
@@ -119,24 +120,108 @@ Edit Game | Schedule Manager
                 </div>
 
 
-                <!-- RULES -->
+                <!-- =================================================
+                     GAME RULES
+                ================================================== -->
 
                 <div class="form-group">
 
-                    <label for="rules">
+                    <label>
                         Game Rules
                     </label>
+
+
+                    <!--
+                        Hidden field sent to Flask.
+                    -->
 
                     <textarea
                         id="rules"
                         name="rules"
-                        rows="8"
-                        placeholder="One rule per line"
-                    >{% for rule in game.get('rules', []) %}{{ rule }}
-{% endfor %}</textarea>
+                        hidden
+                    ></textarea>
+
+
+                    <div
+                        id="rulesContainer"
+                        class="rules-builder"
+                    >
+
+                        {% if game.get('rules', []) %}
+
+                            {% for rule in game.get('rules', []) %}
+
+                                <div class="rule-row">
+
+                                    <span class="rule-number">
+                                        {{ loop.index }}
+                                    </span>
+
+                                    <input
+                                        type="text"
+                                        class="rule-input"
+                                        value="{{ rule }}"
+                                        placeholder="Enter game rule..."
+                                        autocomplete="off"
+                                    >
+
+                                    <button
+                                        type="button"
+                                        class="rule-remove"
+                                        onclick="removeRule(this)"
+                                        aria-label="Remove rule"
+                                        title="Remove rule"
+                                    >
+                                        ✕
+                                    </button>
+
+                                </div>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <div class="rule-row">
+
+                                <span class="rule-number">
+                                    1
+                                </span>
+
+                                <input
+                                    type="text"
+                                    class="rule-input"
+                                    placeholder="Enter game rule..."
+                                    autocomplete="off"
+                                >
+
+                                <button
+                                    type="button"
+                                    class="rule-remove"
+                                    onclick="removeRule(this)"
+                                    aria-label="Remove rule"
+                                    title="Remove rule"
+                                >
+                                    ✕
+                                </button>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="admin-btn secondary add-rule-btn"
+                        onclick="addRule()"
+                    >
+                        ➕ Add Another Rule
+                    </button>
+
 
                     <small>
-                        Write one rule per line.
+                        Add, edit or remove individual rules.
                     </small>
 
                 </div>
@@ -172,9 +257,7 @@ Edit Game | Schedule Manager
                         ) }}"
                         class="admin-btn secondary"
                     >
-
                         Cancel
-
                     </a>
 
 
@@ -182,9 +265,7 @@ Edit Game | Schedule Manager
                         type="submit"
                         class="admin-btn"
                     >
-
                         💾 Update Game
-
                     </button>
 
                 </div>
@@ -196,5 +277,237 @@ Edit Game | Schedule Manager
     </div>
 
 </section>
+
+
+<!-- =========================================================
+     RULE BUILDER STYLE
+========================================================= -->
+
+<style>
+
+.rules-builder {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.rule-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.rule-number {
+    flex: 0 0 34px;
+
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-weight: 700;
+    font-size: 14px;
+
+    background: rgba(255, 193, 7, 0.15);
+}
+
+.rule-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.rule-remove {
+    flex: 0 0 38px;
+
+    width: 38px;
+    height: 38px;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+}
+
+.rule-remove:hover {
+    background: rgba(220, 53, 69, 0.20);
+}
+
+.add-rule-btn {
+    margin-top: 12px;
+}
+
+
+@media (max-width: 600px) {
+
+    .rule-row {
+        gap: 7px;
+    }
+
+    .rule-number {
+        flex: 0 0 30px;
+
+        width: 30px;
+        height: 30px;
+
+        font-size: 13px;
+    }
+
+    .rule-remove {
+        flex: 0 0 34px;
+
+        width: 34px;
+        height: 34px;
+    }
+
+}
+
+</style>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+function updateRuleNumbers() {
+
+    const rows =
+        document.querySelectorAll(".rule-row");
+
+    rows.forEach(function(row, index) {
+
+        const number =
+            row.querySelector(".rule-number");
+
+        if (number) {
+            number.textContent = index + 1;
+        }
+
+    });
+
+}
+
+
+function addRule() {
+
+    const container =
+        document.getElementById("rulesContainer");
+
+    const row =
+        document.createElement("div");
+
+    row.className = "rule-row";
+
+    row.innerHTML = `
+        <span class="rule-number"></span>
+
+        <input
+            type="text"
+            class="rule-input"
+            placeholder="Enter game rule..."
+            autocomplete="off"
+        >
+
+        <button
+            type="button"
+            class="rule-remove"
+            onclick="removeRule(this)"
+            aria-label="Remove rule"
+            title="Remove rule"
+        >
+            ✕
+        </button>
+    `;
+
+    container.appendChild(row);
+
+    updateRuleNumbers();
+
+    const input =
+        row.querySelector(".rule-input");
+
+    if (input) {
+        input.focus();
+    }
+
+}
+
+
+function removeRule(button) {
+
+    const container =
+        document.getElementById("rulesContainer");
+
+    const rows =
+        container.querySelectorAll(".rule-row");
+
+
+    if (rows.length <= 1) {
+
+        const input =
+            rows[0].querySelector(".rule-input");
+
+        if (input) {
+            input.value = "";
+            input.focus();
+        }
+
+        return;
+    }
+
+
+    button.closest(".rule-row").remove();
+
+    updateRuleNumbers();
+
+}
+
+
+document.getElementById("editGameForm").addEventListener(
+    "submit",
+    function() {
+
+        const inputs =
+            document.querySelectorAll(".rule-input");
+
+        const rules = [];
+
+
+        inputs.forEach(function(input) {
+
+            const value =
+                input.value.trim();
+
+            if (value) {
+                rules.push(value);
+            }
+
+        });
+
+
+        document.getElementById("rules").value =
+            rules.join("\n");
+
+    }
+);
+
+
+updateRuleNumbers();
+
+</script>
 
 {% endblock %}
