@@ -136,117 +136,112 @@ Festival Schedule | Gajanan Utsav Samiti {{ current_year }}
         </div>
 
 
-        <!-- =====================================================
-             GAMES
-        ====================================================== -->
+            <!-- =====================================================
+                GAMES
+            ====================================================== -->
 
-        <div class="schedule-card fade-up">
+            <div class="schedule-card fade-up">
 
-            <h2>
-                Games
-            </h2>
-
-
-            <div class="games-grid">
-
-                {% if schedule.games %}
-
-                    {% for game in schedule.games %}
-
-                        <div class="game">
+                <h2>
+                    Games
+                </h2>
 
 
-                            <!-- DATE -->
+                <div class="games-grid">
 
-                            <strong>
+                    {% if schedule.games %}
 
-                                {{ game.date }}
+                        {% for game in schedule.games %}
 
-                            </strong>
+                            <div class="game">
 
 
-                            <!-- GAME -->
+                                <!-- DATE -->
+
+                                <strong class="game-date">
+
+                                    {{ game.date }}
+
+                                </strong>
+
+
+                                <!-- GAME -->
+
+                                <p class="game-name">
+
+                                    {{ game.game }}
+
+                                </p>
+
+
+                                <!-- RULES -->
+
+                                {% if game.rules %}
+
+                                    <details class="game-rules">
+
+                                        <summary>
+                                            📋 View Rules
+                                        </summary>
+
+
+                                        <div class="game-rules-content">
+
+                                            <ol class="game-rules-list">
+
+                                                {% for rule in game.rules %}
+
+                                                    <li>
+                                                        <span>
+                                                            {{ rule }}
+                                                        </span>
+                                                    </li>
+
+                                                {% endfor %}
+
+                                            </ol>
+
+                                        </div>
+
+                                    </details>
+
+                                {% endif %}
+
+
+                                <!-- WINNERS -->
+
+                                {% if game.winner_link %}
+
+                                    <a
+                                        class="winner-btn"
+                                        href="/winners#{{ game.winner_link }}"
+                                    >
+                                        🏆 View Winners
+                                    </a>
+
+                                {% endif %}
+
+
+                            </div>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <div class="schedule-empty">
 
                             <p>
-
-                                {{ game.game }}
-
+                                No games have been added for
+                                {{ current_year }} yet.
                             </p>
-
-
-                            <!-- RULES -->
-
-                            {% if game.rules %}
-
-                                <details class="game-rules">
-
-                                    <summary>
-
-                                        📋 View Rules
-
-                                    </summary>
-
-
-                                    <div class="game-rules-content">
-
-                                        <ul>
-
-                                            {% for rule in game.rules %}
-
-                                                <li>
-
-                                                    {{ rule }}
-
-                                                </li>
-
-                                            {% endfor %}
-
-                                        </ul>
-
-                                    </div>
-
-                                </details>
-
-                            {% endif %}
-
-
-                            <!-- WINNERS -->
-
-                            {% if game.winner_link %}
-
-                                <a
-                                    class="winner-btn"
-                                    href="/winners#{{ game.winner_link }}"
-                                >
-
-                                    🏆 View Winners
-
-                                </a>
-
-                            {% endif %}
-
 
                         </div>
 
-                    {% endfor %}
+                    {% endif %}
 
-                {% else %}
-
-                    <div class="schedule-empty">
-
-                        <p>
-                            No games have been added for
-                            {{ current_year }} yet.
-                        </p>
-
-                    </div>
-
-                {% endif %}
+                </div>
 
             </div>
-
-        </div>
-
 
         <!-- =====================================================
              DAILY AARTI
