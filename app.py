@@ -618,13 +618,17 @@ def load_schedule(year=None):
 
             return {
                 "year": year,
+
                 "program": [],
+
                 "games": [],
+
                 "aarti": {
                     "morning": "",
                     "evening": ""
                 },
-                
+
+                "important_notice": ""
             }
 
 
@@ -636,7 +640,7 @@ def load_schedule(year=None):
 
 
         # ----------------------------------------------------
-        # NORMALIZE
+        # NORMALIZE BASIC DATA
         # ----------------------------------------------------
 
         data["year"] = year
@@ -659,6 +663,11 @@ def load_schedule(year=None):
             }
         )
 
+        data["important_notice"] = data.get(
+            "important_notice",
+            ""
+        )
+
 
         # ----------------------------------------------------
         # GAME NORMALIZATION
@@ -679,6 +688,90 @@ def load_schedule(year=None):
                 ""
             )
 
+            game.setdefault(
+                "date",
+                ""
+            )
+
+            game.setdefault(
+                "game",
+                ""
+            )
+
+
+        # ----------------------------------------------------
+        # SORT GAMES BY DATE
+        # ----------------------------------------------------
+
+        month_order = {
+
+            "january": 1,
+            "february": 2,
+            "march": 3,
+            "april": 4,
+            "may": 5,
+            "june": 6,
+            "july": 7,
+            "august": 8,
+            "september": 9,
+            "october": 10,
+            "november": 11,
+            "december": 12
+
+        }
+
+
+        def game_date_key(game):
+
+            date_text = str(
+                game.get(
+                    "date",
+                    ""
+                )
+            ).strip().lower()
+
+
+            parts = date_text.split()
+
+
+            # Example:
+            # "16 September"
+            # "16 September 2026"
+
+            try:
+
+                day = int(parts[0])
+
+            except Exception:
+
+                return (
+                    99,
+                    99
+                )
+
+
+            if len(parts) >= 2:
+
+                month = month_order.get(
+                    parts[1],
+                    99
+                )
+
+            else:
+
+                month = 99
+
+
+            return (
+                month,
+                day
+            )
+
+
+        data["games"].sort(
+            key=game_date_key
+        )
+
 
         # ----------------------------------------------------
         # PROGRAM NORMALIZATION
@@ -694,6 +787,10 @@ def load_schedule(year=None):
                 ""
             )
 
+
+        # ----------------------------------------------------
+        # LOG
+        # ----------------------------------------------------
 
         print(
             f"[Schedule] "
@@ -724,24 +821,27 @@ def load_schedule(year=None):
             "======================================"
         )
 
+
         return {
+
             "year": str(
                 year
                 if year
                 else datetime.now().year
             ),
+
             "program": [],
+
             "games": [],
+
             "aarti": {
                 "morning": "",
                 "evening": ""
             },
-            
+
+            "important_notice": ""
+
         }
-
-
-
-
 # ============================================================
 # SAVE SCHEDULE
 # YEAR-WISE FIRESTORE
@@ -5102,9 +5202,9 @@ def python_version():
 @app.route("/schedule")
 def schedule():
 
-    # --------------------------------------------------------
+    # ----------------------------------------------------
     # SELECTED YEAR
-    # --------------------------------------------------------
+    # ----------------------------------------------------
 
     selected_year = request.args.get(
         "year",
@@ -5112,18 +5212,18 @@ def schedule():
     ).strip()
 
 
-    # --------------------------------------------------------
-    # LOAD SELECTED YEAR
-    # --------------------------------------------------------
+    # ----------------------------------------------------
+    # LOAD SELECTED YEAR FROM FIRESTORE
+    # ----------------------------------------------------
 
-    data = load_schedule(
+    schedule_data = load_schedule(
         selected_year
     )
 
 
-    # --------------------------------------------------------
+    # ----------------------------------------------------
     # AVAILABLE YEARS
-    # --------------------------------------------------------
+    # ----------------------------------------------------
 
     years = set()
 
@@ -5138,18 +5238,21 @@ def schedule():
 
         for doc in docs:
 
-            data_year = str(
-                doc.to_dict().get(
+            data = doc.to_dict() or {}
+
+
+            year = str(
+                data.get(
                     "year",
                     doc.id
                 )
             ).strip()
 
 
-            if data_year:
+            if year:
 
                 years.add(
-                    data_year
+                    year
                 )
 
 
@@ -5162,26 +5265,26 @@ def schedule():
         )
 
 
-    # --------------------------------------------------------
+    # ----------------------------------------------------
     # CURRENT YEAR ALWAYS AVAILABLE
-    # --------------------------------------------------------
+    # ----------------------------------------------------
 
     years.add(
-        selected_year
+        str(datetime.now().year)
     )
 
 
-    # --------------------------------------------------------
+    # ----------------------------------------------------
     # SORT YEARS
-    # --------------------------------------------------------
+    # ----------------------------------------------------
 
     available_years = sorted(
 
         years,
 
-        key=lambda value:
-            int(value)
-            if value.isdigit()
+        key=lambda x:
+            int(x)
+            if x.isdigit()
             else 0,
 
         reverse=True
@@ -5189,15 +5292,15 @@ def schedule():
     )
 
 
-    # --------------------------------------------------------
+    # ----------------------------------------------------
     # RENDER
-    # --------------------------------------------------------
+    # ----------------------------------------------------
 
     return render_template(
 
         "schedule.html",
 
-        schedule=data,
+        schedule=schedule_data,
 
         current_year=selected_year,
 
@@ -5206,7 +5309,6 @@ def schedule():
         active_page="schedule"
 
     )
-    
     
     
     
