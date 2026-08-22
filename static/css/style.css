@@ -6979,3 +6979,165 @@ box-shadow:0 10px 20px rgba(255,153,51,.35);
     }
 
 }
+
+
+
+/* =========================================================
+   GAME RULES
+========================================================= */
+
+.game-rules {
+    width: 100%;
+    margin-top: 12px;
+}
+
+
+/* VIEW RULES BUTTON */
+
+.game-rules summary {
+
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+
+    max-width: 100%;
+
+    padding: 8px 12px;
+
+    border-radius: 8px;
+
+    font-weight: 600;
+
+    user-select: none;
+
+}
+
+
+/* RULES CONTENT */
+
+.game-rules-content {
+
+    width: 100%;
+
+    margin-top: 12px;
+
+    padding: 14px;
+
+    box-sizing: border-box;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+}
+
+
+/* NUMBERED LIST */
+
+.game-rules-list {
+
+    margin: 0;
+
+    padding-left: 24px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+}
+
+
+/* EACH RULE */
+
+.game-rules-list li {
+
+    margin-bottom: 10px;
+
+    padding-left: 5px;
+
+    line-height: 1.6;
+
+    white-space: normal;
+
+    overflow-wrap: anywhere;
+
+    word-break: normal;
+
+}
+
+
+/* REMOVE LAST ITEM EXTRA SPACE */
+
+.game-rules-list li:last-child {
+
+    margin-bottom: 0;
+
+}
+
+
+/* RULE TEXT */
+
+.game-rules-list li span {
+
+    display: inline;
+
+    white-space: normal;
+
+    overflow-wrap: anywhere;
+
+}
+
+
+/* GAME DATE */
+
+.game-date {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+}
+
+
+/* GAME NAME */
+
+.game-name {
+
+    white-space: normal;
+
+    overflow-wrap: anywhere;
+
+    word-break: normal;
+
+    line-height: 1.5;
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    .game-rules-content {
+
+        padding: 12px;
+
+    }
+
+    .game-rules-list {
+
+        padding-left: 22px;
+
+    }
+
+    .game-rules-list li {
+
+        line-height: 1.55;
+
+        margin-bottom: 9px;
+
+    }
+
+}
+
