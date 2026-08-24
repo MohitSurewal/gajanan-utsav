@@ -245,6 +245,13 @@ def load_notice(year=None):
                 ""
             )
         ).strip()
+        
+        data["important"] = str(
+            data.get(
+                "important",
+                ""
+            )
+        ).strip()
 
 
         print(
@@ -284,7 +291,8 @@ def load_notice(year=None):
                 else datetime.now().year
             ),
             "title": "",
-            "message": ""
+            "message": "",
+            "important": ""
         }
 
 
@@ -298,9 +306,7 @@ def save_notice(year, data):
 
         year = str(year).strip()
 
-
         if not year:
-
             raise ValueError(
                 "Notice year is required."
             )
@@ -326,13 +332,20 @@ def save_notice(year, data):
                     "message",
                     ""
                 )
+            ).strip(),
+
+            "important": str(
+                data.get(
+                    "important",
+                    ""
+                )
             ).strip()
 
         }
 
 
         # ----------------------------------------------------
-        # FIRESTORE SAVE
+        # FIRESTORE
         # ----------------------------------------------------
 
         db.collection(
@@ -375,7 +388,6 @@ def save_notice(year, data):
         )
 
         return False
-
     
 # ============================================================
 # LOAD YEAR-WISE SCHEDULE
@@ -6014,11 +6026,18 @@ def admin_notice():
             "message",
             ""
         ).strip()
+        
+        important = request.form.get(
+            "important",
+            ""
+        ).strip()
 
 
         notice["title"] = title
 
         notice["message"] = message
+        
+        notice["important"] = important
 
 
         # ------------------------------------------------
