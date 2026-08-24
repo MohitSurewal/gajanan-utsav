@@ -9859,7 +9859,11 @@ def apply_security_headers(response):
         "script-src 'self' 'unsafe-inline' https:; "
         "font-src 'self' https: data:; "
         "connect-src 'self' https:; "
-        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; "
+        "frame-src 'self' "
+        "https://www.youtube.com "
+        "https://www.youtube-nocookie.com "
+        "https://www.google.com "
+        "https://maps.google.com; "
         "media-src 'self' blob:; "
         "frame-ancestors 'none';"
     )
