@@ -174,24 +174,207 @@ def load_gallery(event=None, year=None):
         for year in sorted(gallery.keys(), key=lambda x: int(x), reverse=True)
     }
 
-def load_notice():
-    file_path = os.path.join(BASE_DIR, "data", "notice.json")
 
-    if not os.path.exists(file_path):
-        return {}
+
+def load_notice(year=None):
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except json.JSONDecodeError:
-        return {}
+
+        # ----------------------------------------------------
+        # YEAR
+        # ----------------------------------------------------
+
+        if year is None:
+            year = str(datetime.now().year)
+
+        year = str(year).strip()
 
 
-def save_notice(data):
-    file_path = os.path.join(BASE_DIR, "data", "notice.json")
+        # ----------------------------------------------------
+        # FIRESTORE
+        # ----------------------------------------------------
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+        doc = (
+            db.collection("notices")
+            .document(year)
+            .get()
+        )
+
+
+        # ----------------------------------------------------
+        # DOCUMENT DOES NOT EXIST
+        # ----------------------------------------------------
+
+        if not doc.exists:
+
+            print(
+                f"[Notice] "
+                f"No notice found for {year}"
+            )
+
+            return {
+                "year": year,
+                "title": "",
+                "message": ""
+            }
+
+
+        # ----------------------------------------------------
+        # DATA
+        # ----------------------------------------------------
+
+        data = doc.to_dict() or {}
+
+
+        # ----------------------------------------------------
+        # NORMALIZE
+        # ----------------------------------------------------
+
+        data["year"] = year
+
+        data["title"] = str(
+            data.get(
+                "title",
+                ""
+            )
+        ).strip()
+
+        data["message"] = str(
+            data.get(
+                "message",
+                ""
+            )
+        ).strip()
+
+
+        print(
+            f"[Notice] "
+            f"Loaded notice for {year}"
+        )
+
+
+        return data
+
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "NOTICE FIRESTORE LOAD ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
+
+        return {
+            "year": str(
+                year
+                if year
+                else datetime.now().year
+            ),
+            "title": "",
+            "message": ""
+        }
+
+
+def save_notice(year, data):
+
+    try:
+
+        # ----------------------------------------------------
+        # YEAR
+        # ----------------------------------------------------
+
+        year = str(year).strip()
+
+
+        if not year:
+
+            raise ValueError(
+                "Notice year is required."
+            )
+
+
+        # ----------------------------------------------------
+        # NOTICE DATA
+        # ----------------------------------------------------
+
+        notice_data = {
+
+            "year": year,
+
+            "title": str(
+                data.get(
+                    "title",
+                    ""
+                )
+            ).strip(),
+
+            "message": str(
+                data.get(
+                    "message",
+                    ""
+                )
+            ).strip()
+
+        }
+
+
+        # ----------------------------------------------------
+        # FIRESTORE SAVE
+        # ----------------------------------------------------
+
+        db.collection(
+            "notices"
+        ).document(
+            year
+        ).set(
+            notice_data,
+            merge=True
+        )
+
+
+        print(
+            f"[Notice] "
+            f"Saved notice for {year}"
+        )
+
+
+        return True
+
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "======================================"
+        )
+
+        print(
+            "NOTICE FIRESTORE SAVE ERROR"
+        )
+
+        print(
+            traceback.format_exc()
+        )
+
+        print(
+            "======================================"
+        )
+
+        return False
 
     
 # ============================================================
@@ -5780,27 +5963,181 @@ def admin_dashboard():
     return render_template("admin/dashboard.html")
 
 
-@app.route("/admin/notice", methods=["GET", "POST"])
+@app.route(
+    "/admin/notice",
+    methods=["GET", "POST"]
+)
 def admin_notice():
 
-    if not session.get("admin"):
-        return redirect(url_for("admin_login"))
+    # ----------------------------------------------------
+    # ADMIN LOGIN
+    # ----------------------------------------------------
 
-    notice = load_notice()
+    if not session.get("admin"):
+
+        return redirect(
+            url_for("admin_login")
+        )
+
+
+    # ----------------------------------------------------
+    # SELECTED YEAR
+    # ----------------------------------------------------
+
+    selected_year = request.args.get(
+        "year",
+        str(datetime.now().year)
+    ).strip()
+
+
+    # ----------------------------------------------------
+    # LOAD NOTICE
+    # ----------------------------------------------------
+
+    notice = load_notice(
+        selected_year
+    )
+
+
+    # ----------------------------------------------------
+    # POST
+    # ----------------------------------------------------
 
     if request.method == "POST":
 
-        notice["title"] = request.form.get("title", "").strip()
-        notice["message"] = request.form.get("message", "").strip()
+        title = request.form.get(
+            "title",
+            ""
+        ).strip()
 
-        save_notice(notice)
+        message = request.form.get(
+            "message",
+            ""
+        ).strip()
 
-        flash("Notice updated successfully!", "success")
 
-        return redirect(url_for("admin_notice"))
+        notice["title"] = title
 
-    return render_template("admin/notice.html", notice=notice)
+        notice["message"] = message
 
+
+        # ------------------------------------------------
+        # SAVE
+        # ------------------------------------------------
+
+        success = save_notice(
+            selected_year,
+            notice
+        )
+
+
+        if success:
+
+            flash(
+                "Notice updated successfully!",
+                "success"
+            )
+
+        else:
+
+            flash(
+                "Unable to save notice.",
+                "error"
+            )
+
+
+        return redirect(
+            url_for(
+                "admin_notice",
+                year=selected_year
+            )
+        )
+
+
+    # ----------------------------------------------------
+    # AVAILABLE YEARS
+    # ----------------------------------------------------
+
+    years = set()
+
+
+    try:
+
+        docs = (
+            db.collection("notices")
+            .stream()
+        )
+
+
+        for doc in docs:
+
+            data = doc.to_dict() or {}
+
+
+            year = str(
+                data.get(
+                    "year",
+                    doc.id
+                )
+            ).strip()
+
+
+            if year:
+
+                years.add(year)
+
+
+    except Exception as e:
+
+        print(
+            "[Notice] "
+            "Unable to load available years:",
+            e
+        )
+
+
+    # Current year always available
+
+    years.add(
+        str(datetime.now().year)
+    )
+
+
+    # ----------------------------------------------------
+    # SORT YEARS
+    # ----------------------------------------------------
+
+    available_years = sorted(
+
+        years,
+
+        key=lambda x:
+            int(x)
+            if x.isdigit()
+            else 0,
+
+        reverse=True
+
+    )
+
+
+    # ----------------------------------------------------
+    # RENDER
+    # ----------------------------------------------------
+
+    return render_template(
+
+        "admin/notice.html",
+
+        notice=notice,
+
+        current_year=selected_year,
+
+        available_years=available_years,
+
+        active_page="notice"
+
+    )
 
 
 
