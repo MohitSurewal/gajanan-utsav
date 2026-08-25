@@ -31,3 +31,12 @@ services:
 
       - key: CLOUDINARY_API_SECRET
         sync: false
+
+      - key: YOUTUBE_CLIENT_ID
+        sync: false
+
+      - key: YOUTUBE_CLIENT_SECRET
+        sync: false
+
+      - key: YOUTUBE_REDIRECT_URI
+        sync: false
