@@ -28,8 +28,8 @@ import tempfile
 import secrets
 import string
 from datetime import datetime
-from google.oauth2 import service_account
-from google.cloud import firestore
+
+
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024
