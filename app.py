@@ -82,6 +82,36 @@ app.secret_key = SECRET_KEY
 # GLOBAL ADMIN PROTECTION
 # ==========================================
 
+@app.route("/proxy-test")
+def proxy_test():
+
+    import os
+
+    proxy_vars = [
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "http_proxy",
+        "https_proxy",
+        "GRPC_PROXY",
+        "grpc_proxy",
+        "NO_PROXY",
+        "no_proxy",
+        "NO_GRPC_PROXY",
+        "no_grpc_proxy",
+    ]
+
+    return {
+        key: os.environ.get(key)
+        for key in proxy_vars
+        if os.environ.get(key)
+    }
+
+
+
+
+
+
+
 @app.before_request
 def protect_admin_routes():
 
