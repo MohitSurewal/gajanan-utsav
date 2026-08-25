@@ -27,8 +27,8 @@ import tempfile
 import secrets
 import string
 from datetime import datetime
-from google.cloud.firestore_v1 import Client as FirestoreClient
-
+from google.oauth2 import service_account
+from google.cloud import firestore
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024
@@ -50,11 +50,13 @@ cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-db = FirestoreClient(
-    project=cred.project_id,
-    credentials=cred,
-    database="(default)",
-    client_options=None,
+google_cred = service_account.Credentials.from_service_account_info(
+    FIREBASE_CREDENTIALS
+)
+
+db = firestore.Client(
+    project=google_cred.project_id,
+    credentials=google_cred
 )
 
 ALLOWED_VIDEO_EXTENSIONS = {
@@ -151,32 +153,16 @@ def proxy_test():
     
 @app.route("/firebase-test")
 def firebase_test():
-    try:
-        test_ref = db.collection("test").document("connection")
+    test_ref = db.collection("test").document("connection_test")
 
-        test_ref.set({
-            "status": "Connected",
-            "timestamp": datetime.utcnow().isoformat()
-        })
+    test_ref.set({
+        "status": "Connected",
+        "timestamp": datetime.utcnow().isoformat()
+    })
 
-        doc = test_ref.get()
-
-        return {
-            "status": "success",
-            "project": db.project,
-            "document_exists": doc.exists,
-            "data": doc.to_dict()
-        }
-
-    except Exception as e:
-        import traceback
-
-        return {
-            "status": "error",
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }, 500
-        
+    return {
+        "status": "success"
+    }
         
 @app.route("/firebase-info")
 def firebase_info():
