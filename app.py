@@ -100,6 +100,24 @@ def firestore_debug():
 
 
 
+@app.route("/firestore-client-info")
+def firestore_client_info():
+    try:
+        return {
+            "db_project": db.project,
+            "db_info": str(db),
+            "database": getattr(db, "_database_string", "NO_DATABASE_STRING"),
+            "database_id": getattr(db, "_database_id", "NO_DATABASE_ID"),
+            "transport": str(type(getattr(db, "_firestore_api", None))),
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }, 500
+
+
 
 @app.route("/packages")
 def packages():
