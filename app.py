@@ -59,7 +59,7 @@ db = firestore.Client(
     project=google_cred.project_id,
     credentials=google_cred,
     database="(default)",
-    transport="rest"
+   
 )
 
 ALLOWED_VIDEO_EXTENSIONS = {
