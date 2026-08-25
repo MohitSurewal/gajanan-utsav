@@ -50,7 +50,17 @@ cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-db = firestore.client()
+google_cred = service_account.Credentials.from_service_account_info(
+    FIREBASE_CREDENTIALS
+)
+
+from google.cloud import firestore as google_firestore
+
+db = google_firestore.Client(
+    project=google_cred.project_id,
+    credentials=google_cred,
+    database="(default)"
+)
 
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
@@ -96,6 +106,62 @@ def firestore_debug():
         "client": str(firestore.Client),
         "signature": str(inspect.signature(firestore.Client)),
     }
+
+
+@app.route("/grpc-debug")
+def grpc_debug():
+    import os
+    import grpc
+
+    proxy_vars = {}
+
+    for key, value in os.environ.items():
+        key_lower = key.lower()
+
+        if (
+            "proxy" in key_lower
+            or "grpc" in key_lower
+        ):
+            proxy_vars[key] = value
+
+    return {
+        "grpc_version": grpc.__version__,
+        "proxy_or_grpc_env": proxy_vars,
+        "http_proxy": os.environ.get("HTTP_PROXY"),
+        "https_proxy": os.environ.get("HTTPS_PROXY"),
+        "grpc_proxy": os.environ.get("GRPC_PROXY"),
+        "no_proxy": os.environ.get("NO_PROXY"),
+    }
+
+
+@app.route("/firestore-explicit-test")
+def firestore_explicit_test():
+    try:
+        from google.cloud import firestore as google_firestore
+
+        test_db = google_firestore.Client(
+            project=google_cred.project_id,
+            credentials=google_cred,
+            database="(default)"
+        )
+
+        docs = list(test_db.collections())
+
+        return {
+            "status": "success",
+            "database": "(default)",
+            "collections": [doc.id for doc in docs]
+        }
+
+    except Exception as e:
+        import traceback
+
+        return {
+            "status": "error",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }, 500
+
 
 
 
