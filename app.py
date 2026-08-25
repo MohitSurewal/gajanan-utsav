@@ -27,7 +27,7 @@ import tempfile
 import secrets
 import string
 from datetime import datetime
-
+from google.cloud.firestore_v1 import Client as FirestoreClient
 
 
 app = Flask(__name__)
@@ -50,8 +50,12 @@ cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-db = firestore.client()
-
+db = FirestoreClient(
+    project=cred.project_id,
+    credentials=cred,
+    database="(default)",
+    client_options=None,
+)
 
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
@@ -81,7 +85,44 @@ app.secret_key = SECRET_KEY
 
 # ==========================================
 # GLOBAL ADMIN PROTECTION
-# ==========================================
+# ==============================
+# ============
+
+
+
+@app.route("/packages")
+def packages():
+    import firebase_admin
+    import google.cloud.firestore
+    import google.api_core
+    import grpc
+
+    return {
+        "firebase_admin": getattr(firebase_admin, "__version__", "unknown"),
+        "google_cloud_firestore": getattr(
+            google.cloud.firestore, "__version__", "unknown"
+        ),
+        "google_api_core": getattr(
+            google.api_core, "__version__", "unknown"
+        ),
+        "grpc": getattr(grpc, "__version__", "unknown"),
+    }
+
+
+
+@app.route("/firestore-version")
+def firestore_version():
+    import google.cloud.firestore
+    import google.cloud.firestore_v1
+
+    return {
+        "firestore_module": str(google.cloud.firestore.__file__),
+        "firestore_v1_module": str(google.cloud.firestore_v1.__file__),
+        "client": str(google.cloud.firestore_v1.Client),
+    }
+
+
+
 
 @app.route("/proxy-test")
 def proxy_test():
