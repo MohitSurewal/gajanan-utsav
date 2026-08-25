@@ -92,6 +92,22 @@ app.secret_key = SECRET_KEY
 
 
 
+@app.route("/firestore-debug")
+def firestore_debug():
+    import inspect
+    import google.cloud.firestore
+    from google.cloud import firestore
+
+    return {
+        "module": google.cloud.firestore.__file__,
+        "client": str(firestore.Client),
+        "signature": str(inspect.signature(firestore.Client)),
+    }
+
+
+
+
+
 @app.route("/packages")
 def packages():
     import firebase_admin
