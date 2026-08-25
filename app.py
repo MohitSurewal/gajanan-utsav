@@ -2,7 +2,6 @@ from unittest import result
 from urllib import response
 import firebase_admin
 from firebase_admin import credentials, firestore
-from google.cloud.firestore_v1.client import Client
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from flask_wtf.csrf import CSRFProtect
 import json
@@ -51,15 +50,8 @@ cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-firebase_app = firebase_admin.get_app()
+db = firestore.client()
 
-db = Client(
-    project=firebase_app.project_id,
-    credentials=cred,
-    database="(default)",
-    client_options=None,
-    _http=None,
-)
 
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
@@ -114,6 +106,61 @@ def proxy_test():
         for key in proxy_vars
         if os.environ.get(key)
     }
+    
+    
+@app.route("/firebase-test")
+def firebase_test():
+    try:
+        test_ref = db.collection("test").document("connection")
+
+        test_ref.set({
+            "status": "Connected",
+            "timestamp": datetime.utcnow().isoformat()
+        })
+
+        doc = test_ref.get()
+
+        return {
+            "status": "success",
+            "project": db.project,
+            "document_exists": doc.exists,
+            "data": doc.to_dict()
+        }
+
+    except Exception as e:
+        import traceback
+
+        return {
+            "status": "error",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }, 500
+        
+        
+@app.route("/firebase-info")
+def firebase_info():
+    try:
+        firebase_app = firebase_admin.get_app()
+
+        return {
+            "project_id": firebase_app.project_id,
+            "db_project": db.project,
+            "database": "(default)"
+        }
+
+    except Exception as e:
+        import traceback
+
+        return {
+            "status": "error",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }, 500    
+        
+        
+        
+        
+        
 
 @app.route("/firestore-rest-test")
 def firestore_rest_test():
