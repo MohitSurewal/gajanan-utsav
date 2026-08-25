@@ -28,7 +28,7 @@ import secrets
 import string
 from datetime import datetime
 from google.oauth2 import service_account
-from google.cloud import firestore
+
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024
@@ -50,14 +50,7 @@ cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-google_cred = service_account.Credentials.from_service_account_info(
-    FIREBASE_CREDENTIALS
-)
-
-db = firestore.Client(
-    project=google_cred.project_id,
-    credentials=google_cred
-)
+db = firestore.client()
 
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
@@ -216,10 +209,16 @@ def firestore_rest_test():
         }
 
     except Exception as e:
+        import traceback
+
         return {
             "status": "error",
-            "error": str(e)
+            "error": str(e),
+            "traceback": traceback.format_exc()
         }, 500
+        
+        
+        
 
 @app.before_request
 def protect_admin_routes():
