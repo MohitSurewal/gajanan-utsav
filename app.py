@@ -106,6 +106,44 @@ def proxy_test():
         if os.environ.get(key)
     }
 
+@app.route("/firestore-rest-test")
+def firestore_rest_test():
+
+    try:
+
+        from google.cloud import firestore
+
+        test_db = firestore.Client(
+            project=cred.project_id,
+            credentials=cred
+        )
+
+        docs = list(
+            test_db.collection("schedules")
+            .limit(1)
+            .stream()
+        )
+
+        return {
+            "status": "ok",
+            "project": cred.project_id,
+            "documents_found": len(docs)
+        }
+
+    except Exception as e:
+
+        import traceback
+
+        return {
+            "status": "error",
+            "project": getattr(cred, "project_id", None),
+            "error_type": type(e).__name__,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }, 500
+
+
+
 
 
 
