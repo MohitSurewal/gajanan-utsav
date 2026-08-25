@@ -28,6 +28,7 @@ import tempfile
 import secrets
 import string
 from datetime import datetime
+from google.oauth2 import service_account
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024
@@ -111,22 +112,39 @@ def firestore_rest_test():
 
     try:
 
+        from google.oauth2 import service_account
         from google.cloud import firestore
 
+        # Firebase service-account data
+        firebase_info = FIREBASE_CREDENTIALS
+
+        # Agar environment variable/string ke form mein hai
+        if isinstance(firebase_info, str):
+            firebase_info = json.loads(firebase_info)
+
+        # Google-auth compatible credentials
+        google_cred = service_account.Credentials.from_service_account_info(
+            firebase_info
+        )
+
+        # Firestore client
         test_db = firestore.Client(
-            project=cred.project_id,
-            credentials=cred
+            project=google_cred.project_id,
+            credentials=google_cred,
+            database="(default)"
         )
 
         docs = list(
-            test_db.collection("schedules")
+            test_db
+            .collection("schedules")
             .limit(1)
             .stream()
         )
 
         return {
             "status": "ok",
-            "project": cred.project_id,
+            "project": google_cred.project_id,
+            "database": "(default)",
             "documents_found": len(docs)
         }
 
@@ -136,14 +154,10 @@ def firestore_rest_test():
 
         return {
             "status": "error",
-            "project": getattr(cred, "project_id", None),
             "error_type": type(e).__name__,
             "error": str(e),
             "traceback": traceback.format_exc()
         }, 500
-
-
-
 
 
 
