@@ -20,6 +20,9 @@ services:
       - key: ADMIN_PASSWORD_HASH
         sync: false
 
+      - key: FIREBASE_CREDENTIALS
+        sync: false
+
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
 
