@@ -51,16 +51,7 @@ cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-google_cred = service_account.Credentials.from_service_account_info(
-    FIREBASE_CREDENTIALS
-)
-
-db = firestore.Client(
-    project=google_cred.project_id,
-    credentials=google_cred,
-    database="(default)",
-   
-)
+db = firestore.client()
 
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
@@ -120,17 +111,17 @@ def proxy_test():
 def firestore_rest_test():
     try:
         docs = list(db.collections())
+
         return {
             "status": "success",
             "collections": [doc.id for doc in docs]
         }
+
     except Exception as e:
         return {
             "status": "error",
             "error": str(e)
         }, 500
-
-
 
 @app.before_request
 def protect_admin_routes():
