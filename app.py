@@ -51,7 +51,15 @@ cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-db = firestore.client()
+firebase_app = firebase_admin.get_app()
+
+db = Client(
+    project=firebase_app.project_id,
+    credentials=cred,
+    database="(default)",
+    client_options=None,
+    _http=None,
+)
 
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
