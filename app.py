@@ -118,47 +118,16 @@ def proxy_test():
 
 @app.route("/firestore-rest-test")
 def firestore_rest_test():
-
     try:
-
-        from google.oauth2 import service_account
-        from google.cloud import firestore
-
-        google_cred = service_account.Credentials.from_service_account_info(
-            FIREBASE_CREDENTIALS
-        )
-
-        test_db = firestore.Client(
-            project=google_cred.project_id,
-            credentials=google_cred,
-            database="(default)",
-            transport="rest"
-        )
-
-        docs = list(
-            test_db
-            .collection("schedules")
-            .limit(1)
-            .stream()
-        )
-
+        docs = list(db.collections())
         return {
-            "status": "ok",
-            "project": google_cred.project_id,
-            "database": "(default)",
-            "transport": "rest",
-            "documents_found": len(docs)
+            "status": "success",
+            "collections": [doc.id for doc in docs]
         }
-
     except Exception as e:
-
-        import traceback
-
         return {
             "status": "error",
-            "error_type": type(e).__name__,
-            "error": str(e),
-            "traceback": traceback.format_exc()
+            "error": str(e)
         }, 500
 
 
