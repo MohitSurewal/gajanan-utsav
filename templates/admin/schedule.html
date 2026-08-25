@@ -1,106 +1,504 @@
 {% extends "base.html" %}
 
 {% block title %}
-
 Schedule Manager
-
 {% endblock %}
+
 
 {% block content %}
 
 <section class="admin-dashboard">
 
-<div class="container">
+    <div class="container">
 
-<h1>📅 Schedule Manager</h1>
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
 
-<form method="POST">
+        <div class="admin-page-header">
 
-<input
-type="hidden"
-name="csrf_token"
-value="{{ csrf_token() }}"
->
+            <div>
 
-<h2>Aarti Time</h2>
+                <h1>
+                    📅 Schedule Manager
+                </h1>
 
-<label>Morning</label>
+                <p>
+                    Manage yearly programs, games, Aarti and notices.
+                </p>
 
-<input
-type="text"
-name="morning"
-value="{{ schedule.aarti.morning }}"
->
+            </div>
 
-<label>Evening</label>
+        </div>
 
-<input
-type="text"
-name="evening"
-value="{{ schedule.aarti.evening }}"
->
 
-<hr>
+        <!-- =====================================================
+             FLASH
+        ====================================================== -->
 
-<h2>Programs</h2>
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
 
-{% for item in schedule.program %}
+            {% if messages %}
 
-<div class="admin-card">
+                <div class="admin-messages">
 
-<input
-type="text"
-name="program_date{{ loop.index }}"
-value="{{ item.date }}"
->
+                    {% for category, message in messages %}
 
-<input
-type="text"
-name="program_title{{ loop.index }}"
-value="{{ item.title }}"
->
+                        <div class="admin-message {{ category }}">
+                            {{ message }}
+                        </div>
 
-</div>
+                    {% endfor %}
 
-{% endfor %}
+                </div>
 
-<hr>
+            {% endif %}
 
-<h2>Games</h2>
+        {% endwith %}
 
-{% for item in schedule.games %}
 
-<div class="admin-card">
+        <!-- =====================================================
+             YEAR
+        ====================================================== -->
 
-<input
-type="text"
-name="game_date{{ loop.index }}"
-value="{{ item.date }}"
->
+        <div class="admin-card">
 
-<input
-type="text"
-name="game_name{{ loop.index }}"
-value="{{ item.game }}"
->
+            <div class="schedule-admin-toolbar">
 
-</div>
 
-{% endfor %}
+                <!-- =================================================
+                    SELECT EXISTING YEAR
+                ================================================== -->
 
-<button
-class="admin-btn"
-type="submit"
->
+                <div>
 
-💾 Save Schedule
+                    <label for="scheduleYear">
+                        Schedule Year
+                    </label>
 
-</button>
 
-</form>
+                    <select
+                        id="scheduleYear"
+                        onchange="changeScheduleYear(this.value)"
+                    >
 
-</div>
+                        {% for year in available_years %}
+
+                            <option
+                                value="{{ year }}"
+
+                                {% if year|string == current_year|string %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ year }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- =================================================
+                    CREATE NEW YEAR
+                ================================================== -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'admin_schedule_create_year'
+                    ) }}"
+                    onsubmit="
+                        return confirm(
+                            'Create a new empty schedule year?'
+                        );
+                    "
+                >
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                    >
+
+
+                    <div>
+
+                        <label for="newScheduleYear">
+                            New Year
+                        </label>
+
+
+                        <input
+                            type="number"
+                            id="newScheduleYear"
+                            name="year"
+                            min="2026"
+                            max="2100"
+                            placeholder="2027"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="admin-btn"
+                    >
+
+                        ➕ Create Year
+
+                    </button>
+
+                </form>
+
+
+
+                <!-- =================================================
+                    IMPORT OLD 2026 DATA
+                ================================================== -->
+
+                <div>
+
+                    <form
+                        method="POST"
+                        action="{{ url_for(
+                            'migrate_schedule'
+                        ) }}"
+                        onsubmit="
+                            return confirm(
+                                'Import old 2026 schedule into Firestore?'
+                            );
+                        "
+                    >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="admin-btn secondary"
+                        >
+
+                            🔄 Import 2026 Schedule
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             AARTI + NOTICE
+        ====================================================== -->
+
+        <form
+            method="POST"
+            class="admin-card"
+        >
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+
+            <h2>
+                🕉️ Daily Aarti
+            </h2>
+
+
+            <div class="form-group">
+
+                <label>
+                    Morning Aarti
+                </label>
+
+                <input
+                    type="text"
+                    name="morning"
+                    value="{{ schedule.aarti.morning }}"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Evening Aarti
+                </label>
+
+                <input
+                    type="text"
+                    name="evening"
+                    value="{{ schedule.aarti.evening }}"
+                >
+
+            </div>
+
+
+            <div class="committee-form-actions">
+
+                <button
+                    type="submit"
+                    class="admin-btn"
+                >
+                    💾 Save Aarti
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <!-- =====================================================
+             PROGRAMS
+        ====================================================== -->
+
+        <div class="admin-card">
+
+            <div class="schedule-section-header">
+
+                <h2>
+                    📅 Main Programs
+                </h2>
+
+                <a
+                    href="{{ url_for(
+                        'admin_schedule_program_add',
+                        year=current_year
+                    ) }}"
+                    class="admin-btn"
+                >
+                    ➕ Add Program
+                </a>
+
+            </div>
+
+
+            {% if schedule.program %}
+
+                {% for event in schedule.program %}
+
+                    <div class="schedule-admin-item">
+
+                        <div>
+
+                            <strong>
+                                {{ event.date }}
+                            </strong>
+
+                            <p>
+                                {{ event.title }}
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <a
+                                href="{{ url_for(
+                                    'admin_schedule_program_edit',
+                                    index=loop.index0,
+                                    year=current_year
+                                ) }}"
+                                class="admin-btn edit-btn"
+                            >
+                                ✏️ Edit
+                            </a>
+
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'admin_schedule_program_delete',
+                                    index=loop.index0,
+                                    year=current_year
+                                ) }}"
+                                style="display:inline;"
+                                onsubmit="
+                                    return confirm(
+                                        'Are you sure you want to delete this program?'
+                                    );
+                                "
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="admin-btn delete-btn"
+                                >
+                                    🗑️ Delete
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <p>
+                    No programs added for {{ current_year }}.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- =====================================================
+             GAMES
+        ====================================================== -->
+
+        <div class="admin-card">
+
+            <div class="schedule-section-header">
+
+                <h2>
+                    🎮 Games
+                </h2>
+
+                <a
+                    href="{{ url_for(
+                        'admin_schedule_game_add',
+                        year=current_year
+                    ) }}"
+                    class="admin-btn"
+                >
+                    ➕ Add Game
+                </a>
+
+            </div>
+
+
+            {% if schedule.games %}
+
+                {% for game in schedule.games %}
+
+                    <div class="schedule-admin-item">
+
+                        <div>
+
+                            <strong>
+                                {{ game.date }}
+                            </strong>
+
+                            <p>
+                                {{ game.game }}
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <a
+                                href="{{ url_for(
+                                    'admin_schedule_game_edit',
+                                    index=loop.index0,
+                                    year=current_year
+                                ) }}"
+                                class="admin-btn edit-btn"
+                            >
+                                ✏️ Edit
+                            </a>
+
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'admin_schedule_game_delete',
+                                    index=loop.index0,
+                                    year=current_year
+                                ) }}"
+                                style="display:inline;"
+                                onsubmit="
+                                    return confirm(
+                                        'Are you sure you want to delete this game?'
+                                    );
+                                "
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="admin-btn delete-btn"
+                                >
+                                    🗑️ Delete
+                                </button>
+
+                            </form>
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <p>
+                    No games added for {{ current_year }}.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
 
 </section>
+
+
+<script>
+
+function changeScheduleYear(year) {
+
+    if (!year) {
+        return;
+    }
+
+    window.location.href =
+        "{{ url_for('admin_schedule') }}" +
+        "?year=" +
+        encodeURIComponent(year);
+
+}
+
+</script>
 
 {% endblock %}

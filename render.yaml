@@ -4,11 +4,13 @@ services:
     env: python
     plan: free
 
-    buildCommand: "pip install -r requirements.txt"
-
-    startCommand: "gunicorn app:app"
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
 
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+
       - key: SECRET_KEY
         sync: false
 
@@ -18,6 +20,9 @@ services:
       - key: ADMIN_PASSWORD_HASH
         sync: false
 
+      - key: FIREBASE_CREDENTIALS
+        sync: false
+
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
 
@@ -25,4 +30,13 @@ services:
         sync: false
 
       - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      - key: YOUTUBE_CLIENT_ID
+        sync: false
+
+      - key: YOUTUBE_CLIENT_SECRET
+        sync: false
+
+      - key: YOUTUBE_REDIRECT_URI
         sync: false

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
+
 {% block title %}
-
 Notice Manager
-
 {% endblock %}
+
 
 {% block content %}
 
@@ -12,54 +12,226 @@ Notice Manager
 
     <div class="container">
 
-        <h1>📢 Notice Manager</h1>
 
-        <form method="POST">
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
 
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="{{ csrf_token() }}"
-            >
+        <div class="admin-page-header">
 
-            <label>
+            <div>
 
-                Notice Title
+                <h1>
+                    📢 Notice Manager
+                </h1>
 
-            </label>
+                <p>
+                    Manage yearly website notices.
+                </p>
 
-            <input
-                type="text"
-                name="title"
-                value="{{ notice.title }}"
-                required
-            >
+            </div>
 
-            <label>
+        </div>
 
-                Notice Message
 
-            </label>
+        <!-- =====================================================
+             FLASH MESSAGES
+        ====================================================== -->
 
-            <textarea
-                name="message"
-                rows="8"
-                required
-            >{{ notice.message }}</textarea>
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
 
-            <button
-                class="admin-btn"
-                type="submit"
-            >
+            {% if messages %}
 
-                💾 Save Notice
+                <div class="admin-messages">
 
-            </button>
+                    {% for category, message in messages %}
 
-        </form>
+                        <div class="admin-message {{ category }}">
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <!-- =====================================================
+             YEAR SELECTOR
+        ====================================================== -->
+
+        <div class="admin-card">
+
+            <div class="schedule-admin-toolbar">
+
+                <div>
+
+                    <label for="noticeYear">
+                        Notice Year
+                    </label>
+
+                    <select
+                        id="noticeYear"
+                        onchange="changeNoticeYear(this.value)"
+                    >
+
+                        {% for year in available_years %}
+
+                            <option
+                                value="{{ year }}"
+
+                                {% if year|string == current_year|string %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ year }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             NOTICE FORM
+        ====================================================== -->
+
+        <div class="admin-card">
+
+            <form method="POST">
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <!-- TITLE -->
+
+                <div class="form-group">
+
+                    <label for="title">
+
+                        Notice Title
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        value="{{ notice.title }}"
+                        placeholder="Example: Upcoming Program"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- MESSAGE -->
+
+                <div class="form-group">
+
+                    <label for="message">
+
+                        Notice Message
+
+                    </label>
+
+                    <textarea
+                        id="message"
+                        name="message"
+                        rows="8"
+                        placeholder="Write your important notice here..."
+                        required
+                    >{{ notice.message }}</textarea>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="important">
+
+                        Important Message
+
+                    </label>
+
+                    <textarea
+                        id="important"
+                        name="important"
+                        rows="5"
+                        placeholder="Write important information shown in the Important box..."
+                    >{{ notice.important }}</textarea>
+
+                    <small>
+                        This message will appear in the Important section on the website.
+                    </small>
+
+                </div>
+
+
+                <!-- SAVE -->
+
+                <div class="committee-form-actions">
+
+                    <button
+                        type="submit"
+                        class="admin-btn"
+                    >
+
+                        💾 Save Notice
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
 
     </div>
 
 </section>
+
+
+<!-- =========================================================
+     YEAR CHANGE
+========================================================= -->
+
+<script>
+
+function changeNoticeYear(year) {
+
+    if (!year) {
+        return;
+    }
+
+    window.location.href =
+        "{{ url_for('admin_notice') }}" +
+        "?year=" +
+        encodeURIComponent(year);
+
+}
+
+</script>
+
 
 {% endblock %}

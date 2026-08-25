@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}
+Add Committee Member
+{% endblock %}
+
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+
+        <div class="admin-page-header">
+
+            <div>
+
+                <h1>
+                    ➕ Add Committee Member
+                </h1>
+
+                <p>
+                    Add a new committee member with name, post and photo.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{{ url_for('admin_committee') }}"
+                class="admin-btn secondary"
+            >
+                ← Back to Committee
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             ADD MEMBER FORM
+        ====================================================== -->
+
+        <div class="admin-card committee-form-card">
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                <!-- CSRF -->
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <!-- =================================================
+                     YEAR
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="year">
+                        Committee Year
+                    </label>
+
+                    <input
+                        type="text"
+                        id="year"
+                        name="year"
+                        value="{{ current_year }}"
+                        required
+                    >
+
+                    <small>
+                        Enter the year for which this member belongs.
+                    </small>
+
+                </div>
+
+
+                <!-- =================================================
+                     NAME
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="name">
+                        Member Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        placeholder="Enter member name"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     POST
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="post">
+                        Post
+                    </label>
+
+                    <input
+                        type="text"
+                        id="post"
+                        name="post"
+                        placeholder="President / Secretary / Treasurer / Member"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     ORDER
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="order">
+                        Display Order
+                    </label>
+
+                    <input
+                        type="number"
+                        id="order"
+                        name="order"
+                        value="999"
+                        min="1"
+                    >
+
+                    <small>
+                        Smaller number appears first.
+                    </small>
+
+                </div>
+
+
+                <!-- =================================================
+                     PHOTO
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="photo">
+                        Committee Member Photo
+                    </label>
+
+                    <input
+                        type="file"
+                        id="photo"
+                        name="photo"
+                        accept="image/*"
+                    >
+
+                    <small>
+                        Photo will be uploaded securely to Cloudinary.
+                    </small>
+
+                </div>
+
+
+                <!-- =================================================
+                     PHOTO PREVIEW
+                ================================================== -->
+
+                <div
+                    id="photoPreviewBox"
+                    style="display:none;"
+                >
+
+                    <p>
+                        Photo Preview
+                    </p>
+
+                    <img
+                        id="photoPreview"
+                        src=""
+                        alt="Photo Preview"
+                        style="
+                            max-width:220px;
+                            max-height:220px;
+                            object-fit:cover;
+                            border-radius:15px;
+                        "
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     ACTIONS
+                ================================================== -->
+
+                <div class="committee-form-actions">
+
+                    <a
+                        href="{{ url_for('admin_committee') }}"
+                        class="admin-btn secondary"
+                    >
+                        Cancel
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="admin-btn"
+                    >
+                        💾 Add Committee Member
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     PHOTO PREVIEW
+========================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const photoInput =
+            document.getElementById("photo");
+
+        const previewBox =
+            document.getElementById("photoPreviewBox");
+
+        const preview =
+            document.getElementById("photoPreview");
+
+
+        if (!photoInput) {
+            return;
+        }
+
+
+        photoInput.addEventListener(
+            "change",
+            function () {
+
+                const file =
+                    this.files[0];
+
+
+                if (!file) {
+
+                    previewBox.style.display = "none";
+
+                    preview.src = "";
+
+                    return;
+                }
+
+
+                if (!file.type.startsWith("image/")) {
+
+                    alert(
+                        "Please select an image file."
+                    );
+
+                    this.value = "";
+
+                    previewBox.style.display = "none";
+
+                    return;
+                }
+
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function (event) {
+
+                        preview.src =
+                            event.target.result;
+
+                        previewBox.style.display =
+                            "block";
+
+                    };
+
+
+                reader.readAsDataURL(file);
+
+            }
+        );
+
+    }
+);
+
+</script>
+
+{% endblock %}

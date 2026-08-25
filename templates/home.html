@@ -267,9 +267,11 @@ Home | Gajanan Utsav Samiti 2026
 
                     <div class="winner-row">
                         <img
-                        src="{{ url_for('static', filename=winner.photo) }}"
-                        alt="{{ winner.name }}"
-                        class="winner-thumb">
+                            src="{{ winner.photo if winner.photo else url_for('static', filename='images/default-user.png') }}"
+                            alt="{{ winner.name }}"
+                            class="winner-thumb"
+                            loading="lazy"
+                        >
 
                         <span>
 
@@ -373,27 +375,65 @@ MEMORIES
 
     <div class="container preview-grid">
 
-        <div>
+        <div class="gallery-preview-text">
 
             <h2>Previous Years Memories</h2>
 
             <p>
-
                 Explore beautiful moments captured during previous Ganesh Utsav celebrations.
-
             </p>
 
             <a href="/gallery" class="btn">
-
                 View Gallery
-
             </a>
 
         </div>
 
-        <div class="preview-image">
+        <div class="gallery-slider">
 
-            <img src="{{ url_for('static', filename='images/gallery-preview.jpg') }}" alt="Gallery Preview">
+            {% for photo in latest_gallery %}
+
+            <div class="gallery-slide {% if loop.first %}active{% endif %}">
+
+                <img
+                    src="{{ photo.url }}"
+                    alt="Gallery Preview"
+                    loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+
+            </div>
+
+            {% endfor %}
+
+            {% if latest_gallery|length > 1 %}
+
+            <button
+                type="button"
+                class="gallery-prev"
+                aria-label="Previous Photo">
+                &#10094;
+            </button>
+
+            <button
+                type="button"
+                class="gallery-next"
+                aria-label="Next Photo">
+                &#10095;
+            </button>
+
+            <div class="gallery-dots">
+
+                {% for photo in latest_gallery %}
+
+                <span
+                    class="gallery-dot {% if loop.first %}active{% endif %}"
+                    data-slide="{{ loop.index0 }}">
+                </span>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
 
         </div>
 
@@ -450,14 +490,16 @@ LOCATION
         </div>
 
         <div class="map-box">
-
+        
             <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1296.5917934341635!2d77.43529421883095!3d23.1951737291578!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x397c4300765648c7%3A0xc250fa875f0fe6d9!2sMohit%20Surewal!5e0!3m2!1sen!2sin!4v1785326591758!5m2!1sen!2sin"
+                src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d7334.638016458041!2d77.43611319612337!3d23.19504210796405!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sin!4v1787599245773!5m2!1sen!2sin"
                 style="border:0;"
                 loading="lazy"
                 allowfullscreen
                 referrerpolicy="strict-origin-when-cross-origin">
             </iframe>
+        
+        </div>
 
         </div>
 
@@ -513,72 +555,172 @@ LOCATION
 
 </div>
 
+
+<!-- =========================
+     FESTIVAL GLIMPSE 2025
+========================== -->
+
+<section class="video-preview reveal">
+
+    <div class="container">
+
+        <div class="section-title">
+
+            <h2>Festival Glimpse 2025</h2>
+
+            <p>
+                Relive the beautiful moments of Ganesh Utsav
+            </p>
+
+        </div>
+
+
+        {% if home_video_2025 and home_video_2025.youtube_id %}
+
+        <div class="home-video-card">
+
+            <div
+                class="youtube-home-thumbnail"
+                data-video-id="{{ home_video_2025.youtube_id }}"
+            >
+
+                <img
+                    src="https://i.ytimg.com/vi/{{ home_video_2025.youtube_id }}/hqdefault.jpg"
+                    alt="{{ home_video_2025.title }}"
+                    loading="lazy"
+                >
+
+                <button
+                    type="button"
+                    class="youtube-home-play"
+                    aria-label="Play Festival Glimpse 2025"
+                >
+                    ▶
+                </button>
+
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="home-video-empty">
+
+            <p>
+                🎬 Festival Glimpse 2025 video will be available soon.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
 </section>
 
-<section class="video-preview">
-
-<div class="container">
-
-<div class="section-title">
-
-<h2>Festival Glimpse 2025</h2>
-
-</div>
-
-<div class="video-card">
-
-<iframe width="100%" height="500"
-
-src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
-
-title="Festival Video"
-
-allowfullscreen>
-
-</iframe>
-
-</div>
-
-</div>
-
-</section>
+<!-- =========================
+     COMMITTEE PREVIEW
+========================== -->
 
 <section class="committee-preview reveal">
-<div class="container">
 
-<div class="section-title">
+    <div class="container">
 
-<h2>Our Committee</h2>
+        <div class="section-title">
 
-</div>
+            <h2>Our Committee</h2>
 
-<div class="committee-grid">
+        </div>
 
-{% for member in committee[:3] %}
 
-<div class="member">
+        <div class="committee-grid">
 
-    <img
-        src="{{ url_for('static', filename=member.image) }}"
-        alt="{{ member.name }}">
+            {% for member in committee[:3] %}
 
-    <h3>{{ member.name }}</h3>
+                <div class="member">
 
-    <p>{{ member.post }}</p>
+                    {% if member.image %}
 
-</div>
+                        <img
+                            src="{{ member.image }}"
+                            alt="{{ member.name }}"
+                            loading="lazy"
+                        >
 
-{% endfor %}
+                    {% else %}
 
-</div>
+                        <div class="committee-no-photo">
+                            👤
+                        </div>
 
-</div>
+                    {% endif %}
 
-<div class="scroll-indicator">
-    <span></span>
-</div>
+
+                    <h3>
+                        {{ member.name }}
+                    </h3>
+
+
+                    <p>
+                        {{ member.post }}
+                    </p>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
 
 </section>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const thumbnail =
+        document.querySelector(".youtube-home-thumbnail");
+
+    if (!thumbnail) {
+        return;
+    }
+
+    thumbnail.addEventListener("click", function () {
+
+        const videoId =
+            this.dataset.videoId;
+
+        if (!videoId) {
+            return;
+        }
+
+        const iframe =
+            document.createElement("iframe");
+
+        iframe.src =
+            "https://www.youtube.com/embed/"
+            + videoId
+            + "?autoplay=1&rel=0";
+
+        iframe.title =
+            "Festival Glimpse 2025";
+
+        iframe.allow =
+            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+
+        iframe.allowFullscreen = true;
+
+        this.replaceWith(iframe);
+
+    });
+
+});
+
+</script>
+
+
 
 
 {% endblock %}
