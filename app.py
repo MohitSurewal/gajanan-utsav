@@ -29,6 +29,7 @@ import secrets
 import string
 from datetime import datetime
 from google.oauth2 import service_account
+from google.cloud import firestore
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024
@@ -50,8 +51,16 @@ cred = credentials.Certificate(FIREBASE_CREDENTIALS)
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
-db = firestore.client()
+google_cred = service_account.Credentials.from_service_account_info(
+    FIREBASE_CREDENTIALS
+)
 
+db = firestore.Client(
+    project=google_cred.project_id,
+    credentials=google_cred,
+    database="(default)",
+    transport="rest"
+)
 
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
@@ -115,23 +124,15 @@ def firestore_rest_test():
         from google.oauth2 import service_account
         from google.cloud import firestore
 
-        # Firebase service-account data
-        firebase_info = FIREBASE_CREDENTIALS
-
-        # Agar environment variable/string ke form mein hai
-        if isinstance(firebase_info, str):
-            firebase_info = json.loads(firebase_info)
-
-        # Google-auth compatible credentials
         google_cred = service_account.Credentials.from_service_account_info(
-            firebase_info
+            FIREBASE_CREDENTIALS
         )
 
-        # Firestore client
         test_db = firestore.Client(
             project=google_cred.project_id,
             credentials=google_cred,
-            database="(default)"
+            database="(default)",
+            transport="rest"
         )
 
         docs = list(
@@ -145,6 +146,7 @@ def firestore_rest_test():
             "status": "ok",
             "project": google_cred.project_id,
             "database": "(default)",
+            "transport": "rest",
             "documents_found": len(docs)
         }
 
@@ -158,9 +160,6 @@ def firestore_rest_test():
             "error": str(e),
             "traceback": traceback.format_exc()
         }, 500
-
-
-
 
 
 
