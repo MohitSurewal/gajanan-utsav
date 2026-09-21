@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (days && hours && minutes && seconds) {
 
-        const target = new Date("2026-09-14T08:00:00").getTime();
+        const target = new Date("2026-09-25T08:00:00").getTime();
 
         function updateCountdown() {
 
