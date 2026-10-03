@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Use | Gajanan Utsav Samiti{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Terms of Use</h1>
+        <p>Gajanan Utsav Samiti 2026</p>
+    </div>
+</section>
+
+<section class="container" style="max-width:1000px; margin:40px auto; line-height:1.8;">
+    <article class="admin-card" style="padding:28px;">
+        <p><strong>Last updated:</strong> October 2026</p>
+
+        <h2>1. Website use</h2>
+        <p>
+            This website provides information about Gajanan Utsav Samiti events,
+            schedules, notices, galleries, winners and videos. Users should use the
+            website lawfully and respectfully.
+        </p>
+
+        <h2>2. Administration and YouTube integration</h2>
+        <p>
+            Authorized administrators may use the administration panel to connect a
+            YouTube account through Google OAuth and upload or manage festival videos.
+            The administrator is responsible for ensuring that uploaded content is
+            lawful and that they have the necessary rights and permissions.
+        </p>
+
+        <h2>3. YouTube API Services</h2>
+        <p>
+            The YouTube integration uses YouTube API Services. By using that
+            integration, users agree to comply with the
+            <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">
+                YouTube Terms of Service
+            </a>
+            and applicable YouTube API Services policies.
+        </p>
+
+        <h2>4. Google authorization</h2>
+        <p>
+            The website uses Google OAuth for authorization and does not ask users
+            to provide their Google password to this website.
+        </p>
+
+        <h2>5. Privacy</h2>
+        <p>
+            Our handling of information is described in our
+            <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>.
+        </p>
+
+        <h2>6. Changes</h2>
+        <p>
+            These Terms may be updated when the website or its services change.
+        </p>
+
+        <h2>7. Contact</h2>
+        <p>
+            Contact:
+            <a href="mailto:devoteescare@gajananutsavsamiti.online">
+                devoteescare@gajananutsavsamiti.online
+            </a>
+        </p>
+
+        <p style="margin-top:28px;">
+            <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>
+            &nbsp; | &nbsp;
+            <a href="{{ url_for('home') }}">Return to homepage</a>
+        </p>
+    </article>
+</section>
+{% endblock %}
