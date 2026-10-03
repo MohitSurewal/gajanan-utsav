@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy | Gajanan Utsav Samiti{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Privacy Policy</h1>
+        <p>Gajanan Utsav Samiti 2026</p>
+    </div>
+</section>
+
+<section class="container" style="max-width:1000px; margin:40px auto; line-height:1.8;">
+    <article class="admin-card" style="padding:28px;">
+        <p><strong>Last updated:</strong> October 2026</p>
+
+        <p>
+            This Privacy Policy explains how Gajanan Utsav Samiti ("we", "us", or "our")
+            operates this website and how we handle information used by the website's
+            authorized administration features.
+        </p>
+
+        <h2>1. About this website</h2>
+        <p>
+            Gajanan Utsav Samiti is a community/festival website for publishing
+            information about events, schedules, notices, galleries, winners and videos.
+            The public website can be viewed without signing in.
+        </p>
+
+        <h2>2. Information collected through the public website</h2>
+        <p>
+            The public pages do not require visitors to create a Google account or
+            provide a Google password. Information that a visitor voluntarily sends to
+            us through an available contact channel may be used to respond to that
+            request. Standard server, hosting and security logs may also be processed
+            by our hosting infrastructure for reliability and security.
+        </p>
+
+        <h2>3. Google and YouTube data</h2>
+        <p>
+            The administration panel provides an optional YouTube integration using
+            Google OAuth and YouTube API Services. Only an authorized administrator
+            who chooses to connect YouTube is asked to grant this access.
+        </p>
+        <p>
+            Depending on the permissions granted, the integration receives OAuth
+            authorization data and the YouTube permissions required to upload and
+            manage videos requested by the administrator. The application does not
+            request, collect or store the administrator's Google password.
+        </p>
+
+        <h2>4. How Google/YouTube data is used</h2>
+        <p>
+            Google/YouTube data is used only to provide the YouTube features that are
+            visible in the administration panel, including uploading videos and
+            performing video-management actions explicitly requested by the authorized
+            administrator.
+        </p>
+        <p>
+            We do not sell Google user data. We do not use Google user data for
+            advertising, credit scoring, unrelated profiling, or unrelated purposes.
+            We do not use Google user data for AI model training.
+        </p>
+
+        <h2>5. OAuth credential storage and security</h2>
+        <p>
+            After authorization, the website stores the OAuth credentials needed to
+            maintain the authorized YouTube connection on server-side infrastructure.
+            The application uses a database service to persist the connection because
+            the production hosting filesystem is not a permanent credential store.
+            Credentials are used only by the server-side YouTube integration and are
+            not intentionally displayed to public website visitors.
+        </p>
+
+        <h2>6. Sharing of Google/YouTube data</h2>
+        <p>
+            We do not sell or rent Google/YouTube data. We do not share authorized
+            Google/YouTube data with third parties except where necessary to operate
+            the requested YouTube API feature, protect the service, comply with law,
+            or otherwise as permitted by the user's authorization and applicable
+            Google API policies.
+        </p>
+
+        <h2>7. User control and revoking access</h2>
+        <p>
+            An authorized administrator controls whether to connect the YouTube
+            integration. The administration panel provides a Disconnect option that
+            removes the stored YouTube OAuth connection from this website. Disconnecting
+            the website does not delete videos from YouTube.
+        </p>
+        <p>
+            Google access can also be reviewed or revoked from the administrator's
+            Google Account security settings.
+        </p>
+
+        <h2>8. Data deletion</h2>
+        <p>
+            To request deletion of application-stored OAuth connection information,
+            contact us using the email address below. We will process the request
+            subject to legitimate security, legal and operational requirements.
+            Data already published to YouTube is controlled by the authorized
+            YouTube account and is not deleted solely by deleting this website's
+            stored OAuth credentials.
+        </p>
+
+        <h2>9. YouTube API Services</h2>
+        <p>
+            This website uses YouTube API Services. Your use of the YouTube integration
+            is also subject to the
+            <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">
+                YouTube Terms of Service
+            </a>
+            and Google's applicable API policies.
+        </p>
+
+        <h2>10. Google Privacy Policy</h2>
+        <p>
+            Information about Google's own handling of information is available in the
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
+                Google Privacy Policy
+            </a>.
+        </p>
+
+        <h2>11. Changes to this policy</h2>
+        <p>
+            We may update this Privacy Policy when the website or its data practices
+            change. The updated version will be published on this page with a revised
+            "Last updated" date.
+        </p>
+
+        <h2>12. Contact</h2>
+        <p>
+            For privacy or data-deletion questions, contact:
+            <a href="mailto:devoteescare@gajananutsavsamiti.online">
+                devoteescare@gajananutsavsamiti.online
+            </a>
+        </p>
+
+        <p style="margin-top:28px;">
+            <a href="{{ url_for('terms_of_use') }}">Read our Terms of Use</a>
+            &nbsp; | &nbsp;
+            <a href="{{ url_for('home') }}">Return to homepage</a>
+        </p>
+    </article>
+</section>
+{% endblock %}

@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Committee Member
+{% endblock %}
+
+
+{% block content %}
+
+<section class="admin-dashboard">
+
+    <div class="container">
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+
+        <div class="admin-page-header">
+
+            <div>
+
+                <h1>
+                    ✏️ Edit Committee Member
+                </h1>
+
+                <p>
+                    Update committee member details and photo.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{{ url_for(
+                    'admin_committee',
+                    year=member.year
+                ) }}"
+                class="admin-btn secondary"
+            >
+                ← Back to Committee
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             FLASH MESSAGES
+        ====================================================== -->
+
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
+
+            {% if messages %}
+
+                <div class="admin-messages">
+
+                    {% for category, message in messages %}
+
+                        <div class="admin-message {{ category }}">
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <!-- =====================================================
+             EDIT FORM
+        ====================================================== -->
+
+        <div class="admin-card committee-form-card">
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                <!-- CSRF -->
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                <!-- =================================================
+                     YEAR
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="year">
+                        Committee Year
+                    </label>
+
+                    <input
+                        type="text"
+                        id="year"
+                        name="year"
+                        value="{{ member.year }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     NAME
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="name">
+                        Member Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value="{{ member.name }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     POST
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="post">
+                        Post
+                    </label>
+
+                    <input
+                        type="text"
+                        id="post"
+                        name="post"
+                        value="{{ member.post }}"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     DISPLAY ORDER
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="order">
+                        Display Order
+                    </label>
+
+                    <input
+                        type="number"
+                        id="order"
+                        name="order"
+                        value="{{ member.order|default(999) }}"
+                        min="1"
+                    >
+
+                    <small>
+                        Smaller number appears first.
+                    </small>
+
+                </div>
+
+
+                <!-- =================================================
+                     CURRENT PHOTO
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label>
+                        Current Photo
+                    </label>
+
+                    {% if member.image %}
+
+                        <div class="current-committee-photo">
+
+                            <img
+                                src="{{ member.image }}"
+                                alt="{{ member.name }}"
+                                loading="lazy"
+                            >
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="committee-no-photo">
+                            👤
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- =================================================
+                     NEW PHOTO
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label for="photo">
+                        Replace Photo
+                    </label>
+
+                    <input
+                        type="file"
+                        id="photo"
+                        name="photo"
+                        accept="image/*"
+                    >
+
+                    <small>
+
+                        Leave empty if you want to keep
+                        the current photo.
+
+                    </small>
+
+                </div>
+
+
+                <!-- =================================================
+                     NEW PHOTO PREVIEW
+                ================================================== -->
+
+                <div
+                    id="photoPreviewBox"
+                    style="display:none;"
+                >
+
+                    <p>
+                        New Photo Preview
+                    </p>
+
+                    <img
+                        id="photoPreview"
+                        src=""
+                        alt="New Photo Preview"
+                        style="
+                            max-width:220px;
+                            max-height:220px;
+                            object-fit:cover;
+                            border-radius:15px;
+                        "
+                    >
+
+                </div>
+
+
+                <!-- =================================================
+                     ACTIONS
+                ================================================= -->
+
+                <div class="committee-form-actions">
+
+                    <a
+                        href="{{ url_for(
+                            'admin_committee',
+                            year=member.year
+                        ) }}"
+                        class="admin-btn secondary"
+                    >
+                        Cancel
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="admin-btn"
+                    >
+                        💾 Update Committee Member
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     PHOTO PREVIEW
+========================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const photoInput =
+            document.getElementById("photo");
+
+        const previewBox =
+            document.getElementById(
+                "photoPreviewBox"
+            );
+
+        const preview =
+            document.getElementById(
+                "photoPreview"
+            );
+
+
+        if (!photoInput) {
+            return;
+        }
+
+
+        photoInput.addEventListener(
+            "change",
+            function () {
+
+                const file =
+                    this.files[0];
+
+
+                if (!file) {
+
+                    previewBox.style.display =
+                        "none";
+
+                    preview.src = "";
+
+                    return;
+                }
+
+
+                if (!file.type.startsWith("image/")) {
+
+                    alert(
+                        "Please select an image file."
+                    );
+
+                    this.value = "";
+
+                    previewBox.style.display =
+                        "none";
+
+                    return;
+                }
+
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function (event) {
+
+                        preview.src =
+                            event.target.result;
+
+                        previewBox.style.display =
+                            "block";
+
+                    };
+
+
+                reader.readAsDataURL(file);
+
+            }
+        );
+
+    }
+);
+
+</script>
+
+{% endblock %}

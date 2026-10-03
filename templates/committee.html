@@ -4,86 +4,200 @@
 Committee | Gajanan Utsav Samiti 2026
 {% endblock %}
 
+
 {% block content %}
 
+
+<!-- =========================================================
+     PAGE HEADER
+========================================================== -->
+
 <section class="page-header">
+
     <div class="container">
-        <h1>Committee Members</h1>
-        <p>Gajanan Utsav Samiti - I TYPE Colony</p>
+
+        <h1>
+            Committee Members
+        </h1>
+
+        <p>
+            Gajanan Utsav Samiti - I TYPE Colony
+        </p>
+
     </div>
+
 </section>
+
+
+
+<!-- =========================================================
+     COMMITTEE
+========================================================== -->
 
 <section class="committee-page">
 
     <div class="container">
 
+
+        <!-- =====================================================
+             YEAR SELECTOR
+        ====================================================== -->
+
+        <div class="committee-year-selector">
+
+            <label for="publicCommitteeYear">
+                Committee Year
+            </label>
+
+
+            <select
+                id="publicCommitteeYear"
+                onchange="changePublicCommitteeYear(this.value)"
+            >
+
+                {% for year in available_years %}
+
+                    <option
+                        value="{{ year }}"
+                        {% if year|string == current_year|string %}
+                            selected
+                        {% endif %}
+                    >
+
+                        {{ year }}
+
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             COMMITTEE GRID
+        ====================================================== -->
+
         <div class="committee-grid">
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/Mohit.png') }}" alt="Mohit Surewal">
-                <h3>Member</h3>
-                <p>Mohit Surewal</p>
-            </div>
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/Rohit.png') }}" alt="Rohit Verma">
-                <h3>Member</h3>
-                <p>Rohit Verma</p>
-            </div>
+            {% if committee %}
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/Vijay.png') }}" alt="Vijay Negi">
-                <h3>Member</h3>
-                <p>Vijay Negi</p>
-            </div>
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/Vivek.png') }}" alt="Vivek Verma">
-                <h3>Member</h3>
-                <p>Vivek Verma</p>
-            </div>
+                {% for member in committee %}
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/Yash.png') }}" alt="Yash Kolare">
-                <h3>Member</h3>
-                <p>Yash Kolare</p>
-            </div>
+                    <div class="committee-card reveal-scale">
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/Anmol.png') }}" alt="Anmol Uikey">
-                <h3>Member</h3>
-                <p>Anmol Uikey</p>
-            </div>
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/Ankush.png') }}" alt="Ankush Ranway">
-                <h3>Member</h3>
-                <p>Ankush Ranway</p>
-            </div>
+                        <!-- =================================================
+                             PHOTO
+                        ================================================== -->
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/papa.png') }} " alt="Fattu Surewal">
-                <h3>Member</h3>
-                <p>Fattu Surewal</p>
-            </div>
+                        {% if member.image %}
 
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/phupa.png') }} " alt="Radhesyam Rajoriya">
-                <h3>Member</h3>
-                <p>Radhesyam Rajoriya</p>
-            </div>
+                            <img
+                                src="{{ member.image }}"
+                                alt="{{ member.name }}"
+                                loading="lazy"
+                            >
 
-            <!-- 10th Member -->
-            <div class="committee-card reveal-scale">
-                <img src="{{ url_for('static', filename='images/Lucky.png') }} " alt="Lucky Ramola">
-                <h3>Member</h3>
-                <p>Lucky Ramola</p>
-            </div>
+                        {% else %}
+
+                            <div class="committee-no-photo">
+                                👤
+                            </div>
+
+                        {% endif %}
+
+
+
+                        <!-- =================================================
+                             POST
+                        ================================================== -->
+
+                        <h3>
+
+                            {{ member.post }}
+
+                        </h3>
+
+
+
+                        <!-- =================================================
+                             NAME
+                        ================================================== -->
+
+                        <p>
+
+                            {{ member.name }}
+
+                        </p>
+
+
+                    </div>
+
+                {% endfor %}
+
+
+            {% else %}
+
+
+                <!-- =================================================
+                     NO DATA
+                ================================================== -->
+
+                <div class="committee-empty">
+
+                    <div class="empty-icon">
+                        👥
+                    </div>
+
+                    <h2>
+                        No Committee Members
+                    </h2>
+
+                    <p>
+                        No committee members have been added
+                        for {{ current_year }} yet.
+                    </p>
+
+                </div>
+
+
+            {% endif %}
+
 
         </div>
 
     </div>
 
 </section>
+
+
+
+<!-- =========================================================
+     YEAR CHANGE
+========================================================== -->
+
+<script>
+
+function changePublicCommitteeYear(year) {
+
+    if (!year) {
+        return;
+    }
+
+
+    window.location.href =
+        "{{ url_for('committee') }}" +
+        "?year=" +
+        encodeURIComponent(year);
+
+}
+
+</script>
+
 
 {% endblock %}
