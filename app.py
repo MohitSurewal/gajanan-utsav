@@ -630,6 +630,11 @@ def load_videos():
 
 
 def get_youtube_credentials():
+    """Load and refresh the YouTube OAuth credentials stored in Firestore.
+
+    Important: the access-token expiry and the refresh token must be persisted.
+    Render's filesystem is ephemeral, so Firestore is the long-term store.
+    """
 
     doc_ref = (
         db
@@ -639,113 +644,79 @@ def get_youtube_credentials():
 
     doc = doc_ref.get()
 
-    # ==========================================
-    # YOUTUBE NOT CONNECTED
-    # ==========================================
-
     if not doc.exists:
         print("[YouTube] Account is not connected.")
         return None
 
     data = doc.to_dict() or {}
-
     refresh_token = data.get("refresh_token")
 
     if not refresh_token:
-        print("[YouTube] Refresh token missing.")
+        print("[YouTube] Refresh token missing; reauthorization required.")
         return None
 
-    # ==========================================
-    # CREATE CREDENTIALS
-    # ==========================================
+    scopes = data.get("scopes") or YOUTUBE_SCOPES
 
     youtube_credentials = Credentials(
-
         token=data.get("token"),
-
         refresh_token=refresh_token,
-
         token_uri=data.get(
             "token_uri",
             "https://oauth2.googleapis.com/token"
         ),
-
-        client_id=data.get(
-            "client_id",
-            YOUTUBE_CLIENT_ID
-        ),
-
+        client_id=data.get("client_id") or YOUTUBE_CLIENT_ID,
         client_secret=YOUTUBE_CLIENT_SECRET,
-
-        scopes=data.get(
-            "scopes",
-            YOUTUBE_SCOPES
-        )
+        scopes=scopes,
+        expiry=data.get("expiry"),
+        granted_scopes=data.get("granted_scopes")
     )
 
-    # ==========================================
-    # REFRESH ACCESS TOKEN
-    # ==========================================
-
-    if youtube_credentials.expired:
-
+    # Refresh when the access token is missing/expired/stale according to
+    # google-auth. The previous code only saved the access token and omitted
+    # expiry, which made persisted credentials incomplete.
+    if not youtube_credentials.valid:
         try:
+            print("[YouTube] Access token missing/expired. Refreshing...")
 
-            print(
-                "[YouTube] Access token expired. "
-                "Refreshing..."
-            )
+            youtube_credentials.refresh(Request())
 
-            youtube_credentials.refresh(
-                Request()
-            )
+            # Persist BOTH the current access token and all refresh metadata.
+            # google-auth can return a replacement refresh token, so never
+            # assume the old refresh token is still the one to store.
+            doc_ref.set({
+                "token": youtube_credentials.token,
+                "refresh_token": youtube_credentials.refresh_token,
+                "expiry": youtube_credentials.expiry,
+                "token_uri": youtube_credentials.token_uri,
+                "client_id": youtube_credentials.client_id,
+                "scopes": youtube_credentials.scopes or YOUTUBE_SCOPES,
+                "granted_scopes": youtube_credentials.granted_scopes,
+                "connection_status": "connected",
+                "updated_at": firestore.SERVER_TIMESTAMP
+            }, merge=True)
 
-            # Save new access token
-            doc_ref.update({
-
-                "token":
-                    youtube_credentials.token
-
-            })
-
-            print(
-                "[YouTube] Access token refreshed successfully."
-            )
+            print("[YouTube] Access token refreshed successfully.")
 
         except RefreshError as e:
+            print("[YouTube] Refresh token is invalid or revoked.")
+            print("[YouTube] RefreshError:", str(e))
 
-            print(
-                "[YouTube] Refresh token is invalid "
-                "or revoked."
-            )
-
-            print(
-                "[YouTube] RefreshError:",
-                str(e)
-            )
-
-            # Mark connection as invalid
+            # Do not keep trying the known-invalid credential on every upload.
+            # The admin must complete OAuth again to obtain a fresh grant.
             try:
-
-                doc_ref.update({
-
-                    "connection_status":
-                        "reauthorization_required"
-
-                })
-
-            except Exception:
-                pass
+                doc_ref.set({
+                    "token": None,
+                    "expiry": None,
+                    "connection_status": "reauthorization_required",
+                    "updated_at": firestore.SERVER_TIMESTAMP
+                }, merge=True)
+            except Exception as mark_error:
+                print("[YouTube] Could not mark reauthorization state:", mark_error)
 
             return None
 
         except Exception as e:
-
-            print(
-                "[YouTube] Token refresh failed:",
-                str(e)
-            )
-
+            print("[YouTube] Token refresh failed:", str(e))
             return None
 
     return youtube_credentials
@@ -5398,11 +5369,12 @@ def youtube_oauth_callback():
     state = session.get("youtube_oauth_state")
     code_verifier = session.get("youtube_code_verifier")
 
-    if not state:
-        return "OAuth session expired. Please try again.", 400
-
-    if not code_verifier:
-        return "OAuth code verifier missing. Please start the connection again.", 400
+    if not state or not code_verifier:
+        flash(
+            "The YouTube OAuth session expired. Please start the YouTube connection again.",
+            "warning"
+        )
+        return redirect(url_for("admin_videos"))
 
     # Verify state returned by Google
     returned_state = request.args.get("state")
@@ -5500,6 +5472,12 @@ def youtube_oauth_callback():
 
         "scopes":
             credentials.scopes,
+
+        "granted_scopes":
+            credentials.granted_scopes,
+
+        "expiry":
+            credentials.expiry,
 
         "connection_status":
             "connected",

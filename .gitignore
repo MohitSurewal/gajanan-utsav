@@ -19,3 +19,5 @@ instance/
 
 .DS_Store
 Thumbs.db
+# Firebase service-account credentials are provided through Render env vars.
+gajanan-utsav-firebase-adminsdk-*.json
