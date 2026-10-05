@@ -8855,7 +8855,7 @@ def home():
     # The existing home.html expects the variable
     # home_video_2025, so keep that variable name for
     # template compatibility, but load the latest 2026 video.
-    home_video_2025 = None
+    home_video_2026 = None
 
     try:
 
@@ -8885,12 +8885,12 @@ def home():
                 reverse=True
             )
 
-            home_video_2025 = all_2026_videos[0]
+            home_video_2026 = all_2026_videos[0]
 
             print(
                 "[HOME] 2026 Festival Glimpse selected:",
-                home_video_2025.get("title"),
-                home_video_2025.get("youtube_id")
+                home_video_2026.get("title"),
+                home_video_2026.get("youtube_id")
             )
         else:
             print("[HOME] No 2026 Festival Glimpse video found.")
@@ -8914,7 +8914,7 @@ def home():
         committee=committee,
         latest_gallery=latest_gallery,
         latest_winners=latest_winners,
-        home_video_2025=home_video_2025,
+        home_video_2026=home_video_2026,
         active_page="home"
     )
     
