@@ -9,7 +9,7 @@ SECRET_KEY = os.environ.get(
 
 ADMIN_USERNAME = os.environ.get(
     "ADMIN_USERNAME",
-    "Adhyaksha"
+    
 )
 
 ADMIN_PASSWORD_HASH = os.environ.get(
